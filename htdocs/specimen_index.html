@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>HUH - Databases - Specimen Search</title>
+	<link rel="stylesheet" type="text/css" media="print" href="print.css"></link>
+	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
+	<link rel="stylesheet" type="text/css" media="print" href="cms-db.css"></link>
+</head>
+<body>
+<div id="allcontent">
+	
+		<!-- header code begins -->
+		<div id="header">
+			<div id="top_menu">
+			
+		        <!-- SiteSearch Google HERE -->
+		         
+				<div id="embed_nav">
+		  			<ul>
+						<li><a href="/">Home</a></li>
+						<li>&#124;</li>
+						<li><a href="http://zatoichi.huh.harvard.edu/people/index.php">Contact</a></li>
+						<li>&#124;</li>
+						<li><a href="/news_events/news_events.html">News &#38; Events</a></li>
+
+						<li>&#124;</li>
+						<li><a href="/news_events/calendar.html">Calendar</a></li>
+						<li>&#124;</li>
+						<li><a href="/sitemap.html">Sitemap</a></li>
+						<li>&#124;</li>
+						<li><a href="/links.html">Links</a></li>
+		  			</ul>
+
+				</div>
+			
+			</div>
+			<!-- top menu ends -->
+		
+				<div id="mid_sect">
+					<a href="http://www.huh.harvard.edu"><img width="100" src="http://www.huh.harvard.edu/images/huh_logo_bw_100.png" alt="HUH logo" title="Home page" /></a>
+				</div>
+	
+
+				<div id='topnav'>
+		 			<ul>
+			 			<li ><a href='http://www.huh.harvard.edu/collections/'>Collections</a></li>
+
+			 			<li class=active><a href='http://www.huh.harvard.edu/databases/'>Databases</a></li>
+			 			<li ><a href='http://www.huh.harvard.edu/research/'>Research</a></li>
+			 			<li ><a href='http://www.huh.harvard.edu/seminar_series/'>Seminar Series</a></li>
+			 			<li ><a href='http://www.huh.harvard.edu/libraries/'>Libraries</a></li>
+			 			<li  ><a href='http://zatoichi.huh.harvard.edu/people/'>People</a></li>
+			 			<li ><a href='http://www.huh.harvard.edu/publications/'>HPB Journal</a></li>
+
+			 			<li ><a href='http://www.huh.harvard.edu/visiting/'>Visiting</a></li>
+		   			</ul>
+		 		</div>
+		
+		</div>
+
+		<!-- header code ends -->
+		
+<div id="sidenav">
+  <ul>
+    <li><a href="addenda.html">SEARCH HINTS</a></li>
+    <li><a href="addenda.html#policy">DISTRIBUTION AND USE POLICY</a></li>
+  <hr />
+    <li><a href="botanist_index.html">BOTANISTS</a></li>
+    <li><a href="publication_index.html">PUBLICATIONS</a></li>
+    <li><a href="specimen_index.html" class="active">SPECIMENS</a></li>
+  <hr />   
+    <li><a href="add_correct.html">Contribute additions/corrections</a></li>
+    <li><a href="comment.html">Send comments/questions</a></li>
+    
+  </ul>
+</div>  <!-- sidenav ends -->		
+		
+		
+<div id="main">
+		<!-- main content begins -->
+		<div id="main_text">
+           <h3>Index of Botanical Specimens</h3>
+
+
+<p>Of the over 5 million specimens in the Harvard University Herbaria, over 180,000
+	 have records in the <a href="http://www.huh.harvard.edu/databases/cms/datamodel/">database system</a> 
+	 of which about 100,000 correspond to type specimens of vascular plants and mosses.  Also included are fungi, lichens, bryophytes, and algae. </p>
+
+
+
+<form action="specimen_search.php" method="GET">
+   <input type="hidden" name="start" value="1"> 
+   <table align="center" cellspacing="6">
+			<tr>
+ 				  <td>Genus</td>
+    			<td colspan="2">%<input type="text" name="gen" value="" size="30" maxlength="59"></td>
+				  <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
+    			<td colspan="2"><input type="text" name="ht" value="" size="30" maxlength="59"></td>
+    		</tr>
+			<tr>			
+				  <td>Specific epithet</td>
+    			<td colspan="2">%<input type="text" name="sp" value="" size="30" maxlength="59"></td>
+				  <td>Infraspecific epithet</td>
+    			<td colspan="2"><input type="text" name="infra" value="" size="30" maxlength="59"></td>
+				  <td></td>
+		    </tr>
+			<tr>
+ 				<td>Author</td>
+    			<td colspan="2">%<input type="text" name="author" value="" size="30" maxlength="59"></td>
+				  <td>Year published</td>
+    			<td colspan="2"><input type="text" name="year" value="" size="4" maxlength="59"></td>
+    		</tr>
+			<tr>
+ 			  <td> </td>
+				<td colspan="2">&nbsp;<input type="checkbox" name="tp" value="on" />Types only</td>
+			    <td>Type status</td>
+					<td colspan="2" size="30"><select name="ts" size="1">
+								 <!--option value="none">&lt;ignore&gt; -->
+								 <option value="0" selected="true">any 
+								 <option value="111101">epitype</option>
+								 <option value="111103">holotype</option>
+								 <option value="111102">isoepitype</option>
+								 <option value="111106">isolectotype</option>
+								 <option value="111108">isoneotype</option>
+								 <option value="111110">isosyntype</option>
+								 <option value="111104">isotype</option>
+								 <option value="111105">lectotype</option>
+								 <option value="111111">neosyntype</option>
+								 <option value="111107">neotype</option>
+								 <option value="111109">syntype</option>
+								 <option value="111115">drawing of type</option>
+								 <option value="111116">photograph of type</option>
+					</select></td></tr>
+			<tr>
+				  <td>Collector</td>
+    			<td colspan="2">%<input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
+					<td>Collector no.</td>
+    			<td colspan="2"><input type="text" name="cltrno" value="" size="20" maxlength="59" /></td></tr>
+			<tr>
+					<td>Location</td>
+	  			<td colspan="2">&nbsp;&nbsp;&nbsp;<input type="text" name="loc" value="" size="30" maxlength="59" /></td>
+					<td>Barcode</td>
+    			<td colspan="2"><input type="text" name="barcode" value="" size="20" maxlength="59" /></td></tr>
+			<tr>
+			    <td colspan="1"> </td>
+				<td> </td>
+				<td size="30"><input type="checkbox" name="imgs" value="on">with images only</td>
+			</tr>
+    </table>
+	<table align="center">
+			<tr><td width="10"><input type="submit" value="Search"></td>
+			<td width="10"><input type="reset" value="Clear"></td></tr>
+	</table>
+</form>
+ 
+<p>Fields marked % do an exact match search unless * or % is added as a wildcard.  Other fields do wildcard searches.
+	For plant names, enter search keys in any combination to qualify the name:
+	family/higher taxon, genus, specific epithet, and infraspecific epithet.  Results are inclusive, 
+    so it is possible to search for all specimens in a genus, for example.    
+	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	
+	For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
+	 Enter a collector's name in any form.
+	 For location, enter a single placename of a country or a smaller geopolitical entity.
+	 If a barcode number is entered, all other search parameters will be ignored.</p>
+
+
+		    </div>
+	</div>
+
+	<!-- main content ends -->
+
+<!-- footer include begins -->		
+	<div id="footer">
+
+			<div id="embed_nav2">
+		  		<ul>
+					<li><a href="http://www.arboretum.harvard.edu/" target="_blank">Arnold Arboretum</a></li>
+					<li>&#124;</li>
+					<li><a href="http://www.oeb.harvard.edu/" target="_blank">OEB</a></li>
+
+					<li>&#124;</li>
+					<li><a href="http://www.pbi.fas.harvard.edu/" target="_blank">PBI</a></li>
+					<li>&#124;</li>
+					<li><a href="http://www.hmnh.harvard.edu/" target="_blank">HMNH</a></li> 
+		  		</ul>
+			</div>
+			<h5>&copy; 2001 - <span id="cdate"></span> by the President and Fellows of <a href="http://www.harvard.edu/" target="_blank">Harvard</a> College
+		 	<br /><a href="priv_statement.html">Privacy Statement</a> <span class="footer_indent">Updated: 
+		 		
+		 		2009 May 21		 		
+				</span></h5>
+
+		 		
+		 		<!-- gets current year for copyright date -->
+		 		<script type="text/javascript">
+					// <![CDATA[
+						var now = new Date()
+						document.getElementById("cdate").innerHTML = now.getFullYear();
+					// ]]>
+				</script>
+
+	</div>
+
+</div> <!-- all content div tag ends -->
+</body>
+</html>

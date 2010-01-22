@@ -1,0 +1,43 @@
+/* css for printing */
+
+body, #allcontent {
+color: black;
+background-color: white;
+font-family: Times New Roman, Georgia, serif;
+font-size: 12pt;
+}
+
+#header, #embednav, #topnav, #sidenav, #footer, img {
+display: none;
+}
+
+a {
+text-decoration: none;
+}
+a:link {
+color: black;
+}
+a:visited {
+color: black;
+}
+
+#main , #main_text, .contain {
+margin: 0px;
+padding: 0px;
+color: black;
+}
+
+#overflow {
+width: auto;
+height: auto;
+margin: 5px;
+padding: 0px;
+border: none;
+color: black;
+background-color: white;
+}
+
+#overflow h2 {
+color: black;
+background-color: white;
+}

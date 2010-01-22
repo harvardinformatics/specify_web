@@ -1,0 +1,477 @@
+/* all content styles begins for databases directory */
+	body {
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	background-color: #c7ccbf; 
+	font-size : small; 
+	color: #000000;
+	margin: 0px;
+	padding: 0px;
+	}
+	#allcontent {
+	background-color: white;
+	margin: 0px;
+	padding: 0px;
+	}
+	/* all content styles ends */
+
+/* header styles begins */
+	#header {
+	background-color: #b8c0d2;
+	margin: 0px;
+	padding: 0px;
+    }
+    
+    /* top_menu style begins */
+    	/* embedded navbar begins */
+    	#embed_nav {
+    	float: right;
+		margin: 0px 0px 5px 0px;
+		padding: 0px;
+		}
+		#embed_nav ul {
+		list-style: none;
+		margin: 5px 0px 2px 0px;
+		padding: 0px 5px 5px 0px;
+		white-space: nowrap;
+		}
+		#embed_nav li {
+		display: inline;
+		padding: 2px;
+		margin: 0px;
+		}
+		#embed_nav a {
+		font-size: 90%;
+		color: #89201b;
+		text-decoration: none;	
+		}	
+		#embed_nav a:hover {
+		text-decoration: underline;
+		}
+    	/* embedded navbar begins */
+    
+		/* google tool bar styles begin */
+		#google-bar {
+		float: right;
+		font-size: 70%;
+		margin: 4px 0px 0px 0px;
+		padding: 0px;
+		}
+		/* google tool bar styles begin */
+	/* top_menu style ends */
+	
+	/* mid_sect style begins */
+	#mid_sect {
+	background-image: url(http://www.huh.harvard.edu/research/seasianfloras/images/acer_banner2.jpg);
+	
+	margin: 0px;
+	padding: 0px;
+	clear: right;
+	height: 110px;
+	}
+	#mid_sect img {
+	margin: 5px;
+	border: none;
+	}
+		/* for home page only, bigger image */
+		#home_mid_sect {
+		background-image: url(http://zatoichi.huh.harvard.edu/research/seasianfloras/images/acer_banner_home5.jpg);
+		margin: 0px;
+		padding: 0px;
+		clear: right;
+		height: 200px;
+		}
+		#home_mid_sect img {
+		border: none;
+		margin: 5px;
+		}
+	/* mid_sect style begins */
+    
+	/* topnav css begins */
+	#topnav {
+	clear: left;
+	}
+	#topnav ul {
+	margin: 0px;
+	padding: 5px;
+	text-align: center;
+	font-size: 1.1em;
+	list-style: none;
+	background-color: #003452;
+	}
+	#topnav li {
+	display: inline;
+	padding: 0px 5px;
+	margin: 0px;
+	}
+	#topnav a {
+	color: white;
+	text-decoration: none;
+	padding: 5px;
+	margin: 0px;	
+	}	
+	#topnav li.active a {
+	text-decoration: none;
+	background-color: #336699;
+	color: white;
+	margin: 0px;
+	padding: 5px;
+	}
+	#topnav li.active {
+	color: white;
+	}
+	#topnav a:hover {
+	text-decoration: none;
+	background-color: #336699;
+	color: white;
+	margin: 0px;
+	padding: 5px;
+	}
+	/* topnav css ends */
+	
+	/* second navbar style begins */
+	#nav2 {
+	background: #336699;
+	color: white;
+	}
+	#nav2 ul {
+	text-align: left;
+	font-size: 1em;
+	list-style: none;
+	margin: 0px 0px 0px 200px;
+	padding: 5px;
+	}
+	#nav2 li {
+	display: inline;
+	text-align: center;
+	padding: 0px 5px;
+	margin: 0px;
+	}
+	#nav2 a {
+	color: white;
+	text-decoration: none;
+	margin: 0px;
+	padding: 5px 10px;
+	}	
+	#nav2 a.active {
+	background-color: #b8c0d2;
+	color: black;
+	text-decoration: none;
+	margin: 0px;
+	padding: 5px 10px;
+	}
+	#nav2 a:hover {
+	background-color: #b8c0d2;
+	color: black;
+	text-decoration: none;
+	margin: 0px;
+	padding: 5px 10px;
+	}
+	/* second navbar style ends */	
+/* header styles ends */
+	
+/* sidenav style begins */
+	#sidenav {
+	color: #89201b;
+	margin: 0px 30px 0px 0px;
+	padding: 30px 0px 20px 5px;
+	float: left;
+	width: 220px;
+	background: #b8c0d2;
+	}
+	#sidenav ul {
+	font-size: 100%;
+	list-style: none;
+	margin: 5px;
+	padding: 0px;
+	line-height: 1.5em;
+	}
+	#sidenav li {
+	text-align: left;
+	padding: 5px 5px 5px 5px;
+	margin: 0px;
+	}
+	#sidenav p {
+	color: black;
+	margin-left: 10px;
+	}
+	#sidenav a {
+	color: #89201b;
+	text-decoration: none;
+	margin: 0px;
+	padding: 0px;
+	}	
+	#sidenav a.active {
+	text-decoration: underline;
+	font-weight: bold;
+	margin: 0px;
+	padding: 0px;
+	}
+	#sidenav a:hover {
+	text-decoration: underline;
+	margin: 0px;
+	padding: 0px;
+	}
+	#sidenav img {
+	margin: 0px;
+	padding: 0px;
+	}
+	/* sidenav for publications begins */
+    #sidenav .clear_left {
+    clear: left;
+    padding: 0px;
+    padding-top: 15px;
+	}
+	/* sidenav for publications ends */
+/* sidenav style ends */
+	
+/* main text styles begin */
+	#main {
+	background: #b8c0d2;
+	margin: 0px;
+	padding: 0px;
+	}
+	#main_text {
+	background: white;
+	margin: 0px;
+	padding: 0px;
+	padding-left: 35px;
+	padding-right: 35px;
+	margin-left: 225px;
+	padding-bottom: 20px;
+	}
+	#main_text p {
+	padding: 5px;
+	margin: 0px;
+	padding-top: 20px;
+	}
+	#main_text li {
+	font-size: 90%;
+	list-style: none;
+	line-height: 1.8em;
+	}
+	#main_text a {
+	font-size: 100%;
+	color: #89201b;
+	text-decoration: underline;
+	}
+	#main_text a:hover {
+	text-decoration: none;
+	}
+	#main_text a:visited {
+	color: #003452;
+	}
+	h1 {
+	font-size: 140%;
+	text-align: left;
+	color: #336633;
+	margin: 0px;
+	padding: 10px 10px 10px 0px;
+	}
+	h2 {
+	padding: 0px;
+	margin: 0px;
+	padding-top: 20px;
+	font-size: 100%;
+	text-align: left;
+	color: #003452;
+	}
+	#main_text h3 {
+	padding: 0px;
+	margin: 0px;
+	padding-top: 20px;
+	font-size: 100%;
+	text-align: left;
+	color: #336633;
+	}
+	#main_text img {
+	border: black solid 1px;
+	}
+	p {
+	margin: 0px;
+	padding: 0px;
+	font-size: 100%;
+	line-height: 1.4em;
+	}
+	li.red {
+	color: red;
+	}
+	.float_right {
+	float: right;
+	margin: 5px;
+	}
+	.rightfloat {
+    float: right;
+    width: 200px;
+    padding: 5px;
+    border: none;
+    }
+    .float_left {
+	float: left;
+	margin: 5px;
+	}
+    .leftfloat {
+    float: left;
+    width: 200px;
+    padding: 5px;
+    border: none;
+    }
+    .floatleft {
+    clear: left;
+    border: none;
+    width: 200px;
+    float: left;
+    padding: 5px;
+    }
+    a.clear_left {
+    clear: left;
+    }
+/* main text styles end */
+	#allcontent .clear {
+	clear: both;
+	}
+
+/* details for database page styles begin */	
+#title h3 {
+	font-style: bold;
+	font-size: 1.4em;
+	padding-top: 10px;	
+	text-align: center;
+}
+#desc {
+	border-top: 1px black solid;
+	border-bottom: 1px black solid;
+}
+#content {
+	padding-top: 30px;
+}
+div.entity { /* name of div that includes the main table*/
+	position: relative;
+	margin: 0px 20px;
+	border-bottom: thin indigo dotted;
+	padding-bottom: 12px;
+	margin-bottom: 12px;
+}
+table.h-object {
+	width: 80%;	
+}
+td {
+	font:normal 1.0em Arial, Helvetica, Sans-serif;		
+}
+td.header {
+	font-style: bold;
+	color: darkred;
+}
+td.cap {
+	width: 20%;
+	color: brown;	
+}
+td.val {
+	width: 80%;
+	background-color: #fff;	
+}
+td.section-header {
+	font: italic 0.84em Arial, Helvetica, Sans-serif;
+	color: darkred;
+	text-align: center;
+}
+td.section-subheader {
+	font: italic 0.86em Arial, Helvetica, Sans-serif;
+	color: darkred;
+	text-align: center;
+}
+div.image-links {
+	position: absolute;
+	font-size: 0.80em;
+	top: 4px;
+	right: 4px;
+}
+ul.image-list {
+	position: absolute;
+	top: 210px;
+	left: -40px;
+	list-style: none;	
+}
+h4 {
+ text-align: center;
+}
+a {
+	font-size: 100%;
+	color: #89201b;
+	text-decoration: underline;
+	}
+a:hover {
+	text-decoration: none;
+	}
+a:visited {
+	color: #003452;
+	}
+/* details for database page styles begin */
+
+/* a-z checklist styles */
+ul.alphList li {
+display: inline;
+line-height: 1.8em;
+padding: 5px;
+}
+ul.alphList a {
+font-size: 100%;
+color: black;
+text-decoration: underline;
+}
+ul.alphList a:hover {
+text-decoration: none;
+color: #89201b;
+}
+
+/* footer styles begin */
+	#footer {
+	color: white; 
+	clear: both;
+	background: #003452;
+	height: 40px;
+	margin: 0px;
+	padding: 1px 0px 0px 0px;
+	padding-bottom: 10px;
+	}
+	/* embedded bottom navbar begins */
+    #embed_nav2 {
+    float: right;
+	margin: 0px 30px 25px 15px;
+	padding: 5px;
+	}
+	#embed_nav2 ul {
+	list-style: none;
+	margin: 10px 0px 0px 22px;
+	padding: 0px 0px 0px 0px;
+	white-space: nowrap;
+	}
+	#embed_nav2 li {
+	display: inline;
+	padding: 2px;
+	margin: 0px;
+	}
+	#embed_nav2 a {
+	font-size: 90%;
+	color: white;
+	text-decoration: none;	
+	}	
+	#embed_nav2 a:hover {
+	text-decoration: underline;
+	}
+    /* embedded bottom navbar ends */ 
+	h5 {
+	margin: 10px;
+	text-align: left;
+	color: white;
+	}	 
+	.footer_indent {
+	margin-left: 125px;
+	}
+	#footer h5 a {
+	color: white;
+	text-decoration: underline;
+	}	
+	#footer h5 a:hover {
+	text-decoration: none;
+	}
+/* footer styles end */
