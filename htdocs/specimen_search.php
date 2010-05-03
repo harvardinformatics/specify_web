@@ -79,6 +79,61 @@ if ($errormessage!="") {
 echo pagefooter();
  
 // ******* main code block ends here, supporting functions follow. *****
+
+
+/** given some date and some precision where precision is 0,1,2,or 3, 
+**  this will return the date as a string truncated to the appropriate precision
+**  @date = dash separated date year - month - day
+**  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
+**  @return = date as a truncated text string
+**/
+function transformDate($date, $precision) { 
+   if ($precision <= 0 || $precision > 3)
+      return "";
+
+   if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
+     return "";
+
+  if ($precision == 1)
+     return $date;
+  
+  $parts = explode("-",$date);
+  
+  if ($precision == 2)
+    return $parts[0]."-".$parts[1];
+
+  if ($precision == 3)
+    return $parts[0];
+  
+  return "";
+}
+
+
+/** given some date and some precision where precision is 0,1,2,or 3, 
+**  this will return the date as a string truncated to the appropriate precision
+**  in the text form  99, Month 9999  day, month year
+**  @date = dash separated date year - month - day
+**  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
+**  @return = date as a truncated text string 
+**/
+function transformDateText($date, $precision) { 
+   if ($precision <= 0 || $precision > 3)
+      return "";
+
+   if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
+     return "";
+
+  if ($precision == 1)
+     return date("d, F Y",strtotime($date));
+  
+  if ($precision == 2)
+     return date("F Y",strtotime($date));
+
+  if ($precision == 3)
+     return date("Y",strtotime($date));
+  
+  return "";
+}
  
 function browse($target = "families") { 
 global $connection, $errormessage;
@@ -174,31 +229,45 @@ global $connection, $errormessage, $debug;
        if ($oldid!=$id)  { 
           echo "[$id]";
 	  $wherebit = " collectionobject.collectionobjectid = ? ";
-	  $query = "select gloc.name locality, a.geoid, a.catalognumber, a.collectionobjectid, a.remarks, a.startdate, a.enddate, a.maxelevation, a.minelevation from (select distinct locality.geographyid geoid, collectionobject.catalognumber, collectionobject.collectionobjectid, collectionobject.remarks, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
+	  $query = "select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, locality.long2text, locality.datum, locality.latlongmethod, fragment.catalognumber, collectionobject.collectionobjectid, collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, collectingevent.startdateprecision, collectingevent.enddateprecision from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit";
          if ($debug) { echo "[$query]<BR>"; } 
          $statement = $connection->prepare($query);
 	 if ($statement) {
            $statement->bind_param("i",$id);
 	   $statement->execute();
 	   //$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-	   $statement->bind_result($locality, $geoid, $CatalogNumber, $CollectionObjectID, $specimenRemarks, $startDate, $endDate, $maxElevation, $minElevation);
+	   $statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $CatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision);
 	   $statement->store_result();
            echo "<table>";
            while ($statement->fetch()) {
+               if ($debug) { echo "[$CollectionObjectID]"; } 
+	       //$query = "select gloc.name locality, a.localityname lname, a.geoid, a.catalognumber, a.collectionobjectid, a.remarks, a.startdate, a.enddate, a.maxelevation, a.minelevation, a.lat1text, a.lat2text, a.long1text, a.long2text, a.datum, a.latlongmethod, a.startdateprecision, a.enddateprecision, a.verbatimdate, a.fieldnumber from (select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, locality.long2text, locality.datum, locality.latlongmethod, fragment.catalognumber, collectionobject.collectionobjectid, collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, collectingevent.startdateprecision, collectingevent.enddateprecision from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
+	       $query = "select gloc.name locality, a.geoid from (select distinct locality.geographyid geoid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
+               if ($debug) { echo "[$query]<BR>"; } 
+               $statement_hg = $connection->prepare($query);
+	       if ($statement_hg) {
+                    $statement_hg->bind_param("i",$id);
+	            $statement_hg->execute();
+	            $statement_hg->bind_result($locality, $geoid);
+	            $statement_hg->store_result();
+	            while ($statement_hg->fetch()) { 
+                    }
+	       }	    
+
 	      // **** Harvard University Herbaria Specific ***
-	      // Acronym for herbarium is stored in preparationattribute.text3
+	      // Acronym for herbarium is stored in fragment.text1
               $acronym = "";
-              $query = "select distinct preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid  where preparation.collectionobjectid = ? ";
+              $query = "select text1 from fragment where fragment.collectionobjectid = ? ";
               if ($debug===true) {  echo "[$query]<BR>"; }
 	      $statement_geo = $connection->prepare($query);
 	      if ($statement_geo) { 
 	         $statement_geo->bind_param("i",$CollectionObjectID);
                  $statement_geo->execute();
-	         $statement_geo->bind_result($text3);
+	         $statement_geo->bind_result($text1);
 	         $statement_geo->store_result();
 		 $separator = "";
 	         while ($statement_geo->fetch()) { 
-		     $acronym = "$acronym$separator$text3";
+		     $acronym = "$acronym$separator$text1";
 		     $separator=",";   // which probably shouldn't be needed.
 	         }
 	      } else { 
@@ -243,7 +312,7 @@ global $connection, $errormessage, $debug;
 	      } else { 
 	        echo "Error: " . $connection->error;
 	      }
-	      $query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName, isCurrent, determinedDate"; 
+	      $query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks from fragment left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid where fragment.collectionobjectid = ? order by typeStatusName, isCurrent, determinedDate"; 
               if ($debug===true) {  echo "[$query]<BR>"; }
 	      $statement_det = $connection->prepare($query);
 	      $determinationHistory = "";
@@ -266,27 +335,93 @@ global $connection, $errormessage, $debug;
 	      } else {
 	        echo "Error: " . $connection->error;
 	      }
+	      $collector = "";
+	      $comma = "";
+	      $query = "select agentvariant.name from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join collector on collectingevent.collectingeventid = collector.collectingeventid left join agent on collector.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where agentvariant.vartype = 4 and collectionobjectid = ? ";
+              if ($debug===true) {  echo "[$query]<BR>"; }
+	      $statement_det = $connection->prepare($query);
+	      if ($statement_det) { 
+	         $statement_det->bind_param("i",$CollectionObjectID);
+                 $statement_det->execute();
+	         $statement_det->bind_result($collectorName);
+	         $statement_det->store_result();
+		 $separator = "";
+	         while ($statement_det->fetch()) { 
+		     $collector .= "$comma$collectorName";
+		     $comma = "; ";
+	         }
+	      } else {
+	        echo "Error: " . $connection->error;
+	      }
+	      $query = "select fragment.sex, fragment.phenology, preptype.name from fragment left join preparation on fragment.preparationid = preparation.preparationid left join preptype on preparation.preptypeid = preptype.preptypeid where collectionobjectid = ?";
+              if ($debug===true) {  echo "[$query]<BR>"; }
+	      $statement_det = $connection->prepare($query);
+	      $attributes = "";
+	      if ($statement_det) { 
+	         $statement_det->bind_param("i",$CollectionObjectID);
+                 $statement_det->execute();
+	         $statement_det->bind_result($sex, $phenology, $preptype );
+	         $statement_det->store_result();
+		 $separator = "";
+	         while ($statement_det->fetch()) { 
+		    if (trim($sex)!="") { 
+                       $attributes.= "<tr><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
+		    }
+		    if (trim($phenology)!="") { 
+                       $attributes.= "<tr><td class='cap'>Phenology</td><td class='val'>$phenology</td></tr>";
+		    }
+		    if (trim($preptype)!="") { 
+                       $attributes.= "<tr><td class='cap'>Preparation Type</td><td class='val'>$preptype</td></tr>";
+		    }
+	         }
+	      } else {
+	        echo "Error: " . $connection->error;
+	      }
+
               if ($debug===true) {  echo "CollectionObjectID:[$CollectionObjectID]<BR>"; }
 	      if (trim($maxElevation)!="" && $maxElevation!=$minElevation) { 
 	         $elevation = "$minElevation - $maxElevation";
 	      } else { 
 	         $elevation = "$minElevation";
 	      }
-	      if (trim($startDate)!="" && $endDate!=$startDate) { 
+              $startDate = transformDateText($startDate, $startdateprecision);
+              $endDate = transformDateText($endDate, $enddateprecision);
+	      if (trim($startDate)!="" && trim($endDate)!="" && $endDate!=$startDate) { 
 	         $dateCollected = "$startDate - $endDate";
 	      } else { 
 	         $dateCollected = "$startDate";
 	      }
+	      if ($verbatimDate != "") { 
+	         $dateCollected .= " [$verbatimDate]";
+	      }
+	      $georeference = "";
+	      if ($lat1text !="" && $long1text != "") { 
+	         $georeference = "$lat1text, $long1text ";
+	         if ($lat2text !="" && $long2text != "") { 
+	            $georeference = "$lat2text, $long2text ";
+		 }
+	         if ($datum!= "") { 
+		    $georeference .= "$datum ";
+	         }
+	         if ($latlongmethod != "") { 
+		    $georeference .= "Method: $latlongmethod ";
+	         }
+	      }
+
               echo "<tr><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
               echo "<tr><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
+              echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
+              if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$fieldnumber</td></tr>"; } 
 	      echo $accession;
 	      echo $determinationHistory;
               if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>$country</td></tr>"; } 
               if (trim($state!=""))   { echo "<tr><td class='cap'>State</td><td class='val'>$state</td></tr>"; }
               echo "<tr><td class='cap'>Geography</td><td class='val'>$geography</td></tr>";
-              echo "<tr><td class='cap'>Locality</td><td class='val'>$locality</td></tr>";
+              echo "<tr><td class='cap'>Locality</td><td class='val'>$lname</td></tr>";
+              if (trim($georeference!=""))  { echo "<tr><td class='cap'>Georeference</td><td class='val'>$georeference</td></tr>"; }
               echo "<tr><td class='cap'>Date Collected</td><td class='val'>$dateCollected</td></tr>";
-              echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation</td></tr>";
+              if (trim($elevation!="")) {  echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation</td></tr>"; }
+	      echo $attributes;
               echo "<tr><td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
               echo "<BR>\n";
           }
@@ -299,21 +434,36 @@ global $connection, $errormessage, $debug;
    }
 }
 
- 
-function search() {  
-global $connection, $errormessage, $debug;
-        $question = "";
+/*
+// barcode bits to refactor into details search
+
 	$barcode = substr(preg_replace("/[^0-9]/","", $_GET['barcode']),0,59);
+	$catnum = $barcode;
 	$barcode = barcode_to_catalog_number($barcode);
 	if ($barcode==barcode_to_catalog_number("")) {
 	   $barcode = "";
 	}
-	$locality = "";
-	$country = "";
 	if ($barcode!="") { 
 	   $question .= "Search for Barcode:[$barcode]<BR>";
-	   $wherebit = " collectionobject.catalognumber = ? ";
-	   $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.catalognumber, collectionobject.collectionobjectid from collectionobject left join determination on collectionobject.collectionobjectid = determination.collectionobjectid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
+	   $wherebit = " fragment.catalognumber = ? or fragment.catalognumber = ? ";
+	   $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, fragment.catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
+	}
+	if ($barcode!="") { 
+	    $statement->bind_param("ss",$barcode,$catnum);
+	}
+
+*/
+
+ 
+function search() {  
+global $connection, $errormessage, $debug;
+        $question = "";
+	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
+	$locality = "";
+	$country = "";
+	if ($quick!="") { 
+	   $question .= "Quick Search :[$quick]<BR>";
+	   $query = "select distinct(collectionobjectid) from web_quicksearch where match (searchable) against (?)";
 	} else { 
 	$and = "";
 	$locality = substr(preg_replace("/[^A-Za-z%]/","", $_GET['loc']),0,59);
@@ -355,18 +505,19 @@ global $connection, $errormessage, $debug;
 	}
 	$statement = $connection->prepare($query);
 	if ($statement) { 
-	        if ($barcode!="") { 
-		    $statement->bind_param("s",$barcode);
-		}
-	        if ($locality!="") { 
-		    $statement->bind_param("s",$locality);
-		}
-	        if ($country!="") { 
-		    $statement->bind_param("s",$country);
+	        if ($quick!="") { 
+		    $statement->bind_param("s",$quick);
+		} else { 
+	            if ($locality!="") { 
+		       $statement->bind_param("s",$locality);
+	   	    }
+	            if ($country!="") { 
+		       $statement->bind_param("s",$country);
+		    }
 		}
 		$statement->execute();
 		
-		$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID);
+		$statement->bind_result($CollectionObjectID);
 		$statement->store_result();
 
                 echo "<div>\n";
@@ -382,12 +533,29 @@ global $connection, $errormessage, $debug;
                         echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 		        echo "<BR><div>\n";
 			while ($statement->fetch()) { 
-                                if (strlen($locality) > 12) { 
-				   $locality = substr($locality,0,11) . "...";
+	                    $wherebit = " collectionobject.collectionobjectid = ? ";
+	                    $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, fragment.catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
+	                    $statement2 = $connection->prepare($query);
+			    if ($statement2) { 
+		            $statement2->bind_param("s",$CollectionObjectID);
+		            $statement2->execute();
+		            $statement2->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID);
+		            $statement2->store_result();
+		            if ($statement2->num_rows > 0 ) {
+			        while ($statement2->fetch()) { 
+                                   if (strlen($locality) > 12) { 
+    				       $locality = substr($locality,0,11) . "...";
+				    }
+				    echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$FullName</a> $country: $state $locality [Harvard University Herbaria Barcode: $CatalogNumber]";
+				    echo "<BR>\n";
 				}
-				//if ($debug===true) {  echo "CollectionObjectID:[$CollectionObjectID]<BR>"; }
-				echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$FullName</a> $country: $state $locality [Harvard University Herbaria Barcode: $CatalogNumber]";
+			    } else { 
+				echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>[Missing Data]</a> ";
 				echo "<BR>\n";
+			    }
+			    } else { 
+			        $errormessage .= "Query error. ";
+			    }
 			}
 			echo "</div>\n";
                         echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
@@ -535,4 +703,6 @@ function pagefooter() {
 </html>";
    return $result;
 } 
+
+
 ?>
