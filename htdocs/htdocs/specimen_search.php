@@ -4,23 +4,17 @@
  *
  */
 $debug=true;
+if ($debug) { 
+   mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
+} 
 
 include_once('connection_library.php');
+include_once('specify_library.php');
 
 $connection = specify_connect();
 $errormessage = "";
 
 $mode = "search";
-
-function barcode_to_catalog_number($aBarcode) {
-  $LOCALLENGTH = 9;    // HUH Barcode is a zero padded string of length 9 
-  $returnvalue = $aBarcode;
-  if (strlen($returnvalue) < $LOCALLENGTH) { 
-     $returnvalue = str_pad($returnvalue, $LOCALLENGTH, "0", STR_PAD_LEFT);
-  }
-  return $returnvalue;
-}
-
 
 if ($_GET['browsemode']!="")  {
    if ($_GET['browsemode']=="families") {
@@ -40,14 +34,18 @@ if ($_GET['mode']!="")  {
    }
 }
 
+// Set up for special cases of requests for specific collection objects
+// Where an identifier is given for a single collection object
 if (preg_replace("[^0-9]","",$_GET['barcode'])!="") { 
+   	   $mode = "details"; 
+}
+if (preg_replace("[^0-9]","",$_GET['fragmentid'])!="") { 
    	   $mode = "details"; 
 }
 
 echo pageheader($mode); 
 
 if ($connection) { 
-	
 	
 	switch ($mode) {
 		
@@ -64,7 +62,7 @@ if ($connection) {
 	   break;
 
        case "stats": 
-          stats();
+          echo stats();
        break;
 	   
 	   case "search":
@@ -89,170 +87,6 @@ echo pagefooter();
  
 // ******* main code block ends here, supporting functions follow. *****
 
-// This function gives html that provides counts for major categories in the database. 
-// There are elements to this function that are HUH specific.
-function stats() {  
-   echo "<h1>Statistics</h1>";
-   
-   echo "<h2>Numbers of specimens in major groups.</h2>";
-   $picklistName = 'HUH Taxon Group'; //customize for your own instance of Specify
-   $query = "select count(*), Title from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
-   echo nameCountSearch($query, 'taxonGroup');
-   
-   echo "<h2>Numbers of specimens by Herbarium.</h2>";
-   //you need to customize this for the way you have collections, collection codes and acronyms managed in Specify for your institution
-   $query = "select count(CollectionObjectID), preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid group by preparationattribute.text3";
-   echo nameCountSearch($query, 'taxonGroup');
-
-}
-
-/** 
- * This function will execute the sql statement for your major category counts Given the query that select count, field name from group by field name, this will return a series of anchor statements that run a search on the field provided in the field parameter displaying the names and counts for each row.
- * @param = $query a string containing a valid sql statement in the form 
-                'select count(*), fieldname from ... group by fieldname'
- * @param = $field  a string containing the name of a field that can be searched through the search 
-            mode of this application (mode=search&$field=valueOfFieldName) 
- * @returns a list of <a href=  href='specimen_search.php?mode=search&$field={value}'>{value}</a> ({count}) <BR>
-**/
-function nameCountSearch($query, $field) {
-    global $connection, $errormessage;
-	
-    $result = "";
-    $statement = $connection->prepare($query);
-	if ($statement) { 
-		$statement->execute();
-		$statement->bind_result($ct, $name);
-		$statement->store_result();
-		if ($statement->num_rows > 0 ) {
-			while ($statement->fetch()) { 
-				$result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) <BR>";
-			}
-			
-		} else {
-			$errormessage .= "No matching results. ";
-		}
-  	    $statement->close();
-	} else { 
-	    $errormessage .= $connection->error; 
-    } 
-    
-    return $result;
-}
-
-
-/** given some date and some precision where precision is 0,1,2,or 3, 
-**  this will return the date as a string truncated to the appropriate precision
-**  @date = dash separated date year - month - day
-**  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
-**  @return = date as a truncated text string
-**/
-function transformDate($date, $precision) { 
-   if ($precision <= 0 || $precision > 3)
-      return "";
-
-   if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
-     return "";
-
-  if ($precision == 1)
-     return $date;
-  
-  $parts = explode("-",$date);
-  
-  if ($precision == 2)
-    return $parts[0]."-".$parts[1];
-
-  if ($precision == 3)
-    return $parts[0];
-  
-  return "";
-}
-
-
-/** given some date and some precision where precision is 0,1,2,or 3, 
-**  this will return the date as a string truncated to the appropriate precision
-**  in the text form  99, Month 9999  day, month year
-**  @date = dash separated date year - month - day
-**  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
-**  @return = date as a truncated text string 
-**/
-function transformDateText($date, $precision) { 
-   if ($precision <= 0 || $precision > 3)
-      return "";
-
-   if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
-     return "";
-
-  if ($precision == 1)
-     return date("d, F Y",strtotime($date));
-  
-  if ($precision == 2)
-     return date("F Y",strtotime($date));
-
-  if ($precision == 3)
-     return date("Y",strtotime($date));
-  
-  return "";
-}
- 
-function browse($target = "families") { 
-global $connection, $errormessage;
-
-$FAMILYRANKID = 140;  // Magic Value. Check taxontreedefitem to make sure that the RankID for Name=Family is 
-                      // 140 in your specify instance.  This is the default, and is recommended, 
-                      // but could differ if you imported your own taxon tree.  
-$COUNTRYRANKID = 200; // Magic Value.  geography.rankid = 200 is the default for countries in Specify, and
-                      // is the recommended value, but could differ.  
-
-if ($target == "countries") { 
-   $sql = "select count(g.Name) as ct, g.Name
-              from (select CollectionObjectID, CO.CollectionMemberID, 
-	                CE.LocalityID, LOC.GeographyID, GEO.NodeNumber  
-	            from collectionobject as CO 
-		         inner join collectingevent as CE on CE.CollectingEventID = CO.CollectingEventID 
-			 inner join locality LOC on CE.LocalityID = LOC.LocalityID 
-			 inner join geography as GEO on GEO.GeographyID = LOC.GeographyID
-		   ) as COLGEO, 
-		   geography as g 
-	      where 
-	         g.rankid = $COUNTRYRANKID and 
-             COLGEO.nodenumber between g.nodenumber and g.HighestChildNodeNumber 
-              group by g.Name 
-	      order by g.Name";
-    $field = "country";
-} else { 
-   // Browse Families 
-   // Fastest, but only returns number of specimens identified to rank of family.
-   $sql = "select count(*) as ct, name from taxon left join determination on taxon.taxonid = determination.taxonid where taxon.rankid = $FAMILYRANKID group by taxon.name";
-   // Comprehensive, but slow - takes about 11 minutes on HUH data.
-   // Includes All families, including those that have no determinations, and 
-   // counts of all collection objects identified within each family.
-   $sql =  "select count(taxon2.taxonid) as ct, t.name " .
-	   "from taxon as taxon2, " .
-	   "   taxon as t left join determination on t.taxonid = determination.taxonid " .
-	   "where t.rankid = $FAMILYRANKEID " .
-	   "  and taxon2.nodenumber > t.nodenumber " .
-	   "  and taxon2.nodenumber < t.highestchildnodenumber " .
-	   "group by t.name";  
-
-// Faster, and relatively comprehensive, takes about 2 minutes on HUH data.
-// Includes all families that have specimens identified to or within them.  
-   $sql = "select count(t.Name) as ct, t.Name 
-             from 
-   	     (select fragment.CollectionObjectID, tax.NodeNumber 
-	       from determination as det 
-	       inner join taxon as tax on tax.taxonid = det.taxonid
-	       left join fragment on det.fragmentid = fragment.fragmentid
-	      ) as COLTAX, 
-	      taxon as t 
-	   where 
-	     t.rankid = $FAMILYRANKID and 
-	     COLTAX.nodenumber between t.nodenumber and t.HighestChildNodeNumber
-	   group by t.Name 
-	   order by t.Name"; 
-   $field = "ht";
-} 
-   echo nameCountSearch($sql, $field);
-} 
  
 function details() { 
 global $connection, $errormessage, $debug;
@@ -264,10 +98,27 @@ global $connection, $errormessage, $debug;
    }
    $barcode = preg_replace("[^0-9]","",$_GET['barcode']);
    if ($barcode != "") {
+   	 
+   	   // TODO: Barcode could be in preparation or in fragment, presence in collection object is just legacy. 
+   	
 	   $sql = "select collectionobjectid from collectionobject where altcatalognumber = ? ";
 	   $statement = $connection->prepare($sql);
 	   if ($statement) {
 		   $statement->bind_param("i",$barcode);
+		   $statement->execute();
+		   $statement->bind_result($id);
+		   $statement->store_result();
+		   while ($statement->fetch()) {
+		   	   $ids[] = $id;
+		   }
+	   }
+   }
+   $fragmentid = preg_replace("[^0-9]","",$_GET['fragmentid']);
+   if ($fragmentid != "") {
+	   $sql = "select collectionobjectid from fragment where fragmentid = ? ";
+	   $statement = $connection->prepare($sql);
+	   if ($statement) {
+		   $statement->bind_param("i",$fragmentid);
 		   $statement->execute();
 		   $statement->bind_result($id);
 		   $statement->store_result();
@@ -558,225 +409,145 @@ global $connection, $errormessage, $debug;
 	$locality = "";
 	$country = "";
 	if ($quick!="") { 
-	   $question .= "Quick Search :[$quick]<BR>";
-	   $query = "select distinct(collectionobjectid) from web_quicksearch where match (searchable) against (?)";
-       $hasquery = true;
+		$question .= "Quick Search :[$quick]<BR>";
+		$query = "select distinct(collectionobjectid) from web_quicksearch where match (searchable) against (?)";
+		$hasquery = true;
 	} else {
-      $joins = "";
-      $wherebit = " where "; 
-	  $and = "";
-      $types = "";
-      $parametercount = 0;
-	  $genus = substr(preg_replace("/[^A-Za-z_%]/","", $_GET['gen']),0,59);
-	  if ($genus!="") { 
-         $hasquery = true;
-         $question .= "$and genus:[$genus] ";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$genus;
-         $parametercount++;
-         if (preg_match("/[%_]/",$genus))  { $operator = " like "; }
-         $wherebit .= "$and web_search.genus $operator ? ";
-         $and = " and ";
-	  }
-	  $locality = substr(preg_replace("/[^A-Za-z%]/","", $_GET['loc']),0,59);
-	  if ($locality!="") { 
-         $hasquery = true;
-         $locality = "%$locality%";   // append wildcards 
-         $question .= "$and geographic name like:[$locality] ";
-         $types .= "s";
-         $parameters[$parametercount] = &$locality;
-         $parametercount++;
-//       $parameters[$parametercount] = &$locality;
-//       $parametercount++;
-//	     $subqueries = "select tco.collectionobjectid from collectionobject tco " . 
-//                " left join collectingevent tce on tco.collectingeventid = tce.collectingeventid " .
-//                " left join locality tlo on tce.localityid = tlo.localityid " .
-//                " left join geography as tcg on tlo.geographyid = tcg.geographyid " . 
-//                " where tlo.localityname like ? ";
-//         $subqueries .= " union "; 
-//	     $subqueries .= "select tco.collectionobjectid from collectionobject tco " . 
-//                " left join collectingevent tce on tco.collectingeventid = tce.collectingeventid " .
-//                " left join locality tlo on tce.localityid = tlo.localityid " .
-//                " left join geography as tcg on tlo.geographyid = tcg.geographyid, " . 
-//		        " geography hgeo_search " .
-//                " where " . 
-//	   		    "(hgeo_search.name like ? and " .
-//	   		    "   (hgeo_search.highestchildnodenumber >= tlo.geographyid " .
-//	   		    "    and hgeo_search.nodenumber <= tlo.geographyid and hgeo_search.rankid = 200)" .
-//	   		    ")  ";
-//         $wherebit .= "$and (c.collectionobjectid = any ". 
-//                "   ($subqueries)  ".
-//                ") ";
-         $operator = "=";
-         if (preg_match("/[%_]/",$locality))  { $operator = " like "; }
-         $wherebit .= "$and web_search.location $operator ? ";
-         $and = " and ";
-	  }
-	  $country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
-	  if ($country!="") { 
-       $hasquery = true;
-	   $question .= "$and country:[$country] ";
-       $types .= "s";
-       $parameters[$parametercount] = &$country;
-       $parametercount++;
-	   //$subqueries = "select c_tco.collectionobjectid from collectionobject c_tco " . 
-       //         " left join collectingevent c_tce on c_tco.collectingeventid = c_tce.collectingeventid " .
-       //         " left join locality c_tlo on c_tce.localityid = c_tlo.localityid " .
-       //         " left join geography as c_tcg on c_tlo.geographyid = c_tcg.geographyid, " . 
-	   //	        " geography c_hgeo_search " .
-       //         " where " . 
-	   //		    "(c_hgeo_search.name like ? and " .
-	   //		    "   (c_hgeo_search.highestchildnodenumber >= c_tlo.geographyid " .
-	   //		    "    and c_hgeo_search.nodenumber <= c_tlo.geographyid and c_hgeo_search.rankid = 200)" .
-	   //		    ")  ";
-       //$wherebit .= "$and (c.collectionobjectid = any ". 
-       //         "   ($subqueries)  ".
-       //         ") ";
-       $operator = "=";
-       if (preg_match("/[%_]/",$country))  { $operator = " like "; }
-       $wherebit .= "$and web_search.country $operator ? ";
-       $and = " and ";
-	}
-	$species = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['sp']),0,59);
-	if ($species!="") { 
-         $hasquery = true;
-         $question .= "$and species:[$species]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$species;
-         $parametercount++;
-         if (preg_match("/[%_]/",$species))  { $operator = " like "; }
-         $wherebit .= "$and web_search.species $operator ? ";
-         $and = " and ";
-	}
-	$infraspecific = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['infra']),0,59);
-	if ($infraspecific!="") { 
-         $hasquery = true;
-         $question .= "$and infraspecific epithet:[$infraspecific]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$infraspecific;
-         $parametercount++;
-         if (preg_match("/[%_]/",$infraspecific))  { $operator = " like "; }
-         $wherebit .= "$and web_search.infraspecific $operator ? ";
-         $and = " and ";
-	}
-	$author = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['author']),0,59);
-	if ($author!="") { 
-         $hasquery = true;
-         $question .= "$and author:[$author]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$author;
-         $parametercount++;
-         if (preg_match("/[%_]/",$author))  { $operator = " like "; }
-         $wherebit .= "$and web_search.author $operator ? ";
-         $and = " and ";
-	}
-	$collector = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltr']),0,59);
-	if ($collector!="") { 
-         $hasquery = true;
-         $question .= "$and collector:[$collector]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$collector;
-         $parametercount++;
-         if (preg_match("/[%_]/",$collector))  { $operator = " like "; }
-         $wherebit .= "$and web_search.collector $operator ? ";
-         $and = " and ";
-	}
-	$collectornumber = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltrno']),0,59);
-	if ($collectornumber!="") { 
-         $hasquery = true;
-         $question .= "$and collectornumber:[$collectornumber]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$collectornumber;
-         $parametercount++;
-         if (preg_match("/[%_]/",$collectornumber))  { $operator = " like "; }
-         $wherebit .= "$and web_search.collectornumber $operator ? ";
-         $and = " and ";
-	}
-	$yearpublished = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['year']),0,59);
-	if ($yearpublished!="") { 
-         $hasquery = true;
-         $question .= "$and yearpublished:[$yearpublished]";
-         $types .= "s";
-         $operator = "=";
-         $parameters[$parametercount] = &$yearpublished;
-         $parametercount++;
-         if (preg_match("/[%_]/",$yearpublished))  { $operator = " like "; }
-         $wherebit .= "$and web_search.yearpublished $operator ? ";
-         $and = " and ";
-	}
-	$family = substr(preg_replace("/[^A-Za-z%]/","", $_GET['ht']),0,59);
-	if ($family!="") { 
-       $hasquery = true;
-	   $question .= "$and higher taxon:[$family] ";
-       $types .= "s";
-       $parameters[$parametercount] = &$family;
-       $parametercount++;
-	   //$subqueries = "select f_tco.collectionobjectid from collectionobject f_tco " . 
-       //              "left join determination f_det on f_tco.collectionobjectid = f_det.collectionobjectid " . 
-       //              "left join taxon f_taxon on f_det.taxonid = f_taxon.taxonid, taxon family " .
-       //              "where family.name = ? and family.rankid = 140 and f_taxon.nodenumber <= family.highestchildnodenumber and f_taxon.nodenumber >= family.nodenumber  ";
-       //$wherebit .= "$and (c.collectionobjectid = any ". 
-       //         "   ($subqueries)  ".
-       //         ") ";
-       $operator = "=";
-       if (preg_match("/[%_]/",$family))  { $operator = " like "; }
-       $wherebit .= "$and web_search.family $operator ? ";
-       $and = " and ";
-    }
-    if ($question!="") {
-       $question = "Search for $question <BR>";
-	} else {
-		$question = "No search criteria provided.";
-	}
-    // Doing the outer part of the query as a set of left joins, including out to geography hgeo is needed for
-    // performance.  
-    // Using a cross join with where criteria results in a much larger set at this step (explain the query),
-    // and a much slower query (20 sec, down from 20 minutes on a development server).
-    //select hgeo.name country, localityname, taxon.fullname, gloc.geographyid, c.catalognumber, c.collectionobjectid 
-    //from collectionobject c left join collectingevent on c.collectingeventid = collectingevent.collectingeventid 
-    //left join locality on collectingevent.localityid = locality.localityid 
-    //left join geography gloc on locality.geographyid = gloc.geographyid
-    //left join fragment on c.collectionobjectid = fragment.fragmentid 		
-    //left join determination on fragment.collectionobjectid = determination.fragmentid
-    //left join taxon on determination.taxonid = taxon.taxonid
-    //left join web_search on c.collectionobjectid = web_search.collectionobjectid		
-    //left join geography hgeo 
-    //    on (hgeo.highestchildnodenumber >= gloc.geographyid and hgeo.nodenumber <= gloc.geographyid and hgeo.rankid = 200) 
-    $query = "
-select distinct c.collectionobjectid 
-from collectionobject c left join web_search on c.collectionobjectid = web_search.collectionobjectid		
-$wherebit
-";
-
-         // select [desired fields, doing joins to country] where collectionobjectid in (select catalognumber from [joins and where clause built from query parameters]);
-        //$query = "select geography.name country, lname locality, c.fullname, c.geoid, c.catalognumber, c.collectionobjectid from geography, (select distinct taxon.fullname, locality.localityname lname, locality.geographyid geoid, collectionobject.catalognumber, collectionobject.collectionobjectid from collectionobject left join determination on collectionobject.collectionobjectid = determination.collectionobjectid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid, (select leaf.geographyid geoid from geography leaf, (select highestchildnodenumber, nodenumber from geography where $gwherebit  ) a where a.nodenumber <= leaf.nodenumber and a.highestchildnodenumber >= leaf.nodenumber) b where locality.geographyid = b.geoid) c left join geography gloc on c.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= c.geoid and geography.nodenumber <= c.geoid ";
-
-	/**
-	$query = "select taxon.fullname, gcountry.name, gstate.name, collectionobject.catalognumber, collectionobject.collectionobjectid 
-	          from collectionobject 
-		     left join determination on collectionobject.collectionobjectid = determination.collectionobjectid 
-		     left join taxon on determination.taxonid = taxon.taxonid 
-		     left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
-		     left join locality on collectingevent.localityid = locality.localityid 
-		     left join geography as gchild on locality.geographyid = gchild.geographyid, 
-		     geography gcountry, 
-		     geography gstate 
-		  where 
-		     gcountry.rankid = 200 and 
-		     gcountry.nodenumber < gchild.nodenumber and 
-		     gcountry.highestchildnodenumber > gchild.highestchildnodenumber 
-		     and 
-		     gstate.rankid = 300 and 
-		     gstate.nodenumber < gchild.nodenumber and 
-		     gstate.highestchildnodenumber > gchild.highestchildnodenumber $wherebit ";
-        */
-        } 
+		$joins = "";
+		$wherebit = " where "; 
+		$and = "";
+		$types = "";
+		$parametercount = 0;
+		$genus = substr(preg_replace("/[^A-Za-z_%]/","", $_GET['gen']),0,59);
+		if ($genus!="") { 
+			$hasquery = true;
+			$question .= "$and genus:[$genus] ";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$genus;
+			$parametercount++;
+			if (preg_match("/[%_]/",$genus))  { $operator = " like "; }
+			$wherebit .= "$and web_search.genus $operator ? ";
+			$and = " and ";
+		}
+		$locality = substr(preg_replace("/[^A-Za-z%]/","", $_GET['loc']),0,59);
+		if ($locality!="") { 
+			$hasquery = true;
+			$locality = "%$locality%";   // append wildcards 
+			$question .= "$and geographic name like:[$locality] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$locality;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$locality))  { $operator = " like "; }
+			$wherebit .= "$and web_search.location $operator ? ";
+			$and = " and ";
+		}
+		$country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
+		if ($country!="") { 
+			$hasquery = true;
+			$question .= "$and country:[$country] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$country;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$country))  { $operator = " like "; }
+			$wherebit .= "$and web_search.country $operator ? ";
+			$and = " and ";
+		}
+		$species = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['sp']),0,59);
+		if ($species!="") { 
+			$hasquery = true;
+			$question .= "$and species:[$species]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$species;
+			$parametercount++;
+			if (preg_match("/[%_]/",$species))  { $operator = " like "; }
+			$wherebit .= "$and web_search.species $operator ? ";
+			$and = " and ";
+		}
+		$infraspecific = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['infra']),0,59);
+		if ($infraspecific!="") { 
+			$hasquery = true;
+			$question .= "$and infraspecific epithet:[$infraspecific]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$infraspecific;
+			$parametercount++;
+			if (preg_match("/[%_]/",$infraspecific))  { $operator = " like "; }
+			$wherebit .= "$and web_search.infraspecific $operator ? ";
+			$and = " and ";
+		}
+		$author = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['author']),0,59);
+		if ($author!="") { 
+			$hasquery = true;
+			$question .= "$and author:[$author]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$author;
+			$parametercount++;
+			if (preg_match("/[%_]/",$author))  { $operator = " like "; }
+			$wherebit .= "$and web_search.author $operator ? ";
+			$and = " and ";
+		}
+		$collector = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltr']),0,59);
+		if ($collector!="") { 
+			$hasquery = true;
+			$question .= "$and collector:[$collector]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$collector;
+			$parametercount++;
+			if (preg_match("/[%_]/",$collector))  { $operator = " like "; }
+			$wherebit .= "$and web_search.collector $operator ? ";
+			$and = " and ";
+		}
+		$collectornumber = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltrno']),0,59);
+		if ($collectornumber!="") { 
+			$hasquery = true;
+			$question .= "$and collectornumber:[$collectornumber]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$collectornumber;
+			$parametercount++;
+			if (preg_match("/[%_]/",$collectornumber))  { $operator = " like "; }
+			$wherebit .= "$and web_search.collectornumber $operator ? ";
+			$and = " and ";
+		}
+		$yearpublished = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['year']),0,59);
+		if ($yearpublished!="") { 
+			$hasquery = true;
+			$question .= "$and yearpublished:[$yearpublished]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$yearpublished;
+			$parametercount++;
+			if (preg_match("/[%_]/",$yearpublished))  { $operator = " like "; }
+			$wherebit .= "$and web_search.yearpublished $operator ? ";
+			$and = " and ";
+		}
+		$family = substr(preg_replace("/[^A-Za-z%]/","", $_GET['ht']),0,59);
+		if ($family!="") { 
+			$hasquery = true;
+			$question .= "$and higher taxon:[$family] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$family;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$family))  { $operator = " like "; }
+			$wherebit .= "$and web_search.family $operator ? ";
+			$and = " and ";
+		}
+		if ($question!="") {
+			$question = "Search for $question <BR>";
+		} else {
+			$question = "No search criteria provided.";
+		}
+		$query = "select distinct c.collectionobjectid 
+			     from collectionobject c 
+			     left join web_search on c.collectionobjectid = web_search.collectionobjectid $wherebit ";
+	} 
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
@@ -857,144 +628,11 @@ $wherebit
 		echo "No query parameters provided.";
 		echo "</div>\n";
 		echo "<HR>\n";
-        stats();	
+        echo stats();	
     } 
 	
 }
  
-function pageheader($mode) { 
-	$result="<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
-<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
-<head>
-	<meta http-equiv='content-type' content='text/html; charset=utf-8' />
-	<title>HUH - Databases - Specimen Search</title>
-	<link rel='stylesheet' type='text/css' media='print' href='print.css'></link>
-	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
-	<link rel='stylesheet' type='text/css' media='print' href='cms-db.css'></link>
-</head>
-<body>
-<div id='allcontent'>
-	
-		<!-- header code begins -->
-		<div id='header'>
-			<div id='top_menu'>
-			
-		        <!-- SiteSearch Google HERE -->
-		         
-				<div id='embed_nav'>
-		  			<ul>
-						<li><a href='/'>Home</a></li>
-						<li>&#124;</li>
-						<li><a href='http://zatoichi.huh.harvard.edu/people/index.php'>Contact</a></li>
-						<li>&#124;</li>
-						<li><a href='/news_events/news_events.html'>News &#38; Events</a></li>
-
-						<li>&#124;</li>
-						<li><a href='/news_events/calendar.html'>Calendar</a></li>
-						<li>&#124;</li>
-						<li><a href='/sitemap.html'>Sitemap</a></li>
-						<li>&#124;</li>
-						<li><a href='/links.html'>Links</a></li>
-		  			</ul>
-
-				</div>
-			
-			</div>
-			<!-- top menu ends -->
-		
-				<div id='mid_sect'>
-					<a href='http://www.huh.harvard.edu'><img width='100' src='http://www.huh.harvard.edu/images/huh_logo_bw_100.png' alt='HUH logo' title='Home page' /></a>
-				</div>
-	
-
-				<div id='topnav'>
-		 			<ul>
-			 			<li ><a href='http://www.huh.harvard.edu/collections/'>Collections</a></li>
-
-			 			<li class=active><a href='http://www.huh.harvard.edu/databases/'>Databases</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/research/'>Research</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/seminar_series/'>Seminar Series</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/libraries/'>Libraries</a></li>
-			 			<li  ><a href='http://zatoichi.huh.harvard.edu/people/'>People</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/publications/'>HPB Journal</a></li>
-
-			 			<li ><a href='http://www.huh.harvard.edu/visiting/'>Visiting</a></li>
-		   			</ul>
-		 		</div>
-		
-		</div>
-
-		<!-- header code ends -->
-		
-<div id='sidenav'>
-  <ul>
-    <li><a href='addenda.html'>SEARCH HINTS</a></li>
-    <li><a href='addenda.html#policy'>DISTRIBUTION AND USE POLICY</a></li>
-  <hr />
-    <li><a href='botanist_index.html'>BOTANISTS</a></li>
-    <li><a href='publication_index.html'>PUBLICATIONS</a></li>
-    <li><a href='specimen_index.html' class='active'>SPECIMENS</a></li>
-  <hr />   
-    <li><a href='add_correct.html'>Contribute additions/corrections</a></li>
-    <li><a href='comment.html'>Send comments/questions</a></li>
-    
-  </ul>
-</div>  <!-- sidenav ends -->		
-		
-		
-<div id='main'>
-   <!-- main content begins -->
-   <div id='main_text'>
-   <div id='title'>
-      <h3>Index of Botanical Specimens</h3>
-   </div>
-"; 
-   return $result;
-}
-
-function pagefooter() { 
-   $result = "
-   </div>
-</div>
-	<!-- main content ends -->
-
-<!-- footer include begins -->		
-	<div id='footer'>
-
-			<div id='embed_nav2'>
-		  		<ul>
-					<li><a href='http://www.arboretum.harvard.edu/' target='_blank'>Arnold Arboretum</a></li>
-					<li>&#124;</li>
-					<li><a href='http://www.oeb.harvard.edu/' target='_blank'>OEB</a></li>
-
-					<li>&#124;</li>
-					<li><a href='http://www.pbi.fas.harvard.edu/' target='_blank'>PBI</a></li>
-					<li>&#124;</li>
-					<li><a href='http://www.hmnh.harvard.edu/' target='_blank'>HMNH</a></li> 
-		  		</ul>
-			</div>
-			<h5>&copy; 2001 - <span id='cdate'></span> by the President and Fellows of <a href='http://www.harvard.edu/' target='_blank'>Harvard</a> College
-		 	<br /><a href='priv_statement.html'>Privacy Statement</a> <span class='footer_indent'>Updated: 
-		 		
-		 		2009 May 21		 		
-				</span></h5>
-
-		 		
-		 		<!-- gets current year for copyright date -->
-		 		<script type='text/javascript'>
-					// <![CDATA[
-						var now = new Date()
-						document.getElementById('cdate').innerHTML = now.getFullYear();
-					// ]]>
-				</script>
-
-	</div>
-
-</div> <!-- all content div tag ends -->
-</body>
-</html>";
-   return $result;
-} 
-
+mysqli_report(MYSQLI_REPORT_OFF);
 
 ?>
