@@ -101,6 +101,7 @@ where t.rankid = 180;
 create index idx_websearch_taxon_highestchild on web_search(taxon_highestchild);
 create index idx_websearch_taxon_nodenumber on web_search(taxon_nodenumber);
 
+-- create temporary copy of taxonomy tree in a myisam table.
 create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid from taxon;
 create index temp_taxon_hc on temp_taxon(highestchildnodenumber);
 create index temp_taxon_node on temp_taxon(nodenumber);
@@ -123,28 +124,59 @@ update web_search, temp_taxon set genus = temp_taxon.name
 
 -- family and above
 insert into web_search (taxon_highestchild,taxon_nodenumber,family,genus,author,collectionobjectid,barcode)  
-select t.highestchildnodenumber,t.nodenumber, t.name, ,'[None]', t.author, c.collectionobjectid, c.altcatalognumber  
+select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, c.collectionobjectid, c.altcatalognumber  
 from determination d left join taxon t on d.taxonid = t.taxonid  left join fragment f on d.fragmentid = f.fragmentid  left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
 where t.rankid <= 180;
 
+-- Denormalize geography 
+-- locality
+update web_search 
+   left join  collectionobject c on web_search.collectionobjectid = c.collectionobjectid 
+   left join collectingevent e on c.collectingeventid = e.collectingeventid 
+   left join locality l on e.localityid = l.localityid 
+   left join geography g on l.geographyid = g.geographyid
+   set web_search.location = 
+       concat(coalesce(l.localityname,''), ' ', coalesce(e.verbatimlocality,'')), 
+       web_search.geo_highestchild = g.highestchildnodenumber, 
+       web_search.geo_nodenumber = g.nodenumber;
 
-update web_search left join  collectionobject c on web_search.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid 
-   set web_search.location = concat(coalesce(l.localityname,''), ' ', coalesce(e.verbatimlocality,'')) ;
-
-create table temp_geography engine myisam as select geographyid, name, highestchildnodenumber, nodenumber, rankid from geography;
+-- create temporary copy of geography tree in a myisam table.
+create table temp_geography (geographyid int primary key, name varchar(64), highestchildnodenumber int, nodenumber int, rankid int) 
+    engine myisam 
+    as select geographyid, name, highestchildnodenumber, nodenumber, rankid from geography;
 create index temp_geography_hc on temp_geography(highestchildnodenumber);
 create index temp_geography_node on temp_geography(nodenumber);
 create index temp_geography_rank on temp_geography(rankid);
 
-update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
-   set w.country = getGeographyOfRank(200,g.highestchildnodenumber,g.nodenumber);
+-- populate the country field
+update web_search, temp_geography set country = temp_geography.name 
+  where geo_highestchild <= highestchildnodenumber 
+    and geo_nodenumber >= nodenumber  
+    and rankid = 200 
+    and country is null;
+    
+-- populate the state field    
+update web_search, temp_geography set state = temp_geography.name 
+  where geo_highestchild <= highestchildnodenumber 
+    and geo_nodenumber >= nodenumber  
+    and rankid = 300 
+    and state is null;    
 
-update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
-   set w.state = getGeographyOfRank(300,g.highestchildnodenumber,g.nodenumber);
+-- populate the county field    
+update web_search, temp_geography set county = temp_geography.name 
+  where geo_highestchild <= highestchildnodenumber 
+    and geo_nodenumber >= nodenumber  
+    and rankid = 400
+    and county is null;
+    
+--update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.country = getGeographyOfRank(200,g.highestchildnodenumber,g.nodenumber);
 
-update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
-   set w.county = getGeographyOfRank(400,g.highestchildnodenumber,g.nodenumber);
-   
+--update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.state = getGeographyOfRank(300,g.highestchildnodenumber,g.nodenumber);
+
+--update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.county = getGeographyOfRank(400,g.highestchildnodenumber,g.nodenumber);
    
 create index idx_websearch_family on web_search(family);
 create index idx_websearch_genus on web_search(genus);

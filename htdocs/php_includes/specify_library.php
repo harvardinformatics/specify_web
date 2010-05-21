@@ -175,7 +175,7 @@ function pageheader($mode = "specimen") {
 </div>  <!-- nav2 ends -->		
 		
 		
-<div id='main_wide'>
+<div id='main'>
    <!-- main content begins -->
    <div id='main_text_wide'>
    <div id='title'>

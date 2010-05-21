@@ -152,6 +152,20 @@ function search() {
 			$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? )";
 			$and = " and ";
 		}
+		$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
+		if ($is_author=="on") { 
+		    $authorspecialty = substr(preg_replace("/[^A-Za-z]/","", $_GET['authorspecialty']),0,59);
+			$hasquery = true;
+			$question .= "$and author specialty:[$authorspecialty] ";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$authorspecialty;
+			$parametercount++;
+			if (preg_match("/[%_]/",$authorspecialty))  { $operator = " like "; }
+			$wherebit .= "$and (agentspecialty.specialtyname $operator ? and agentspecialty.role = 'Author' )";
+			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+			$and = " and ";
+		}
 		if ($question!="") {
 			$question = "Search for $question <BR>";
 		} else {
@@ -160,7 +174,7 @@ function search() {
 		$query = "select distinct agent.agentid, " .
 				" agent.agenttype, agent.firstname, agent.lastname, year(agent.dateofbirth), year(agent.dateofdeath) " . 
 			    " from agent " .  
-			    " left join agentvariant on agent.agentid = agentvariant.agentid  $wherebit order by agent.agenttype, agent.lastname, agent.firstname, agent.dateofbirth ";
+			    " left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agent.lastname, agent.firstname, agent.dateofbirth ";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}

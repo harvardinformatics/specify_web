@@ -252,6 +252,7 @@ global $connection, $errormessage, $debug;
 	         }
              if (count($nodes)>0) { 
                $oldhigher = "";
+               $highertaxonomy = "";
                foreach ($nodes as $nodenumber) { 
                  $query = "select taxon.name from taxon where taxon.nodenumber < ? and taxon.highestchildnodenumber > ? ";
                  $statement_ht = $connection->prepare($query);
@@ -282,17 +283,17 @@ global $connection, $errormessage, $debug;
 	      }
 	      $collector = "";
 	      $comma = "";
-	      $query = "select agentvariant.name from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join collector on collectingevent.collectingeventid = collector.collectingeventid left join agent on collector.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where agentvariant.vartype = 4 and collectionobjectid = ? ";
+	      $query = "select agentvariant.name, agentvariant.agentid from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join collector on collectingevent.collectingeventid = collector.collectingeventid left join agent on collector.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where agentvariant.vartype = 4 and collectionobjectid = ? ";
               if ($debug===true) {  echo "[$query]<BR>"; }
 	      $statement_det = $connection->prepare($query);
 	      if ($statement_det) { 
 	         $statement_det->bind_param("i",$CollectionObjectID);
                  $statement_det->execute();
-	         $statement_det->bind_result($collectorName);
+	         $statement_det->bind_result($collectorName, $agentid);
 	         $statement_det->store_result();
 		 $separator = "";
 	         while ($statement_det->fetch()) { 
-		     $collector .= "$comma$collectorName";
+		     $collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName</a>";
 		     $comma = "; ";
 	         }
 	      } else {
@@ -410,7 +411,9 @@ global $connection, $errormessage, $debug;
 	$country = "";
 	if ($quick!="") { 
 		$question .= "Quick Search :[$quick]<BR>";
-		$query = "select distinct(collectionobjectid) from web_quicksearch where match (searchable) against (?)";
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode " .
+				" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
+				" where match (searchable) against (?)";
 		$hasquery = true;
 	} else {
 		$joins = "";
@@ -544,7 +547,8 @@ global $connection, $errormessage, $debug;
 		} else {
 			$question = "No search criteria provided.";
 		}
-		$query = "select distinct c.collectionobjectid 
+		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
+				" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode  
 			     from collectionobject c 
 			     left join web_search on c.collectionobjectid = web_search.collectionobjectid $wherebit ";
 	} 
@@ -568,8 +572,7 @@ global $connection, $errormessage, $debug;
 			}
 		}
 		$statement->execute();
-		
-		$statement->bind_result($CollectionObjectID);
+		$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $scountry, $state, $location, $herbaria, $barcode);
 		$statement->store_result();
 		
 		echo "<div>\n";
@@ -585,32 +588,36 @@ global $connection, $errormessage, $debug;
 			echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 			echo "<BR><div>\n";
 			while ($statement->fetch()) { 
-	            $wherebit = " collectionobject.collectionobjectid = ? ";
-	            $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
-	            $statement2 = $connection->prepare($query);
-			    if ($statement2) { 
-		            $statement2->bind_param("s",$CollectionObjectID);
-		            $statement2->execute();
-		            $statement2->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID);
-		            $statement2->store_result();
-		            if ($statement2->num_rows > 0 ) {
-			        while ($statement2->fetch()) { 
-                                   if (strlen($locality) > 12) { 
-    				       $locality = substr($locality,0,11) . "...";
-				    }
-				    echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$FullName</a> $country: $state $locality [Harvard University Herbaria Barcode: $CatalogNumber]";
-				    echo "<BR>\n";
-				}
-			    } else { 
-				echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>[Missing Data]</a> ";
-				echo "<BR>\n";
-			    }
-			    } else { 
-			        $errormessage .= "Query error. ";
-			        if ($debug) {
-			        	 $errormessage .= "[" . mysqli_error($connection); 
-			        }
-			    }
+	            //$wherebit = " collectionobject.collectionobjectid = ? ";
+	            //$query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a " .
+	            //		"left join geography gloc on a.geoid = gloc.geographyid " .
+	            //		"where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
+	            //$statement2 = $connection->prepare($query);
+			    //if ($statement2) { 
+		            //$statement2->bind_param("s",$CollectionObjectID);
+		            //$statement2->execute();
+		            //$statement2->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID);
+		            //$statement2->store_result();
+		            //if ($statement2->num_rows > 0 ) {
+			            //while ($statement2->fetch()) { 
+                         if (strlen($locality) > 12) { 
+    				           $locality = substr($locality,0,11) . "...";
+				         }
+				         $FullName = "[$family] <em>$genus $species $infraspecific</em> $author";
+				         $geography = "$scountry: $state $locality ";
+				         echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$FullName</a> $geography [Harvard University Herbaria Barcode: $CatalogNumber]";
+				         echo "<BR>\n";
+				         //}
+			        //} else { 
+				         //echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>[Missing Data]</a> ";
+				         //echo "<BR>\n";
+			        //}
+			    //} else { 
+			    //    $errormessage .= "Query error. ";
+			    //    if ($debug) {
+			    //    	 $errormessage .= "[" . mysqli_error($connection); 
+			    //    }
+			    //}
 			}
 			echo "</div>\n";
 			echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";

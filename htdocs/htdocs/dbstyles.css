@@ -260,6 +260,58 @@
 	#main_text a:visited {
 	color: #003452;
 	}
+	#main_text h3 {
+	padding: 0px;
+	margin: 0px;
+	padding-top: 20px;
+	font-size: 100%;
+	text-align: left;
+	color: #336633;
+	}
+	#main_text img {
+	border: black solid 1px;
+	}
+	#main_text_wide {
+	background: white;
+	margin: 0px;
+	padding: 0px;
+	padding-left: 2em;
+	padding-right: 2em;
+	margin-left: 2em;
+	padding-bottom: 20px;
+	}
+	#main_text_wide p {
+	padding: 5px;
+	margin: 0px;
+	padding-top: 20px;
+	}
+	#main_text_wide li {
+	font-size: 90%;
+	list-style: none;
+	line-height: 1.8em;
+	}
+	#main_text_wide a {
+	font-size: 100%;
+	color: #89201b;
+	text-decoration: underline;
+	}
+	#main_text_wide a:hover {
+	text-decoration: none;
+	}
+	#main_text_wide a:visited {
+	color: #003452;
+	}
+	#main_text_wide h3 {
+	padding: 0px;
+	margin: 0px;
+	padding-top: 20px;
+	font-size: 100%;
+	text-align: left;
+	color: #336633;
+	}
+	#main_text_wide img {
+	border: black solid 1px;
+	}
 	h1 {
 	font-size: 140%;
 	text-align: left;
@@ -274,17 +326,6 @@
 	font-size: 100%;
 	text-align: left;
 	color: #003452;
-	}
-	#main_text h3 {
-	padding: 0px;
-	margin: 0px;
-	padding-top: 20px;
-	font-size: 100%;
-	text-align: left;
-	color: #336633;
-	}
-	#main_text img {
-	border: black solid 1px;
 	}
 	p {
 	margin: 0px;
