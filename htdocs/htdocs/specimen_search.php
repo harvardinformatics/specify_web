@@ -438,12 +438,18 @@ global $connection, $errormessage, $debug;
 			$hasquery = true;
 			$locality = "%$locality%";   // append wildcards 
 			$question .= "$and geographic name like:[$locality] ";
-			$types .= "s";
+			$types .= "ssss";
+			$parameters[$parametercount] = &$locality;
+			$parametercount++;
+			$parameters[$parametercount] = &$locality;
+			$parametercount++;
+			$parameters[$parametercount] = &$locality;
+			$parametercount++;
 			$parameters[$parametercount] = &$locality;
 			$parametercount++;
 			$operator = "=";
 			if (preg_match("/[%_]/",$locality))  { $operator = " like "; }
-			$wherebit .= "$and web_search.location $operator ? ";
+			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
 			$and = " and ";
 		}
 		$country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
@@ -494,7 +500,7 @@ global $connection, $errormessage, $debug;
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltr']),0,59);
+		$collector = substr(preg_replace("/[^A-Za-z _%\.\,]/","", $_GET['cltr']),0,59);
 		if ($collector!="") { 
 			$hasquery = true;
 			$question .= "$and collector:[$collector]";
@@ -530,8 +536,9 @@ global $connection, $errormessage, $debug;
 			$wherebit .= "$and web_search.yearpublished $operator ? ";
 			$and = " and ";
 		}
-		$family = substr(preg_replace("/[^A-Za-z%]/","", $_GET['ht']),0,59);
+		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
 		if ($family!="") { 
+			$family = str_replace("*","%",$family);   // change to sql wildcard.
 			$hasquery = true;
 			$question .= "$and higher taxon:[$family] ";
 			$types .= "s";
@@ -567,12 +574,12 @@ global $connection, $errormessage, $debug;
 				$array = Array();
 				$array[] = $types;
 				foreach($parameters as $par)
-				$array[] = &$par;
+				$array[] = $par;
 				call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 		}
 		$statement->execute();
-		$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $scountry, $state, $location, $herbaria, $barcode);
+		$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode);
 		$statement->store_result();
 		
 		echo "<div>\n";
@@ -603,9 +610,10 @@ global $connection, $errormessage, $debug;
                          if (strlen($locality) > 12) { 
     				           $locality = substr($locality,0,11) . "...";
 				         }
-				         $FullName = "[$family] <em>$genus $species $infraspecific</em> $author";
-				         $geography = "$scountry: $state $locality ";
-				         echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$FullName</a> $geography [Harvard University Herbaria Barcode: $CatalogNumber]";
+				         $FullName = "[<a href='sepecimen_search.php?family=$family'>$family</a>] <em>$genus $species $infraspecific</em> $author";
+				         $geography = "$country: $state $locality ";
+				         $specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
+				         echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography ";
 				         echo "<BR>\n";
 				         //}
 			        //} else { 

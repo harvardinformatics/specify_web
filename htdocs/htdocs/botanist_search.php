@@ -131,6 +131,8 @@ function search() {
 	$question = "";
 	$country = "";
 		$joins = "";
+		$joined_to_specialty = false;
+		$joined_to_geography = false;
 		$wherebit = " where "; 
 		$and = "";
 		$types = "";
@@ -154,16 +156,49 @@ function search() {
 		}
 		$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
 		if ($is_author=="on") { 
-		    $authorspecialty = substr(preg_replace("/[^A-Za-z]/","", $_GET['authorspecialty']),0,59);
+			$hasquery = true;
+			$question .= "$and is a taxon author ";
+			$wherebit .= "$and agentspecialty.role = 'Author' ";
+			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		    $joined_to_specialty = true;
+			$and = " and ";
+		}
+		$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+		if ($team=="on") { 
+			$hasquery = true;
+			$question .= "$and is a team/group ";
+			$wherebit .= "$and agent.agenttype = 3 ";
+			$and = " and ";
+		}
+		$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", $_GET['specialty']),0,59);
+		if ($specialty!="") { 
 			$hasquery = true;
 			$question .= "$and author specialty:[$authorspecialty] ";
 			$types .= "s";
 			$operator = "=";
-			$parameters[$parametercount] = &$authorspecialty;
+			$parameters[$parametercount] = &$specialty;
 			$parametercount++;
-			if (preg_match("/[%_]/",$authorspecialty))  { $operator = " like "; }
-			$wherebit .= "$and (agentspecialty.specialtyname $operator ? and agentspecialty.role = 'Author' )";
-			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+			if (preg_match("/[%_]/",$specialty))  { $operator = " like "; }
+			$wherebit .= "$and agentspecialty.specialtyname $operator ? ";
+		    if (!$joined_to_specialty) { 
+			    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		    }
+			$and = " and ";
+		}
+		$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
+		if ($country!="") { 
+			$hasquery = true;
+			$question .= "$and country:[$country] ";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$country;
+			$parametercount++;
+			if (preg_match("/[%_]/",$country))  { $operator = " like "; }
+			$wherebit .= "$and geography.name $operator ? ";
+		    if (!$joined_to_geography) { 
+			    $joins .= " left join agentgeography on agent.agentid = agentgeography.agentid " .
+			    		" left join geography on agentgeography.geographyid = geography.geographyid ";
+		    }
 			$and = " and ";
 		}
 		if ($question!="") {
