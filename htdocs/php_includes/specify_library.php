@@ -283,5 +283,23 @@ function stats() {
    return $returnvalue;
 }
 
+function browse($target = 'families') { 
+	$result = ""; 
+	$field = "";
+	switch ($target) { 
+		case 'countries':
+			$sql = 'select count(collectionobjectid), country from web_search group by country ';
+			$field = 'country';
+			break;	
+		case 'families':
+		default: 
+			$sql = 'select count(collectionobjectid), family from web_search group by family ';
+			$field = 'family';
+	}
+	if ($sql!="") { 
+		$result = nameCountSearch($sql, $field);
+	} 
+	return $result; 
+}
 
 ?>

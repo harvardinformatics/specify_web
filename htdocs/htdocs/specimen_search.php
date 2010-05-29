@@ -6,7 +6,9 @@
 $debug=true;
 if ($debug) { 
    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
-} 
+} else { 
+   mysqli_report(MYSQLI_REPORT_OFF);
+}
 
 include_once('connection_library.php');
 include_once('specify_library.php');
@@ -50,11 +52,11 @@ if ($connection) {
 	switch ($mode) {
 		
 	   case "browse_families":
-	      browse("families");
+	      echo browse("families");
 	   break;
 
 	   case "browse_countries":
-	      browse("countries");
+	      echo browse("countries");
 	   break;
 		 
 	   case "details":

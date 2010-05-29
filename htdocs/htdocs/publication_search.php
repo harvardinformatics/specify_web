@@ -6,6 +6,8 @@
 $debug=true;
 if ($debug) { 
    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
+} else { 
+   mysqli_report(MYSQLI_REPORT_OFF);
 } 
 
 include_once('connection_library.php');
@@ -249,14 +251,16 @@ function search() {
 		$hasauthor = true;
 		$hasquery = true;
 		$question .= "$and author:[$author] ";
-		$types .= "ss";
+		$types .= "sss";
 		$operator = "=";
 		$parameters[$parametercount] = &$author;
 		$parametercount++;
 		$parameters[$parametercount] = &$author;
 		$parametercount++;
+		$parameters[$parametercount] = &$author;
+		$parametercount++;
 		if (preg_match("/[%_]/",$author))  { $operator = " like "; }
-		$wherebit .= "$and (agentvariant.name $operator ? or agent.lastname $operator ?)";
+		$wherebit .= "$and (agent.lastname $operator ? or agentvariant.name $operator ? or agent.lastname $operator ?)";
 		$joins .= " left join author a on r.referenceworkid = a.referenceworkid left join agentvariant on a.agentid = agentvariant.agentid left join agent on a.agentid = agent.agentid ";
 		$order = " order by agent.lastname, agent.firstname, r.text1 ";		
 		$and = " and ";
@@ -307,7 +311,6 @@ function search() {
 		echo "[$query]<BR>\n";
 	}
 	if ($hasquery===true) { 
-		mysqli_report(MYSQLI_REPORT_ALL);
 		$statement = $connection->prepare($query);
 		if ($statement) { 
 			$array = Array();
@@ -355,22 +358,26 @@ function search() {
 			if ($hasauthor && $author != "") {
 				$statement->close();
 				// Look for possibly related authors
-				$query = " select agent.lastname, agent.firstname, agent.agentid, count(author.referenceworkid) from referencework left join author on referencework.referenceworkid = author.referenceworkid left join agent on author.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where referenceworktype<>5 and (agentvariant.name like ? or soundex(agent.lastname) = soundex(?)) group by agent.firstname, agent.lastname, agent.agentid ";
+				$query = " select agent.lastname, agent.firstname, agent.agentid, count(author.referenceworkid) from referencework left join author on referencework.referenceworkid = author.referenceworkid left join agent on author.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where referenceworktype<>5 and (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) group by agent.firstname, agent.lastname, agent.agentid ";
 				$wildauthor = "%$author%";
 				$plainauthor = str_replace("%","",$author);
-       		    $authorparameters[0] = &$wildauthor;
+       		    $authorparameters[0] = &$wildauthor;   // agentvariant like 
  		        $types = "s";
-       		    $authorparameters[1] = &$plainauthor;
+       		    $authorparameters[1] = &$plainauthor;  // agentvariant soundex
+ 		        $types .= "s";
+       		    $authorparameters[2] = &$wildauthor;   // agent like 
+ 		        $types .= "s";
+       		    $authorparameters[3] = &$plainauthor;  // agent soundex
  		        $types .= "s";
              	if ($debug===true  && $hasquery===true) {
-		              echo "[$query][$wildauthor][$plainauthor]<BR>\n";
+		              echo "[$query][$wildauthor][$plainauthor][$wildauthor][$plainauthor]<BR>\n";
 	            }
 				$statement = $connection->prepare($query);
 				if ($statement) { 
 					$array = Array();
 					$array[] = $types;
 					foreach($authorparameters as $par)
-					      $array[] = &$par;
+					      $array[] = $par;
 					call_user_func_array(array($statement, 'bind_param'),$array);
 					$statement->execute();
 					$statement->bind_result($authorlast, $authorfirst, $agentid, $count);
