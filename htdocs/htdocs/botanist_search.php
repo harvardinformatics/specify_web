@@ -32,7 +32,7 @@ if (preg_replace("[^0-9]","",$_GET['botanistid'])!="") {
 	$mode = "details"; 
 }
 
-echo pageheader($mode); 
+echo pageheader('agent'); 
 
 if ($connection) { 
 	

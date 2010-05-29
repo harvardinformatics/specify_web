@@ -46,7 +46,7 @@ if (preg_replace("[^0-9]","",$_GET['fragmentid'])!="") {
    	   $mode = "details"; 
 }
 
-echo pageheader($mode); 
+echo pageheader('specimen'); 
 
 if ($connection) { 
 	

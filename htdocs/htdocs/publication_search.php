@@ -32,7 +32,7 @@ if (preg_replace("[^0-9]","",$_GET['barcode'])!="") {
 	$mode = "details"; 
 }
 
-echo pageheader($mode); 
+echo pageheader('publication'); 
 
 if ($connection) { 
 	
