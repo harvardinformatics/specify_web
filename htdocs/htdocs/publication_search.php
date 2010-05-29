@@ -3,15 +3,16 @@
  * Created on Dec 3, 2009
  *
  */
-$debug=true;
+$debug=false;
+
+include_once('connection_library.php');
+include_once('specify_library.php');
+
 if ($debug) { 
    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
 } else { 
    mysqli_report(MYSQLI_REPORT_OFF);
-} 
-
-include_once('connection_library.php');
-include_once('specify_library.php');
+}
 
 $connection = specify_connect();
 $errormessage = "";
