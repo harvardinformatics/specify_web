@@ -515,7 +515,7 @@ global $connection, $errormessage, $debug;
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
-		$collectornumber = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['cltrno']),0,59);
+		$collectornumber = substr(preg_replace("/[^1-9\.A-Za-z _%]/","", $_GET['collectornumber']),0,59);
 		if ($collectornumber!="") { 
 			$hasquery = true;
 			$question .= "$and collectornumber:[$collectornumber]";
@@ -527,7 +527,7 @@ global $connection, $errormessage, $debug;
 			$wherebit .= "$and web_search.collectornumber $operator ? ";
 			$and = " and ";
 		}
-		$yearpublished = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['year']),0,59);
+		$yearpublished = substr(preg_replace("/[^0-9 _%]/","", $_GET['year']),0,59);
 		if ($yearpublished!="") { 
 			$hasquery = true;
 			$question .= "$and yearpublished:[$yearpublished]";
@@ -636,6 +636,49 @@ global $connection, $errormessage, $debug;
 			
 		} else {
 			$errormessage .= "No matching results. ";
+			if ($collector != "") {  
+				$statement->close();
+				// Look for possibly related collectors
+				$query = " select  trim(concat(ifnull(agent.firstname,''), ' ', ifnull(agent.lastname,''))), count(collector.collectingeventid) " .
+						" from collector left join agent on collector.agentid = agent.agentid " .
+						" left join agentvariant on agent.agentid = agentvariant.agentid " .
+						" where (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) " .
+						" group by agent.firstname, agent.lastname, agent.agentid ";
+				$wildcollector = "%$collector%";
+				$plaincollector = str_replace("%","",$collector);
+       		    $collectorparameters[0] = &$wildcollector;   // agentvariant like 
+ 		        $types = "s";
+       		    $collectorparameters[1] = &$plaincollector;  // agentvariant soundex
+ 		        $types .= "s";
+       		    $collectorparameters[2] = &$wildcollector;   // agent like 
+ 		        $types .= "s";
+       		    $collectorparameters[3] = &$plaincollector;  // agent soundex
+ 		        $types .= "s";
+             	if ($debug===true  && $hasquery===true) {
+		              echo "[$query][$wildcollector][$plaincollector][$wildcollector][$plaincollector]<BR>\n";
+	            }
+				$statement = $connection->prepare($query);
+				if ($statement) { 
+					$array = Array();
+					$array[] = $types;
+					foreach($collectorparameters as $par)
+					      $array[] = $par;
+					call_user_func_array(array($statement, 'bind_param'),$array);
+					$statement->execute();
+					$statement->bind_result($collector, $count);
+					$statement->store_result();
+			        if ($statement->num_rows > 0 ) {
+			        	echo "<h3>Possibly matching collectors</h3>";
+			        	$separator = "";
+				         while ($statement->fetch()) {
+				         	echo "$separator$collector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count records</a>]";
+				         	$separator = "; ";
+				         }
+				         echo "<BR>";
+			        }
+				}
+				
+			}
 		}
 	    $statement->close();
 	} else { 
