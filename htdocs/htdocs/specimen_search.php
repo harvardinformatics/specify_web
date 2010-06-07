@@ -149,6 +149,8 @@ function details() {
 			// (from there being more than one current determination/typification for a specimen, or
 			// from there being two specimens on one sheet).  
 			if ($oldid!=$id)  { 
+				// Start by finding collection object specific information, then for each collection object,
+				// find information specific to each fragment/item on that collection object.   
 				$wherebit = " collectionobject.collectionobjectid = ? ";
 				//$query = "select distinct gloc.name locality, locality.geographyid, collectionobject.catalognumber, collectionobject.collectionobjectid, collectionobject.remarks, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid left join geography gloc on locality.geographyid = gloc.geographyid where $wherebit ";
 				$query = "select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, " .
@@ -174,11 +176,13 @@ function details() {
 					} else { 
 					echo "<table>";
 					while ($statement->fetch()) {
+						// For each collection object
 						if ($debug) { echo "[$CollectionObjectID]"; } 
 						//$query = "select gloc.name locality, a.localityname lname, a.geoid, a.catalognumber, a.collectionobjectid, a.remarks, a.startdate, a.enddate, a.maxelevation, a.minelevation, a.lat1text, a.lat2text, a.long1text, a.long2text, a.datum, a.latlongmethod, a.startdateprecision, a.enddateprecision, a.verbatimdate, a.fieldnumber from (select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, locality.long2text, locality.datum, locality.latlongmethod, fragment.catalognumber, collectionobject.collectionobjectid, collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, collectingevent.startdateprecision, collectingevent.enddateprecision from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
+						// Collection objects are linked to collecting events.
 						$query = "select gloc.name locality, a.geoid from " .
 								" (select distinct locality.geographyid geoid " .
-								"  from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid " .
+								"  from collectionobject " .
 								"  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 								"  left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a " .
 								"  left join geography gloc on a.geoid = gloc.geographyid";
@@ -194,51 +198,6 @@ function details() {
 						}	    
 						
 						// **** Harvard University Herbaria Specific ***
-						// Acronym for herbarium is stored in fragment.text1
-						$acronym = "";
-						$query = "select text1 from fragment where fragment.collectionobjectid = ? ";
-						if ($debug===true) {  echo "[$query]<BR>"; }
-						$statement_geo = $connection->prepare($query);
-						if ($statement_geo) { 
-							$statement_geo->bind_param("i",$CollectionObjectID);
-							$statement_geo->execute();
-							$statement_geo->bind_result($text1);
-							$statement_geo->store_result();
-							$separator = "";
-							while ($statement_geo->fetch()) { 
-								$acronym = "$acronym$separator$text1";
-								$separator=",";   // which probably shouldn't be needed.
-							}
-						} else { 
-							echo "Error: " . $connection->error;
-						}
-						// Barcode number is in fragment.identifier or prepration.identifier
-						$query = "select distinct fragment.identifier, preparation.identifier " .
-								" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
-								" where fragment.collectionobjectid = ? ";
-						if ($debug===true) {  echo "[$query]<BR>"; }
-						$CatalogNumber = "";
-						$fragments = array();
-						$statement_bar = $connection->prepare($query);
-						if ($statement_bar) { 
-							$statement_bar->bind_param("i",$CollectionObjectID);
-							$statement_bar->execute();
-							$statement_bar->bind_result($identifierf,$identifierp);
-							$statement_bar->store_result();
-							$separator = "";
-							while ($statement_bar->fetch()) { 
-								if ($identifierf!="") { 
-								    $CatalogNumber .= "$separator$identifierf";
-								    $separator="; ";
-								}  
-								if ($identifierp!="") { 
-								    $CatalogNumber .= "$separator$identifierp";
-								    $separator="; ";  
-								}
-							}
-						} else { 
-							echo "Error: " . $connection->error;
-						}
 						
 						// Accession number for specimen in in otheridentifier typed by Remarks=accession
 						$accession = "";
@@ -256,6 +215,7 @@ function details() {
 						} else { 
 							echo "Error: " . $connection->error;
 						}
+						// Images are of collection objects
 						// HUH images are in separate set of IMAGE_ tables imported from ASA.
 						$images = "";
 						$query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size " .
@@ -313,7 +273,7 @@ function details() {
 						$redactlocality = false;
 						//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 						$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
-								" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus " .
+								" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid " .
 								" from fragment " .
 								" left join determination on fragment.fragmentid = determination.fragmentid " .
 								" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -324,12 +284,13 @@ function details() {
 						if ($statement_det) { 
 							$statement_det->bind_param("i",$CollectionObjectID);
 							$statement_det->execute();
-							$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus );
+							$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid );
 							$statement_det->store_result();
 							$separator = "";
 							$typeStatus = "";
 							$nodes = array();
 							while ($statement_det->fetch()) {
+						        if ($debug===true) {  echo "TaxonID=[$taxonid]<BR>"; }
 								$nodes[] = $nodenumber;
 								if (trim($typeStatusName)=="") { 
 									$det = "Determination"; 
@@ -380,6 +341,28 @@ function details() {
 										$highertaxonomy.= "<tr><td class='cap'>Classification</td><td class='val'>$higher</td></tr>";
 									}
 								}
+							}
+							$query = "select r.title, c.text1 as pages, c.text2 as year, r.referenceworkid " .
+								" from referencework r left join taxoncitation c on r.referenceworkid = c.referenceworkid " .
+								" where c.taxonid = ? ";
+							if ($debug===true) {  echo "[$query]<BR>"; }
+							$statement_ref = $connection->prepare($query);
+							$fragmentcitations = "";
+							if ($statement_ref) { 
+								$statement_ref->bind_param("i",$taxonid);
+								$statement_ref->execute();
+								$statement_ref->bind_result($title, $pages, $year, $referenceworkid);
+								$statement_ref->store_result();
+								$separator = "";
+								while ($statement_ref->fetch()) { 
+									if (trim($title)!="") { 
+										if ($year!="") { $year = "$year."; }
+										if ($pages!="") { $pages = "$pages."; }
+										$determinationHistory.= "<tr><td class='cap'>Reference</td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages</td></tr>";
+									}
+								}
+							} else {
+								echo "Error: " . $connection->error;
 							}
 						} else {
 							echo "Error: " . $connection->error;
@@ -432,13 +415,63 @@ function details() {
 						if ($debug===true) {  echo "[$query]<BR>"; }
 						$statement_frag = $connection->prepare($query);
 						$items = "";
+						$itemcount = 0;
 						if ($statement_frag) { 
 							$statement_frag->bind_param("i",$CollectionObjectID);
 							$statement_frag->execute();
 							$statement_frag->bind_result($fragmentid);
 							$statement_frag->store_result();
-							while ($statement_frag->fetch()) { 
-								$items .= "<tr><td class='cap'>Item</td><td class='val'></td></tr>";
+							while ($statement_frag->fetch()) {
+								$itemcount ++; 
+								$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount</td></tr>";
+								// Acronym for herbarium is stored in fragment.text1
+								$acronym = "";
+								$query = "select text1 from fragment where fragment.collectionobjectid = ? ";
+								if ($debug===true) {  echo "[$query]<BR>"; }
+								$statement_geo = $connection->prepare($query);
+								if ($statement_geo) { 
+									$statement_geo->bind_param("i",$CollectionObjectID);
+									$statement_geo->execute();
+									$statement_geo->bind_result($text1);
+									$statement_geo->store_result();
+									$separator = "";
+									while ($statement_geo->fetch()) { 
+										$acronym = "$acronym$separator$text1";
+										$separator=",";   // which probably shouldn't be needed.
+									}
+								} else { 
+									echo "Error: " . $connection->error;
+								}
+								// Barcode number is in fragment.identifier or prepration.identifier
+								$query = "select distinct fragment.identifier, preparation.identifier " .
+									" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
+									" where fragment.collectionobjectid = ? ";
+								if ($debug===true) {  echo "[$query]<BR>"; }
+								$CatalogNumber = "";
+								$fragments = array();
+								$statement_bar = $connection->prepare($query);
+								if ($statement_bar) { 
+									$statement_bar->bind_param("i",$CollectionObjectID);
+									$statement_bar->execute();
+									$statement_bar->bind_result($identifierf,$identifierp);
+									$statement_bar->store_result();
+									$separator = "";
+									while ($statement_bar->fetch()) { 
+										if ($identifierf!="") { 
+											$CatalogNumber .= "$separator$identifierf";
+											$separator="; ";
+										}  
+										if ($identifierp!="") { 
+											$CatalogNumber .= "$separator$identifierp";
+											$separator="; ";  
+										}
+									}
+								} else { 
+									echo "Error: " . $connection->error;
+								}
+						        $items .= "<tr><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
+						        $items .= "<tr><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
+						        // get any references linked to the fragment.
 								$query = "select r.title, r.text2, r.referenceworkid " .
 									" from referencework r left join fragmentcitation c on r.referenceworkid = c.referenceworkid " .
 									" where c.fragmentid = ? ";
@@ -501,8 +534,6 @@ function details() {
 						}
 						
 						echo $highertaxonomy;
-						echo "<tr><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
-						echo "<tr><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
 						echo $accession;
 						if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>$typeStatus</td></tr>"; }
 						echo $determinationHistory;
