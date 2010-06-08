@@ -87,7 +87,7 @@ function details() {
 		if ($oldid!=$id)  { 
 			$wherebit = "where agent.agentid = ? ";
 			$query = "select lastname, firstname, remarks, dateofbirth, dateofbirthprecision, " .
-				" dateofdeath, dateofdeathprecision, url, agentid, agenttype " .
+				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, initials as datetype " .
 				" from agent  $wherebit";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
@@ -96,7 +96,7 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype);
+				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype);
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
@@ -106,20 +106,30 @@ function details() {
 					      $agent .=  "<tr><td class='cap'>Agent type</td><td class='val'>Team/Group</td></tr>";
 					}
 					
-					// Limit date of birth information for people who are living to the year of birth.
 					if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   } 
 					if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   } 
-					if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
+					// Limit date of birth information for people who are living to the year of birth.
+					if ($datetype=="birth") { 
+					     if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
+					}
 					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
 					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
-					if ($is_group) {
-						// groups have first and last dates
-						$startdatetext = "First known date"; 
-						$enddatetext = "Last known date"; 
-					} else { 
-						$startdatetext = "Date of birth"; 
-						$enddatetext = "Date of death"; 
-					}
+						if ($datetype=="birth") { 
+						   $startdatetext = "Date of birth"; 
+						   $enddatetext = "Date of death"; 
+						}
+						if ($datetype=="fl") { 
+						   $startdatetext = "First date flourished"; 
+						   $enddatetext = "Last date flourished"; 
+						}
+						if ($datetype=="rec") { 
+						   $startdatetext = "First date recieved"; 
+						   $enddatetext = "Last date recieved"; 
+						}
+						if ($datetype=="coll") { 
+						   $startdatetext = "First date collected"; 
+						   $enddatetext = "Last date collected"; 
+						}
 					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>$startdatetext</td><td class='val'>$dateofbirth</td></tr>"; }
 					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>$enddatetext</td><td class='val'>$dateofdeath</td></tr>"; }
 					
@@ -286,7 +296,7 @@ function details() {
 						// If internal, check for out of range collecting events: 
 						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 							
-						    $query = "select dateofbirth, startdate, dateofdeath, startdate < dateofbirth " .
+						    $query = "select dateofbirth, startdate, dateofdeath, startdate < dateofbirth, initials as datetype " .
 							    	" from agent left join collector on agent.agentid = collector.agentid " .
 								    " left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
 								    " where startdate is not null " .
@@ -297,7 +307,7 @@ function details() {
 						    if ($statement_qc) {
 							    $statement_qc->bind_param("i",$agentid);
 							    $statement_qc->execute();
-							    $statement_qc->bind_result($dob,$startdate,$dod, $beforebirth);
+							    $statement_qc->bind_result($dob,$startdate,$dod, $beforebirth, $datetype);
 							    $statement_qc->store_result();
 							    if ($statement_qc->num_rows()>0) { 
 									$agent .= "<tr><td class='cap'>Questionable records</td><td class='val'>Collecting Event Dates before birth or after death</td></tr>";
@@ -306,7 +316,7 @@ function details() {
 					                    $dob = transformDateText($dob,3);
 					                    $startdate = transformDateText($startdate,3);
 					                    if ($beforebirth==1) {
-					                    	$qc_message  = "Collected before birth"; 
+					                    	$qc_message  = "Collected before $datetype"; 
 									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>Coll:$startdate DOB: $dob</td></tr>";
 					                    } else { 
 					                    	$qc_message  = "Collected after death"; 

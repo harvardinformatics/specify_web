@@ -102,25 +102,28 @@ function collection_out_of_date_range() {
 	global $connection;
    $returnvalue = "";
     
-   $query = "select collectionobjectid, agent.lastname, agent.agentid, dateofbirth, startdate, dateofdeath " .
-   		" from agent left join collector on agent.agentid = collectorid " .
+   $query = "select collectionobjectid, agent.lastname, agent.agentid, dateofbirth, startdate, dateofdeath, agent.initials as datetype " .
+   		" from agent left join collector on agent.agentid = collector.agentid " .
    		" left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
    		" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
    		" where dateofbirth is not null " .
-   		" and (startdate < dateofbirth or enddate > dateofdeath)"; 
+   		" and (startdate < dateofbirth or enddate > dateofdeath) " .
+   		" order by agent.initials, agent.lastname, startdate "; 
 	if ($debug) { echo "[$query]<BR>"; } 
-	$returnvalue .= "<table>";
-	$returnvalue .= "<tr><th>Collector</th><th>Date of Birth</th><th>Collecting Event</th><th>Date of Death</th></tr>";
+    $returnvalue .= "<h2>Cases where collecting event dates are outside of the birth/death, flourished, collected, or received dates for a collector.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
-		$statement->bind_result($collectionobjectid,$name,$agentid, $dob, $collectiondate, $dod);
+		$statement->bind_result($collectionobjectid,$name,$agentid, $dob, $collectiondate, $dod, $datetype);
 		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " anomalous collecting events</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Begin Date</th><th>Collecting Event</th><th>End Date</th><th>Type</th><th>Collector</th></tr>";
 		while ($statement->fetch()) {
-	        $returnvalue .= "<tr><td>$name</td><td>$dob</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectiondate</a></td>$dod<td></tr>";
+	        $returnvalue .= "<tr><td>$dob</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectiondate</a></td><td>$dod</td><td>$datetype</td><td>$name</td></tr>";
 		}
+	    $returnvalue .= "</table>";
 	}
-	$returnvalue .= "</table>";
 
    return $returnvalue;
 }
