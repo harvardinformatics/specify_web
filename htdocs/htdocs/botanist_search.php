@@ -9,9 +9,9 @@ include_once('connection_library.php');
 include_once('specify_library.php');
 
 if ($debug) { 
-   mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
+	mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
 } else { 
-   mysqli_report(MYSQLI_REPORT_OFF);
+	mysqli_report(MYSQLI_REPORT_OFF);
 }
 
 $connection = specify_connect();
@@ -29,6 +29,9 @@ if ($_GET['mode']!="")  {
 }
 
 if (preg_replace("[^0-9]","",$_GET['botanistid'])!="") { 
+	$mode = "details"; 
+}
+if (preg_replace("[^0-9]","",$_GET['id'])!="") { 
 	$mode = "details"; 
 }
 
@@ -83,136 +86,159 @@ function details() {
 		// skip adgacent duplicates, if any
 		if ($oldid!=$id)  { 
 			$wherebit = "where agent.agentid = ? ";
-			$query = "select lastname, firstname, remarks from agent  $wherebit";
+			$query = "select lastname, firstname, remarks, dateofbirth, dateofbirthprecision, " .
+				" dateofdeath, dateofdeathprecision, url, agentid " .
+				" from agent  $wherebit";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
 			$statement = $connection->prepare($query);
+			$agent = "";
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($lastname,$firstname, $remarks);
+				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid);
 				$statement->store_result();
-				echo "<table>";
 				while ($statement->fetch()) {
+					$agent .=  "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
+					// Limit date of birth information for people who are living to the year of birth.
+					if ($dateofdeath=="") { $dateofbirthprecision = 3;   }  
+					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
+					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
+					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>Date of birth</td><td class='val'>$dateofbirth</td></tr>"; }
+					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>Date of death</td><td class='val'>$dateofdeath</td></tr>"; }
+					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
+					if (trim($url!=""))   { $agent .=  "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
+					$query = "select name, vartype from agentvariant where agentid = ? order by vartype ";
+					if ($debug) { echo "[$query]<BR>"; } 
+					$statement_var = $connection->prepare($query);
+					if ($statement_var) {
+						$statement_var->bind_param("i",$agentid);
+						$statement_var->execute();
+						$statement_var->bind_result($name,$type);
+						$statement_var->store_result();
+						while ($statement_var->fetch()) {
+							// For types, see Specify  config/common/picklist.xml <picklist name="AgentVariant">
+							$typestring = "Variant name";
+							switch ($type) { 
+							    case 0: 
+							       $typestring = "Variant name";
+							       break;
+							    case 1: 
+							       $typestring = "Vernacular name";
+							       break;
+							    case 2: 
+							       $typestring = "Author name";
+							       break;
+							    case 3: 
+							       $typestring = "B & P Author Abbrev.";
+							       break;
+							    case 4: 
+							       $typestring = "Standard/Label Name";
+							       break;
+							    case 5: 
+							       $typestring = "Full Name";
+							       break;
+							}
+							$agent .= "<tr><td class='cap'>$typestring</td><td class='val'>$name</td></tr>";
+						}
+					}
 					
-					echo "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
-					if (trim($remarks!=""))   { echo "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
-					echo "<BR>\n";
 				}
+				echo "<table>";
+				echo "$agent";
 				echo "</table>";
-				
+				$statement->close();
 			}
-			$statement->close();
+			$oldid = $id;
 		}
-		$oldid = $id;
 	}
 }
-
-/*
- // barcode bits to refactor into details search
-  $barcode = substr(preg_replace("/[^0-9]/","", $_GET['barcode']),0,59);
-  $catnum = $barcode;
-  $barcode = barcode_to_catalog_number($barcode);
-  if ($barcode==barcode_to_catalog_number("")) {
-  $barcode = "";
-  }
-  if ($barcode!="") { 
-  $hasquery = true;
-  $question .= "Search for Barcode:[$barcode]<BR>";
-  $wherebit = " fragment.catalognumber = ? or fragment.catalognumber = ? ";
-  $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, fragment.catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
-  }
-  if ($barcode!="") { 
-  $statement->bind_param("ss",$barcode,$catnum);
-  }
-  
-  */
 
 
 function search() {  
 	global $connection, $errormessage, $debug;
 	$question = "";
 	$country = "";
-		$joins = "";
-		$joined_to_specialty = false;
-		$joined_to_geography = false;
-		$wherebit = " where "; 
-		$and = "";
-		$types = "";
-		$parametercount = 0;
-		$name = substr(preg_replace("/[^A-Za-z,\. _%]/","", $_GET['name']),0,59);
-		if ($name!="") { 
-			$hasquery = true;
-			$namepad = "%$name%";
-			$question .= "$and lastname:[$name] or name like:[$namepad] ";
-			$types .= "sss";
-			$operator = "=";
-			$parameters[$parametercount] = &$name;
-			$parametercount++;
-			$parameters[$parametercount] = &$name;
-			$parametercount++;
-			$parameters[$parametercount] = &$namepad;
-			$parametercount++;
-			if (preg_match("/[%_]/",$name))  { $operator = " like "; }
-			$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? )";
-			$and = " and ";
-		}
-		$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
-		if ($is_author=="on") { 
-			$hasquery = true;
-			$question .= "$and is a taxon author ";
-			$wherebit .= "$and agentspecialty.role = 'Author' ";
+	$joins = "";
+	$joined_to_specialty = false;
+	$joined_to_geography = false;
+	$wherebit = " where "; 
+	$and = "";
+	$types = "";
+	$parametercount = 0;
+	$name = substr(preg_replace("/[^A-Za-z,\. _%]/","", $_GET['name']),0,59);
+	if ($name!="") { 
+		$hasquery = true;
+		$namepad = "%$name%";
+		$question .= "$and lastname:[$name] or name like:[$namepad] ";
+		$types .= "sss";
+		$operator = "=";
+		$parameters[$parametercount] = &$name;
+		$parametercount++;
+		$parameters[$parametercount] = &$name;
+		$parametercount++;
+		$parameters[$parametercount] = &$namepad;
+		$parametercount++;
+		if (preg_match("/[%_]/",$name))  { $operator = " like "; }
+		$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? )";
+		$and = " and ";
+	}
+	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
+	if ($is_author=="on") { 
+		$hasquery = true;
+		$question .= "$and is a taxon author ";
+		$wherebit .= "$and agentspecialty.role = 'Author' ";
+		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		$joined_to_specialty = true;
+		$and = " and ";
+	}
+	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+	if ($team=="on") { 
+		$hasquery = true;
+		$question .= "$and is a team/group ";
+		$wherebit .= "$and agent.agenttype = 3 ";
+		$and = " and ";
+	}
+	$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", $_GET['specialty']),0,59);
+	if ($specialty!="") { 
+		$hasquery = true;
+		$question .= "$and author specialty:[$authorspecialty] ";
+		$types .= "s";
+		$operator = "=";
+		$parameters[$parametercount] = &$specialty;
+		$parametercount++;
+		if (preg_match("/[%_]/",$specialty))  { $operator = " like "; }
+		$wherebit .= "$and agentspecialty.specialtyname $operator ? ";
+		if (!$joined_to_specialty) { 
 			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		    $joined_to_specialty = true;
-			$and = " and ";
 		}
-		$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
-		if ($team=="on") { 
-			$hasquery = true;
-			$question .= "$and is a team/group ";
-			$wherebit .= "$and agent.agenttype = 3 ";
-			$and = " and ";
+		$and = " and ";
+	}
+	$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
+	if ($country!="") { 
+		$hasquery = true;
+		$question .= "$and country:[$country] ";
+		$types .= "s";
+		$operator = "=";
+		$parameters[$parametercount] = &$country;
+		$parametercount++;
+		if (preg_match("/[%_]/",$country))  { $operator = " like "; }
+		$wherebit .= "$and geography.name $operator ? ";
+		if (!$joined_to_geography) { 
+			$joins .= " left join agentgeography on agent.agentid = agentgeography.agentid " .
+				" left join geography on agentgeography.geographyid = geography.geographyid ";
 		}
-		$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", $_GET['specialty']),0,59);
-		if ($specialty!="") { 
-			$hasquery = true;
-			$question .= "$and author specialty:[$authorspecialty] ";
-			$types .= "s";
-			$operator = "=";
-			$parameters[$parametercount] = &$specialty;
-			$parametercount++;
-			if (preg_match("/[%_]/",$specialty))  { $operator = " like "; }
-			$wherebit .= "$and agentspecialty.specialtyname $operator ? ";
-		    if (!$joined_to_specialty) { 
-			    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		    }
-			$and = " and ";
-		}
-		$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
-		if ($country!="") { 
-			$hasquery = true;
-			$question .= "$and country:[$country] ";
-			$types .= "s";
-			$operator = "=";
-			$parameters[$parametercount] = &$country;
-			$parametercount++;
-			if (preg_match("/[%_]/",$country))  { $operator = " like "; }
-			$wherebit .= "$and geography.name $operator ? ";
-		    if (!$joined_to_geography) { 
-			    $joins .= " left join agentgeography on agent.agentid = agentgeography.agentid " .
-			    		" left join geography on agentgeography.geographyid = geography.geographyid ";
-		    }
-			$and = " and ";
-		}
-		if ($question!="") {
-			$question = "Search for $question <BR>";
-		} else {
-			$question = "No search criteria provided.";
-		}
-		$query = "select distinct agent.agentid, " .
-				" agent.agenttype, agent.firstname, agent.lastname, year(agent.dateofbirth), year(agent.dateofdeath) " . 
-			    " from agent " .  
-			    " left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agent.lastname, agent.firstname, agent.dateofbirth ";
+		$and = " and ";
+	}
+	if ($question!="") {
+		$question = "Search for $question <BR>";
+	} else {
+		$question = "No search criteria provided.";
+	}
+	$query = "select distinct agent.agentid, " .
+		" agent.agenttype, agent.firstname, agent.lastname, year(agent.dateofbirth), year(agent.dateofdeath) " . 
+		" from agent " .  
+		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agent.lastname, agent.firstname, agent.dateofbirth ";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
@@ -222,7 +248,7 @@ function search() {
 			$array = Array();
 			$array[] = $types;
 			foreach($parameters as $par)
-			     $array[] = $par;
+			$array[] = $par;
 			call_user_func_array(array($statement, 'bind_param'),$array);
 			$statement->execute();
 			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $yearofbirth, $yearofdeath);
@@ -262,7 +288,7 @@ function search() {
 	} 
 	
 }
-						
+
 mysqli_report(MYSQLI_REPORT_OFF);
 
 ?>

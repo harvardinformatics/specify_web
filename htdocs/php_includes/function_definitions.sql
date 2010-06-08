@@ -36,3 +36,5 @@ BEGIN
    return t_result;
 END |
 delimiter ;
+
+grant execute on procedure specify.getTextDate to 'specify_user'@'localhost';
