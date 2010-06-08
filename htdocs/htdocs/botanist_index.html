@@ -93,11 +93,6 @@
      in the database will be matched.  
      </p>
 
-<?php
-   if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
-      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
-   }
-?>
 <form class="searchform" action="botanist_search.php" method="get">
     <input type="hidden" name="start" value="1"> 
      <table align="center">
@@ -176,6 +171,11 @@
 
 </form>
 
+<?php
+   if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
+   }
+?>
 		    </div>
 	</div>
 </div>
