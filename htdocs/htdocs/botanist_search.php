@@ -87,7 +87,7 @@ function details() {
 		if ($oldid!=$id)  { 
 			$wherebit = "where agent.agentid = ? ";
 			$query = "select lastname, firstname, remarks, dateofbirth, dateofbirthprecision, " .
-				" dateofdeath, dateofdeathprecision, url, agentid " .
+				" dateofdeath, dateofdeathprecision, url, agentid, agenttype " .
 				" from agent  $wherebit";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
@@ -96,20 +96,33 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid);
+				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype);
 				$statement->store_result();
 				while ($statement->fetch()) {
+					$is_group = false;
 					$agent .=  "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
+					if ($agenttype=="3") { 
+					      $is_group = true;
+					      $agent .=  "<tr><td class='cap'>Agent type</td><td class='val'>Team/Group</td></tr>";
+					}
+					
 					// Limit date of birth information for people who are living to the year of birth.
 					if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   } 
 					if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   } 
 					if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
-					echo "[$dateofbirth][$dateofdeath][$dateofbirthprecision][$dateofdeathprecision]";
 					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
 					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
-					echo "[$dateofbirth][$dateofdeath][$dateofbirthprecision][$dateofdeathprecision]";
-					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>Date of birth</td><td class='val'>$dateofbirth</td></tr>"; }
-					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>Date of death</td><td class='val'>$dateofdeath</td></tr>"; }
+					if ($is_group) {
+						// groups have first and last dates
+						$startdatetext = "First known date"; 
+						$enddatetext = "Last known date"; 
+					} else { 
+						$startdatetext = "Date of birth"; 
+						$enddatetext = "Date of death"; 
+					}
+					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>$startdatetext</td><td class='val'>$dateofbirth</td></tr>"; }
+					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>$enddatetext</td><td class='val'>$dateofdeath</td></tr>"; }
+					
 					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($url!=""))   { $agent .=  "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
 					$query = "select name, vartype from agentvariant where agentid = ? order by vartype ";
@@ -182,6 +195,23 @@ function details() {
 							$statement_geo->store_result();
 							while ($statement_geo->fetch()) {
 								$agent .= "<tr><td class='cap'>Citation as $role</td><td class='val'>$citation</td></tr>";
+							}
+						}
+						$query = "select lastname, agentid from groupperson left join agent on groupperson.groupid = agent.agentid where groupperson.memberid = ? order by ordernumber ";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($groupname,$groupagentid);
+							$statement_geo->store_result();
+							if ($statement_geo->num_rows()>0) {  
+							$agent .= "<tr><td class='cap'>Member of teams/groups</td><td class='val'></td></tr>";
+							while ($statement_geo->fetch()) {
+								if ($groupname != "") {
+								    $agent .= "<tr><td class='cap'>Member of</td><td class='val'><a href='botanist_search.php?mode=details&id=$groupagentid'>$groupname</a></td></tr>";
+								}
+							}
 							}
 						}
 						$query = "select title, author.referenceworkid " .
