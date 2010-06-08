@@ -20,11 +20,20 @@ if ($debug) {
 $connection = specify_connect();
 $errormessage = "";
 
-$mode = "agent_ages";
+$mode = "menu";
  
 if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="details") {
-		$mode = "details"; 
+	if ($_GET['mode']=="agent_ages") {
+		$mode = "agent_ages"; 
+	}
+	if ($_GET['mode']=="individual_agent_ages") {
+		$mode = "individual_agent_ages"; 
+	}
+	if ($_GET['mode']=="team_agent_ages") {
+		$mode = "team_agent_ages"; 
+	}
+	if ($_GET['mode']=="collection_when_not_alive") {
+		$mode = "collection_when_not_alive"; 
 	}
 } 
 	
@@ -39,12 +48,20 @@ if ($connection) {
 	switch ($mode) {
 	
 		case "agent_ages":
+			echo agent_ages();
+			break;
+		case "individual_agent_ages":
 			echo agent_ages(1);
+			break;
+		case "team_agent_ages":
 			echo agent_ages(3);
 			break;
-			
+		case "collection_when_not_alive":	
+			echo collection_out_of_date_range();
+			break;
+		case "menu": 	
 		default:
-			$errormessage = "Undefined search mode"; 
+			echo menu(); 
 	}
 	
 	$connection->close();
@@ -64,6 +81,49 @@ if ($errormessage!="") {
 echo pagefooter();
 
 // ******* main code block ends here, supporting functions follow. *****
+
+function menu() { 
+   $returnvalue = "";
+
+   $returnvalue .= "<div>";
+   $returnvalue .= "<h2>Find anomalous values for Agents/Botanists</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=agent_ages'>Agents ages</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=individual_agent_ages'>Individual Agent ages</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=team_agent_ages'>Team Agent ages</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=collection_when_not_alive'>Collections before birth/after death</a></li>";
+   $returnvalue .= "</ul>";
+   $returnvalue .= "</div>";
+
+   return $returnvalue;
+}
+
+function collection_out_of_date_range() { 
+	global $connection;
+   $returnvalue = "";
+    
+   $query = "select collectionobjectid, agent.lastname, agent.agentid, dateofbirth, startdate, dateofdeath " .
+   		" from agent left join collector on agent.agentid = collectorid " .
+   		" left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+   		" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
+   		" where dateofbirth is not null " .
+   		" and (startdate < dateofbirth or enddate > dateofdeath)"; 
+	if ($debug) { echo "[$query]<BR>"; } 
+	$returnvalue .= "<table>";
+	$returnvalue .= "<tr><th>Collector</th><th>Date of Birth</th><th>Collecting Event</th><th>Date of Death</th></tr>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($collectionobjectid,$name,$agentid, $dob, $collectiondate, $dod);
+		$statement->store_result();
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$name</td><td>$dob</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectiondate</a></td>$dod<td></tr>";
+		}
+	}
+	$returnvalue .= "</table>";
+
+   return $returnvalue;
+}
 
 function agent_ages($type="all") {
 	global $connection;
@@ -87,7 +147,7 @@ function agent_ages($type="all") {
 	}
 	if ($debug) { echo "[$query]<BR>"; } 
 	$returnvalue .= "<table>";
-	$returnvalue .= "<tr><th>Age</th><th>Number of agents</th><th>Agents</th></tr>";
+	$returnvalue .= "<tr><th>Age</th><th>Number of agents</th><th>Anomalous Agents</th></tr>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
