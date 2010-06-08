@@ -558,7 +558,9 @@ function details() {
 						echo $items;
 						echo $attributes;
 						echo $images;
-						echo "<tr><td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
+						if (trim($specimenRemarks!="")) {  
+						    echo "<tr><td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
+						} 
 						echo "<BR>\n";
 					}
 					echo "</table>";

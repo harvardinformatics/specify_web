@@ -51,22 +51,26 @@ function transformDate($date, $precision) {
 **  @return = date as a truncated text string 
 **/
 function transformDateText($date, $precision) { 
+   $returnvalue = "";
    if ($precision <= 0 || $precision > 3)
       return "";
 
    if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
      return "";
 
-  if ($precision == 1)
-     return date("d, F Y",strtotime($date));
+  $matches = array();
+  $match = preg_match("/^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$/", $date, $matches);
+  if ($precision == 1) { 
+     $returnvalue =  $matches[1]."-".$matches[2]."-".$matches[3];
+  }
+  if ($precision == 2) { 
+     $returnvalue =  $matches[1]."-".$matches[2]."-**";
+  }
+  if ($precision == 3) { 
+     $returnvalue =  $matches[1];
+  }   
   
-  if ($precision == 2)
-     return date("F Y",strtotime($date));
-
-  if ($precision == 3)
-     return date("Y",strtotime($date));
-  
-  return "";
+  return $returnvalue;
 }
  
  

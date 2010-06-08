@@ -101,9 +101,13 @@ function details() {
 				while ($statement->fetch()) {
 					$agent .=  "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
 					// Limit date of birth information for people who are living to the year of birth.
-					if ($dateofdeath=="") { $dateofbirthprecision = 3;   }  
+					if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   } 
+					if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   } 
+					if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
+					echo "[$dateofbirth][$dateofdeath][$dateofbirthprecision][$dateofdeathprecision]";
 					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
 					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
+					echo "[$dateofbirth][$dateofdeath][$dateofbirthprecision][$dateofdeathprecision]";
 					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>Date of birth</td><td class='val'>$dateofbirth</td></tr>"; }
 					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>Date of death</td><td class='val'>$dateofdeath</td></tr>"; }
 					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
@@ -211,11 +215,76 @@ function details() {
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
 								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$lastname'>Search for specimens collected by $lastname</a></td></tr>";
+								while ($statement_geo->fetch()) {
+									// for each year
+									// obtain the list of collection objects collected by this collector in this year
+									if ($year=="") {
+										$query = "select collectionobjectid " .
+											" from collector left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+											" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
+											" where agentid = ? and year(startdate) is null ";
+									} else { 
+										$query = "select collectionobjectid " .
+											" from collector left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+											" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
+											" where agentid = ? and year(startdate) = ? ";
+									}
+									$statement_co = $connection->prepare($query);
+									$link = "";
+									if ($statement_co) {
+										$link = "href='specimen_search.php?mode=details";
+									    if ($year=="") {
+											$statement_co->bind_param("i",$agentid);
+									    } else { 
+											$statement_co->bind_param("ii",$agentid,$year);
+									    }
+										$statement_co->execute();
+										$statement_co->bind_result($collectionobjectid);
+										$statement_co->store_result();
+								        while ($statement_co->fetch()) {
+								        	$link .= "&id[]=$collectionobjectid";
+										}
+										$link .= "'";
+									}
+									$statement_co->close();
+									// for each year, provide the count of the number of collections objects held with a link to those collection objects.
+									if ($year=="") { $year = "[no date]"; }
+									$agent .= "<tr><td class='cap'>Collections in</td><td class='val'><a $link>$year ($count)</a></td></tr>";
+								} 
 							}
-							while ($statement_geo->fetch()) {
-								if ($year=="") { $year = "[no date]"; }
-								$agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$year ($count)</td></tr>";
-							}
+						}
+						// If internal, check for out of range collecting events: 
+						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+							
+						    $query = "select dateofbirth, startdate, dateofdeath, startdate < dateofbirth " .
+							    	" from agent left join collector on agent.agentid = collector.agentid " .
+								    " left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+								    " where startdate is not null " .
+								    " and (startdate < dateofbirth or startdate > dateofdeath) " .
+								    " and agent.agentid = ? ";
+						    if ($debug) { echo "[$query]<BR>"; } 
+						    $statement_qc = $connection->prepare($query);
+						    if ($statement_qc) {
+							    $statement_qc->bind_param("i",$agentid);
+							    $statement_qc->execute();
+							    $statement_qc->bind_result($dob,$startdate,$dod, $beforebirth);
+							    $statement_qc->store_result();
+							    if ($statement_qc->num_rows()>0) { 
+									$agent .= "<tr><td class='cap'>Questionable records</td><td class='val'>Collecting Event Dates before birth or after death</td></tr>";
+							        while ($statement_qc->fetch()) {
+					                    $dod = transformDateText($dod,3);
+					                    $dob = transformDateText($dob,3);
+					                    $startdate = transformDateText($startdate,3);
+					                    if ($beforebirth==1) {
+					                    	$qc_message  = "Collected before birth"; 
+									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>Coll:$startdate DOB: $dob</td></tr>";
+					                    } else { 
+					                    	$qc_message  = "Collected after death"; 
+									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>DOD:$dod Coll:$startdate</td></tr>";
+					                    }
+							        }
+							    }
+						    }
 						}
 					}
 					
