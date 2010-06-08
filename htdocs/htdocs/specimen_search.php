@@ -745,7 +745,8 @@ global $connection, $errormessage, $debug;
 			$question = "No search criteria provided.";
 		}
 		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
-				" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, i.imagesetid " . 
+				" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
+				" i.imagesetid, web_search.datecollected " . 
                 " from collectionobject c 
 			      left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
 			    " left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit ";
@@ -770,7 +771,7 @@ global $connection, $errormessage, $debug;
 			}
 		}
 		$statement->execute();
-		$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid);
+		$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected);
 		$statement->store_result();
 		
 		echo "<div>\n";
@@ -809,7 +810,7 @@ global $connection, $errormessage, $debug;
 				         $FullName = "[<a href='sepecimen_search.php?family=$family'>$family</a>] <em>$genus $species $infraspecific</em> $author";
 				         $geography = "$country: $state $locality ";
 				         $specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
-				         echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $imageicon";
+				         echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $datecollected $imageicon";
 				         echo "<BR>\n";
 				         //}
 			        //} else { 

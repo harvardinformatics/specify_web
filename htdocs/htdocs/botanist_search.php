@@ -141,6 +141,82 @@ function details() {
 							}
 							$agent .= "<tr><td class='cap'>$typestring</td><td class='val'>$name</td></tr>";
 						}
+						$query = "select geography.name, agentgeography.role " .
+							" from agentgeography left join geography on agentgeography.geographyid = geography.geographyid " .
+							" where agentid = ? " .
+							" order by agentgeography.role ";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($geography,$role);
+							$statement_geo->store_result();
+							while ($statement_geo->fetch()) {
+								$agent .= "<tr><td class='cap'>Geography $role</td><td class='val'>$geography</td></tr>";
+							}
+						}
+						$query = " select specialtyname, role, ordernumber from agentspecialty where agentid = ? order by role, ordernumber";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($specialty,$role,$order);
+							$statement_geo->store_result();
+							while ($statement_geo->fetch()) {
+								$agent .= "<tr><td class='cap'>Specialty $role</td><td class='val'>$specialty</td></tr>";
+							}
+						}
+						$query = "select remarks, role from agentcitation where agentid = ? ";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($citation,$role);
+							$statement_geo->store_result();
+							while ($statement_geo->fetch()) {
+								$agent .= "<tr><td class='cap'>Citation as $role</td><td class='val'>$citation</td></tr>";
+							}
+						}
+						$query = "select title, author.referenceworkid " .
+								" from author left join referencework on author.referenceworkid = referencework.referenceworkid " .
+								" where agentid = ? ";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($title,$referenceworkid);
+							$statement_geo->store_result();
+							while ($statement_geo->fetch()) {
+								if ($title != "") {
+									// TODO: Handle case of citations within works (where title of cited reference is null) 
+								    $agent .= "<tr><td class='cap'>Author in </td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a></td></tr>";
+								}
+							}
+						}
+						$query = "select count(collectionobjectid), year(startdate) " .
+								" from collector left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+								" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
+								" where agentid = ? " .
+								" group by year(startdate)";
+						if ($debug) { echo "[$query]<BR>"; } 
+						$statement_geo = $connection->prepare($query);
+						if ($statement_geo) {
+							$statement_geo->bind_param("i",$agentid);
+							$statement_geo->execute();
+							$statement_geo->bind_result($count, $year);
+							$statement_geo->store_result();
+							if ($statement_geo->num_rows()>0 ) {
+								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$lastname'>Search for specimens collected by $lastname</a></td></tr>";
+							}
+							while ($statement_geo->fetch()) {
+								if ($year=="") { $year = "[no date]"; }
+								$agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$year ($count)</td></tr>";
+							}
+						}
 					}
 					
 				}
