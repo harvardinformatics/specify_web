@@ -1,3 +1,11 @@
+-- Add indexes to specify tables: 
+-- add index to taxon(rankid) to find particular ranks
+create index idx_taxon_rankid on taxon(rankid);
+-- other indexes 
+create index idx_agent_specialty_role on agentspecialty(role);
+create index idx_agent_specialty_name on agentspecialty(specialtyname);
+create index idx_taxontreedefitem_name on taxontreedefitem(name);
+
 -- Suporting functions that can be used by web interface to specify
 -- Innefficient to use in searches of data sets, but effective for data
 -- retrieval for details of individual collection object records. 

@@ -8,25 +8,22 @@ create table if not exists web_quicksearch (
   collectionobjectid bigint not null,
   searchable text
 ) ENGINE MyISAM CHARACTER SET utf8;
-create fulltext index i_web_quicksearch on web_quicksearch(searchable);
 
-delete from web_quicksearch;
-
-insert into web_quicksearch (collectionobjectid, searchable) (
-   select a.collectionobjectid, concat(geography.name, ' ', gloc.name, ' ', a.fullname, ' ', a.catalognumber) 
-   from geography, 
-       (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid 
-        from collectionobject 
-            left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid 
-            left join determination on fragment.fragmentid = determination.fragmentid 
-            left join taxon on determination.taxonid = taxon.taxonid 
-            left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
-            left join locality on collectingevent.localityid = locality.localityid 
-        ) a
-   left join geography gloc on a.geoid = gloc.geographyid 
-   where geography.rankid = 200 
-     and geography.highestchildnodenumber >= a.geoid 
-     and geography.nodenumber <= a.geoid);
+--insert into web_quicksearch (collectionobjectid, searchable) (
+--   select a.collectionobjectid, concat(geography.name, ' ', gloc.name, ' ', a.fullname, ' ', a.catalognumber) 
+--   from geography, 
+--       (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid 
+--        from collectionobject 
+--            left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid 
+--            left join determination on fragment.fragmentid = determination.fragmentid 
+--            left join taxon on determination.taxonid = taxon.taxonid 
+--            left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+--            left join locality on collectingevent.localityid = locality.localityid 
+--        ) a
+--   left join geography gloc on a.geoid = gloc.geographyid 
+--   where geography.rankid = 200 
+--     and geography.highestchildnodenumber >= a.geoid 
+--     and geography.nodenumber <= a.geoid);
 
 
 -- Table to hold denormalized copy of key fields for searches, particularly
@@ -65,14 +62,37 @@ create table if not exists web_search (
 
 delete from web_search;
 
--- Add indexes to specify tables: 
+-- Needed indexes to specify tables: 
 -- add index to taxon(rankid) to find particular ranks
-create index idx_taxon_rankid on taxon(rankid);
+-- create index idx_taxon_rankid on taxon(rankid);
 -- other indexes 
-create index idx_agent_specialty_role on agentspecialty(role);
-create index idx_agent_specialty_name on agentspecialty(specialtyname);
-create index idx_taxontreedefitem_name on taxontreedefitem(name);
+-- create index idx_agent_specialty_role on agentspecialty(role);
+-- create index idx_agent_specialty_name on agentspecialty(specialtyname);
+-- create index idx_taxontreedefitem_name on taxontreedefitem(name);
 
+-- drop search indexes for faster population of web_search table
+drop index idx_websearch_collobjid on web_search;
+drop index idx_websearch_family on web_search;
+drop index idx_websearch_genus on web_search;
+drop index idx_websearch_species on web_search;
+drop index idx_websearch_infraspecific on web_search;
+drop index idx_websearch_author on web_search;
+drop index idx_websearch_country on web_search;
+drop index idx_websearch_location on web_search;
+drop index idx_websearch_state on web_search;
+drop index idx_websearch_county on web_search;
+drop index idx_websearch_typestatus on web_search;
+drop index idx_websearch_collector on web_search;
+drop index idx_websearch_collectornumber on web_search;
+drop index idx_websearch_herbaria on web_search;
+drop index idx_websearch_barcode on web_search;
+drop index idx_websearch_datecollected on web_search;
+drop index idx_yearcollected on web_search;
+drop index idx_yearpublished on web_search;
+drop index idx_websearch_taxon_highestchild on web_search;
+drop index idx_websearch_taxon_nodenumber on web_search;
+drop index idx_websearch_geo_highestchild on web_search;
+drop index idx_websearch_geo_nodenumber on web_search;
 
 -- Queries that follow are designed and optimized for speed.  Fewer queries with more complex joins are 
 -- possible, but much less effiecient, particularly when updates involving selects from the native InnoDB
@@ -82,6 +102,8 @@ create index idx_taxontreedefitem_name on taxontreedefitem(name);
 -- catalognumber = barcode is in fragment.identifier (primary)
 -- or preparation.identifier (secondary for complex objects).
 -- in HUH specify botany, collectionobject.altcatalognumber is the ASA specimen.specimenid
+-- first insert the fragment barcoded names
+-- 1 min 54 sec
 insert into web_search 
   (taxon_highestchild,taxon_nodenumber,species,author,collectionobjectid,barcode) 
   select t.highestchildnodenumber,t.nodenumber, t.name, t.author, 
@@ -92,7 +114,8 @@ insert into web_search
          left join collectionobject c on f.collectionobjectid = c.collectionobjectid
           left join taxontreedefitem td on t.rankid = td.rankid 
          where td.name = 'Species' and f.identifier is not null;
-
+-- repeat for preparation barcoded names
+-- 1 min 28 sec
 insert into web_search 
   (taxon_highestchild,taxon_nodenumber,species,author,collectionobjectid,barcode) 
   select t.highestchildnodenumber,t.nodenumber, t.name, t.author, 
@@ -107,13 +130,14 @@ insert into web_search
          
 --insert into web_search (family,genus,species,infraspecific,author,collectionobjectid,barcode) select getHigherTaxonOfRank(140,t.highestchildnodenumber,t.nodenumber) as family, getHigherTaxonOfRank(180,t.highestchildnodenumber,t.nodenumber) as genus, getParentRank(220,t.highestchildnodenumber,t.nodenumber), t.name, t.author, c.collectionobjectid, c.altcatalognumber from determination d left join taxon t on d.taxonid = t.taxonid left join fragment f on d.fragmentid = f.fragmentid left join collectionobject c on f.collectionobjectid = c.collectionobjectid where t.rankid > 220;
 -- below species rank
+-- 13 sec
 insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author,collectionobjectid,barcode) 
    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, f.identifier
      from determination d left join taxon t on d.taxonid = t.taxonid 
      left join fragment f on d.fragmentid = f.fragmentid 
      left join collectionobject c on f.collectionobjectid = c.collectionobjectid 
      where t.rankid > 220 and f.identifier is not null;
-
+-- 10 sec
 insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author,collectionobjectid,barcode) 
     select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, p.identifier 
        from determination d left join taxon t on d.taxonid = t.taxonid 
@@ -123,6 +147,7 @@ insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author
        where t.rankid > 220 and p.identifier is not null;
 
 -- genera
+-- 5 sec
 insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collectionobjectid,barcode)  
     select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, f.identifier  
     from determination d left join taxon t on d.taxonid = t.taxonid  
@@ -130,6 +155,7 @@ insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collect
     left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
     where t.rankid = 180 and f.identifier is not null;
 
+-- 4 sec    
 insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collectionobjectid,barcode)  
     select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, p.identifier  
     from determination d left join taxon t on d.taxonid = t.taxonid  
@@ -138,18 +164,23 @@ insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collect
     left join preparation p on f.preparationid = p.preparationid   
     where t.rankid = 180 and p.identifier;
 
+-- 11 sec    
 create index idx_websearch_taxon_highestchild on web_search(taxon_highestchild);
+-- 15 sec
 create index idx_websearch_taxon_nodenumber on web_search(taxon_nodenumber);
 
 -- create temporary copy of taxonomy tree in a myisam table.
-drop table if exists temp_taxon; 
+drop table if exists temp_taxon;
+-- 2 sec
 create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid, parentid from taxon;
+-- about 3-5 sec each 
 create unique index idx_temp_taxon_taxonid on temp_taxon(taxonid);
 create index temp_taxon_hc on temp_taxon(highestchildnodenumber);
 create index temp_taxon_node on temp_taxon(nodenumber);
 create index temp_taxon_rank on temp_taxon(rankid);
-
+-- 5 sec
 alter table temp_taxon add column family varchar(64);
+
 -- about 6 minutes for the following
 update temp_taxon set family = getHigherTaxonOfRank(140,highestchildnodenumber,nodenumber) where family is null;
 
@@ -350,5 +381,17 @@ create index idx_websearch_datecollected on web_search(datecollected);
 create index idx_yearcollected on web_search(yearcollected);
 create index idx_yearpublished on web_search(yearpublished);
 
+delete from web_quicksearch;
 
+drop index i_web_quicksearch on web_quicksearch;
 
+insert into web_quicksearch (collectionobjectid, searchable) (
+   select collectionobjectid, 
+         concat_ws(" ",
+            family,genus,species,infraspecific,author,yearpublished,typestatus,
+            country,state,county,location,datecollected,collector,collectornumber,barcode) 
+         from web_search
+   ); 
+
+   
+create fulltext index i_web_quicksearch on web_quicksearch(searchable);
