@@ -9,7 +9,7 @@ create table if not exists web_quicksearch (
   searchable text
 ) ENGINE MyISAM CHARACTER SET utf8;
 
---insert into web_quicksearch (collectionobjectid, searchable) (
+-- insert into web_quicksearch (collectionobjectid, searchable) (
 --   select a.collectionobjectid, concat(geography.name, ' ', gloc.name, ' ', a.fullname, ' ', a.catalognumber) 
 --   from geography, 
 --       (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid 
@@ -128,7 +128,7 @@ insert into web_search
          left join taxontreedefitem td on t.rankid = td.rankid 
          where td.name = 'Species' and p.identifier is not null;         
          
---insert into web_search (family,genus,species,infraspecific,author,collectionobjectid,barcode) select getHigherTaxonOfRank(140,t.highestchildnodenumber,t.nodenumber) as family, getHigherTaxonOfRank(180,t.highestchildnodenumber,t.nodenumber) as genus, getParentRank(220,t.highestchildnodenumber,t.nodenumber), t.name, t.author, c.collectionobjectid, c.altcatalognumber from determination d left join taxon t on d.taxonid = t.taxonid left join fragment f on d.fragmentid = f.fragmentid left join collectionobject c on f.collectionobjectid = c.collectionobjectid where t.rankid > 220;
+-- insert into web_search (family,genus,species,infraspecific,author,collectionobjectid,barcode) select getHigherTaxonOfRank(140,t.highestchildnodenumber,t.nodenumber) as family, getHigherTaxonOfRank(180,t.highestchildnodenumber,t.nodenumber) as genus, getParentRank(220,t.highestchildnodenumber,t.nodenumber), t.name, t.author, c.collectionobjectid, c.altcatalognumber from determination d left join taxon t on d.taxonid = t.taxonid left join fragment f on d.fragmentid = f.fragmentid left join collectionobject c on f.collectionobjectid = c.collectionobjectid where t.rankid > 220;
 -- below species rank
 -- 13 sec
 insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author,collectionobjectid,barcode) 
@@ -202,19 +202,19 @@ update web_search left join temp_taxon on web_search.taxon_nodenumber = temp_tax
 
 -- cross join makes queries below too slow to use.
 -- Queries above make this possible without a cross join
---update web_search, temp_taxon set family = temp_taxon.name 
+-- update web_search, temp_taxon set family = temp_taxon.name 
 --  where highestchildnodenumber >= taxon_highestchild 
 --    and nodenumber <= taxon_nodenumber 
 --    and rankid = 140 
 --    and family is null;
     
 -- takes 2.5 hours to run for family, more than 10 hours for genus    
---update web_search, temp_taxon set family = temp_taxon.name 
+-- update web_search, temp_taxon set family = temp_taxon.name 
 --  where taxon_nodenumber not between highestchildnodenumber and nodenumber 
 --    and rankid = 140 
 --    and family is null;    
     
---update web_search, temp_taxon set genus = temp_taxon.name 
+-- update web_search, temp_taxon set genus = temp_taxon.name 
 --  where highestchildnodenumber >= taxon_highestchild 
 --    and nodenumber <= taxon_nodenumber 
 --    and rankid = 180 
@@ -285,7 +285,7 @@ update web_search left join temp_geography on web_search.geo_nodenumber = temp_g
 
 -- populate the state field
 -- 1 hour 21 min.    
---update web_search, temp_geography set state = temp_geography.name 
+-- update web_search, temp_geography set state = temp_geography.name 
 --  where geo_highestchild <= highestchildnodenumber 
 --    and geo_nodenumber >= nodenumber  
 --    and rankid = 300 
@@ -293,20 +293,20 @@ update web_search left join temp_geography on web_search.geo_nodenumber = temp_g
 
 -- populate the county field   
 -- 4 hours 13 min. 
---update web_search, temp_geography set county = temp_geography.name 
+-- update web_search, temp_geography set county = temp_geography.name 
 --  where geo_highestchild <= highestchildnodenumber 
 --    and geo_nodenumber >= nodenumber  
 --    and rankid = 400
 --    and county is null;
   
 -- below are way too slow, involving join with transactional tables in update query.       
---update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+-- update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
 --   set w.country = getGeographyOfRank(200,g.highestchildnodenumber,g.nodenumber);
 
---update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+-- update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
 --   set w.state = getGeographyOfRank(300,g.highestchildnodenumber,g.nodenumber);
 
---update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+-- update web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
 --   set w.county = getGeographyOfRank(400,g.highestchildnodenumber,g.nodenumber);
    
 -- Set type status (of specimens, not names)

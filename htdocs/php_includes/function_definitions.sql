@@ -46,3 +46,5 @@ END |
 delimiter ;
 
 grant execute on procedure specify.getTextDate to 'specify_user'@'localhost';
+grant execute on procedure specify.getGeographyOfRank to 'specify_user'@'localhost';
+grant execute on procedure specify.getHigherTaxonOfRank to 'specify_user'@'localhost';
