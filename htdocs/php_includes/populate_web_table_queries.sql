@@ -75,8 +75,8 @@ delete from temp_web_search;
 
 -- drop search indexes for faster population of temp_web_search table
 -- not needed for drop/create temp_web tables.
-drop index idx_websearch_collobjid on temp_web_search;
--- drop -- index idx_websearch_family on temp_web_search;
+-- drop index idx_websearch_collobjid on temp_web_search;
+-- drop index idx_websearch_family on temp_web_search;
 -- drop index idx_websearch_genus on temp_web_search;
 -- drop index idx_websearch_species on temp_web_search;
 -- drop index idx_websearch_infraspecific on temp_web_search;

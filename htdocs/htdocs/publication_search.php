@@ -387,8 +387,8 @@ function search() {
 			        	echo "<h3>Possibly matching authors</h3>";
 			        	$separator = "";
 				         while ($statement->fetch()) {
-				         	echo "$separator$authorlast, $authorfirst [<a href='publication_search.php?mode=search&agentid=$agentid'>$count pubs</a>]";
-				         	$separator = "; ";
+			        	    $highlightedauthor = preg_replace("/$plainauthor/","<strong>$plainauthor</strong>","$authorlast, $authorfirst");
+				         	echo "$highlightedauthor [<a href='publication_search.php?mode=search&agentid=$agentid'>$count pubs</a>]<BR>";
 				         }
 				         echo "<BR>";
 			        }

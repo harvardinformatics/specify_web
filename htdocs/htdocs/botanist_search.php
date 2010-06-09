@@ -355,7 +355,7 @@ function search() {
 	if ($name!="") { 
 		$hasquery = true;
 		$namepad = "%$name%";
-		$question .= "$and lastname:[$name] or name like:[$namepad] ";
+		$question .= "$and name:[$name] or name like:[$namepad] or name sounds like [$name] ";
 		$types .= "sss";
 		$operator = "=";
 		$parameters[$parametercount] = &$name;
@@ -451,7 +451,9 @@ function search() {
 				echo "<BR><div>\n";
 				while ($statement->fetch()) { 
 					if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
-					echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$lastname, $firstname</a> ($yearofbirth - $yearofdeath) $team";
+					$plainname = preg_replace("/[^A-Za-z ]/","",$name);
+					$highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$firstname $lastname");
+					echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
 					echo "<BR>\n";
 				}
 				echo "</div>\n";
