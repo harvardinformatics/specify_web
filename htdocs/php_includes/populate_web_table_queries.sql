@@ -74,28 +74,29 @@ delete from temp_web_search;
 -- create index idx_taxontreedefitem_name on taxontreedefitem(name);
 
 -- drop search indexes for faster population of temp_web_search table
+-- not needed for drop/create temp_web tables.
 drop index idx_websearch_collobjid on temp_web_search;
-drop index idx_websearch_family on temp_web_search;
-drop index idx_websearch_genus on temp_web_search;
-drop index idx_websearch_species on temp_web_search;
-drop index idx_websearch_infraspecific on temp_web_search;
-drop index idx_websearch_author on temp_web_search;
-drop index idx_websearch_country on temp_web_search;
-drop index idx_websearch_location on temp_web_search;
-drop index idx_websearch_state on temp_web_search;
-drop index idx_websearch_county on temp_web_search;
-drop index idx_websearch_typestatus on temp_web_search;
-drop index idx_websearch_collector on temp_web_search;
-drop index idx_websearch_collectornumber on temp_web_search;
-drop index idx_websearch_herbaria on temp_web_search;
-drop index idx_websearch_barcode on temp_web_search;
-drop index idx_websearch_datecollected on temp_web_search;
-drop index idx_yearcollected on temp_web_search;
-drop index idx_yearpublished on temp_web_search;
-drop index idx_websearch_taxon_highestchild on temp_web_search;
-drop index idx_websearch_taxon_nodenumber on temp_web_search;
-drop index idx_websearch_geo_highestchild on temp_web_search;
-drop index idx_websearch_geo_nodenumber on temp_web_search;
+-- drop -- index idx_websearch_family on temp_web_search;
+-- drop index idx_websearch_genus on temp_web_search;
+-- drop index idx_websearch_species on temp_web_search;
+-- drop index idx_websearch_infraspecific on temp_web_search;
+-- drop index idx_websearch_author on temp_web_search;
+-- drop index idx_websearch_country on temp_web_search;
+-- drop index idx_websearch_location on temp_web_search;
+-- drop index idx_websearch_state on temp_web_search;
+-- drop index idx_websearch_county on temp_web_search;
+-- drop index idx_websearch_typestatus on temp_web_search;
+-- drop index idx_websearch_collector on temp_web_search;
+-- drop index idx_websearch_collectornumber on temp_web_search;
+-- drop index idx_websearch_herbaria on temp_web_search;
+-- drop index idx_websearch_barcode on temp_web_search;
+-- drop index idx_websearch_datecollected on temp_web_search;
+-- drop index idx_yearcollected on temp_web_search;
+-- drop index idx_yearpublished on temp_web_search;
+-- drop index idx_websearch_taxon_highestchild on temp_web_search;
+-- drop index idx_websearch_taxon_nodenumber on temp_web_search;
+-- drop index idx_websearch_geo_highestchild on temp_web_search;
+-- drop index idx_websearch_geo_nodenumber on temp_web_search;
 
 -- Queries that follow are designed and optimized for speed.  Fewer queries with more complex joins are 
 -- possible, but much less effiecient, particularly when updates involving selects from the native InnoDB
