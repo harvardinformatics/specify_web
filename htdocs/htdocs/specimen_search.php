@@ -852,7 +852,7 @@ global $connection, $errormessage, $debug;
 						" from collector left join agent on collector.agentid = agent.agentid " .
 						" left join agentvariant on agent.agentid = agentvariant.agentid " .
 						" where (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) " .
-						" group by agent.firstname, agent.lastname, agent.agentid ";
+						" group by agent.firstname, agent.lastname, agent.agentid order by agent.lastname, count(collector.collectingeventid) ";
 				$wildcollector = "%$collector%";
 				$plaincollector = str_replace("%","",$collector);
        		    $collectorparameters[0] = &$wildcollector;   // agentvariant like 
@@ -867,6 +867,7 @@ global $connection, $errormessage, $debug;
 		              echo "[$query][$wildcollector][$plaincollector][$wildcollector][$plaincollector]<BR>\n";
 	            }
 				$statement = $connection->prepare($query);
+				$searchcollector = preg_replace("/[^A-Za-z ]/","", $plaincollector);
 				if ($statement) { 
 					$array = Array();
 					$array[] = $types;
@@ -877,11 +878,12 @@ global $connection, $errormessage, $debug;
 					$statement->bind_result($collector, $count);
 					$statement->store_result();
 			        if ($statement->num_rows > 0 ) {
+			        	echo "<h2>No matching results.</h2>";   // move the error message before this query
 			        	echo "<h3>Possibly matching collectors</h3>";
-			        	$separator = "";
+			            $errormessage = "";   // clear the error message so it doesn't show at the end.'
 				         while ($statement->fetch()) {
-				         	echo "$separator$collector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count records</a>]";
-				         	$separator = "; ";
+				         	$highlightedcollector = preg_replace("/$searchcollector/","<strong>$plaincollector</strong>",$collector);
+				         	echo "$highlightedcollector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count records</a>]<br>";
 				         }
 				         echo "<BR>";
 			        }
