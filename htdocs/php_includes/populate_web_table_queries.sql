@@ -348,7 +348,9 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
 -- set herbarium acronym (fragment.text1 is HUH specific where multiple herbaria are managed
 -- as a single specify collection).
 -- 2 min 30 sec.
-update temp_web_search w left join fragment f on w.collectionobjectid = f.collectionobjectid  set w.herbaria = f.text1 where f.text1 is not null 
+update temp_web_search w left join fragment f on w.collectionobjectid = f.collectionobjectid 
+  set w.herbaria = f.text1 
+  where f.text1 is not null ;
 
 -- set year collected from date collected.
 update temp_web_search set yearcollected = year(datecollected);
@@ -371,13 +373,13 @@ create index idx_websearch_family on temp_web_search(family);
 create index idx_websearch_genus on temp_web_search(genus);
 create index idx_websearch_species on temp_web_search(species);
 create index idx_websearch_infraspecific on temp_web_search(infraspecific);
-create index idx_websearch_author on temp_web_search(author);
+create index idx_websearch_author on temp_web_search(author(50));
 create index idx_websearch_country on temp_web_search(country);
-create index idx_websearch_location on temp_web_search(location);
+create index idx_websearch_location on temp_web_search(location(100));
 create index idx_websearch_state on temp_web_search(state);
 create index idx_websearch_county on temp_web_search(county);
 create index idx_websearch_typestatus on temp_web_search(typestatus);
-create index idx_websearch_collector on temp_web_search(collector);
+create index idx_websearch_collector on temp_web_search(collector(50));
 create index idx_websearch_collectornumber on temp_web_search(collectornumber);
 create index idx_websearch_herbaria on temp_web_search(herbaria);
 create index idx_websearch_barcode on temp_web_search(barcode);
@@ -387,7 +389,8 @@ create index idx_yearpublished on temp_web_search(yearpublished);
 
 delete from temp_web_quicksearch;
 
-drop index i_temp_web_quicksearch on temp_web_quicksearch;
+-- Not needed as the temp tables are being built and removed.
+-- drop index i_temp_web_quicksearch on temp_web_quicksearch;
 
 -- 4 sec
 insert into temp_web_quicksearch (collectionobjectid, searchable) (
