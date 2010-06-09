@@ -148,9 +148,36 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 				  <td>Collector</td>
     			<td colspan="2">%<input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
 					<td>Collector no.</td>
-    			<td colspan="2"><input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td></tr>
+    			<td colspan="2"><input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
+    		</tr>
+    		<tr>
+    			<td><a href="specimen_search.php?browsemode=countries">Country</a></td>
+    			<td colspan="2"><select name="country" size=1>
+                                <option value="">any</option>
+<?php
+
+  @include_once("connection_library.php");
+  $query = "select name from geography where rankid = 200 order by name "; 
+  @$connection = specify_connect();
+  if ($connection) {
+		@$statement = $connection->prepare($query);
+		if ($statement) {
+			@$statement->execute();
+			@$statement->bind_result($country);
+			@$statement->store_result();
+			while (@$statement->fetch()) {
+                echo "<option value = '$country'>$country</option>\n";
+            }
+        }
+  } 
+?>
+
+                    </select></td>
+    			<td>Year Collected</td>
+    			<td collspan="2"><input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
+    		</tr>	
 			<tr>
-					<td><a href="specimen_search.php?browsemode=countries">Country</a>/Location</td>
+					<td>Location</td>
 	  			<td colspan="2">&nbsp;&nbsp;&nbsp;<input type="text" name="loc" value="" size="30" maxlength="59" /></td>
 					<td>Barcode</td>
     			<td colspan="2"><input type="text" name="barcode" value="" size="20" maxlength="59" /></td></tr>

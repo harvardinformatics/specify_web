@@ -145,6 +145,7 @@ function details() {
 		$oldid = "";
 		foreach($ids as $value) { 
 			$id = substr(preg_replace("[^0-9]","",$value),0,20);
+			echo "id=[$id]<BR>";
 			// Might be duplicates next to each other in list of checkbox records from search results 
 			// (from there being more than one current determination/typification for a specimen, or
 			// from there being two specimens on one sheet).  
@@ -726,6 +727,18 @@ global $connection, $errormessage, $debug;
 			$parametercount++;
 			if (preg_match("/[%_]/",$yearpublished))  { $operator = " like "; }
 			$wherebit .= "$and web_search.yearpublished $operator ? ";
+			$and = " and ";
+		}
+		$yearcollected = substr(preg_replace("/[^0-9 _%]/","", $_GET['yearcollected']),0,59);
+		if ($yearcollected!="") { 
+			$hasquery = true;
+			$question .= "$and year collected:[$yearcollected]";
+			$types .= "s";
+			$operator = "=";
+			$parameters[$parametercount] = &$yearcollected;
+			$parametercount++;
+			if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
+			$wherebit .= "$and web_search.yearcollected $operator ? ";
 			$and = " and ";
 		}
 		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
