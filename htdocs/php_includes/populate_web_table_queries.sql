@@ -45,6 +45,7 @@ create table if not exists web_search (
     state varchar(255),
     county varchar (255),
     datecollected varchar(30),
+    yearcollected varchar(4),
     collector text,
     collectornumber varchar (255),
     specimenimages boolean,
@@ -107,14 +108,14 @@ insert into web_search
 --insert into web_search (family,genus,species,infraspecific,author,collectionobjectid,barcode) select getHigherTaxonOfRank(140,t.highestchildnodenumber,t.nodenumber) as family, getHigherTaxonOfRank(180,t.highestchildnodenumber,t.nodenumber) as genus, getParentRank(220,t.highestchildnodenumber,t.nodenumber), t.name, t.author, c.collectionobjectid, c.altcatalognumber from determination d left join taxon t on d.taxonid = t.taxonid left join fragment f on d.fragmentid = f.fragmentid left join collectionobject c on f.collectionobjectid = c.collectionobjectid where t.rankid > 220;
 -- below species rank
 insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author,collectionobjectid,barcode) 
-   select t.highestchildnodenumber,t.nodenumber, t.name, t.author, f.identifier, c.altcatalognumber 
+   select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, f.identifier
      from determination d left join taxon t on d.taxonid = t.taxonid 
      left join fragment f on d.fragmentid = f.fragmentid 
      left join collectionobject c on f.collectionobjectid = c.collectionobjectid 
      where t.rankid > 220 and f.identifier is not null;
 
 insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author,collectionobjectid,barcode) 
-    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, p.identifier, c.altcatalognumber 
+    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, p.identifier 
        from determination d left join taxon t on d.taxonid = t.taxonid 
        left join fragment f on d.fragmentid = f.fragmentid 
        left join preparation p on f.preparationid = p.preparationid   
@@ -123,14 +124,14 @@ insert into web_search (taxon_highestchild,taxon_nodenumber,infraspecific,author
 
 -- genera
 insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collectionobjectid,barcode)  
-    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, f.identifier, c.altcatalognumber  
+    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, f.identifier  
     from determination d left join taxon t on d.taxonid = t.taxonid  
     left join fragment f on d.fragmentid = f.fragmentid  
     left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
     where t.rankid = 180 and f.identifier is not null;
 
 insert into web_search (taxon_highestchild,taxon_nodenumber,genus,author,collectionobjectid,barcode)  
-    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, p.identifier, c.altcatalognumber  
+    select t.highestchildnodenumber,t.nodenumber, t.name, t.author, c.collectionobjectid, p.identifier  
     from determination d left join taxon t on d.taxonid = t.taxonid  
     left join fragment f on d.fragmentid = f.fragmentid  
     left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
@@ -194,14 +195,14 @@ update web_search left join temp_taxon on web_search.taxon_nodenumber = temp_tax
 
 -- family and above
 insert into web_search (taxon_highestchild,taxon_nodenumber,family,genus,author,collectionobjectid,barcode)  
-   select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, f.identifier, c.altcatalognumber  
+   select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, c.collectionobjectid, f.identifier 
        from determination d left join taxon t on d.taxonid = t.taxonid  
        left join fragment f on d.fragmentid = f.fragmentid  
        left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
        where t.rankid <= 180;
        
 insert into web_search (taxon_highestchild,taxon_nodenumber,family,genus,author,collectionobjectid,barcode)  
-    select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, p.identifier, c.altcatalognumber  
+    select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, c.collectionobjectid, p.identifier  
         from determination d left join taxon t on d.taxonid = t.taxonid  
         left join fragment f on d.fragmentid = f.fragmentid
         left join preparation p on f.preparationid = p.preparationid 
@@ -314,15 +315,23 @@ update web_search w left join collectionobject c on w.collectionobjectid = c.col
 -- 2 min 30 sec.
 update web_search w left join fragment f on w.collectionobjectid = f.collectionobjectid  set w.herbaria = f.text1 where f.text1 is not null 
 
+-- set year collected from date collected.
+update web_search set yearcollected = year(datecollected);
+
+-- set year published (using year of publication of taxon, not of fragment or of determination)
+-- 50 sec.
+update web_search 
+    left join fragment f on web_search.collectionobjectid = f.collectionobjectid 
+    left join determination d on f.fragmentid = d.fragmentid 
+    left join taxoncitation t on d.taxonid = t.taxonid 
+    set web_search.yearpublished = t.text2  ;
+
 -- Very HUH specific - link from specify to ASA image tables
 -- 1 sec.
 update web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid set w.specimenimages = true where i.collectionobjectid is not null;
 -- 18 sec.
 update web_search set specimenimages = false where specimenimages is null;
 
-
-
-   
 create index idx_websearch_family on web_search(family);
 create index idx_websearch_genus on web_search(genus);
 create index idx_websearch_species on web_search(species);
@@ -338,7 +347,8 @@ create index idx_websearch_collectornumber on web_search(collectornumber);
 create index idx_websearch_herbaria on web_search(herbaria);
 create index idx_websearch_barcode on web_search(barcode);
 create index idx_websearch_datecollected on web_search(datecollected);
-
+create index idx_yearcollected on web_search(yearcollected);
+create index idx_yearpublished on web_search(yearpublished);
 
 
 
