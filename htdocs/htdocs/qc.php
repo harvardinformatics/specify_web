@@ -23,6 +23,12 @@ $errormessage = "";
 $mode = "menu";
  
 if ($_GET['mode']!="")  {
+	if ($_GET['mode']=="unlinked_collectionobjects") {
+		$mode = "unlinked_collectionobjects"; 
+	}
+	if ($_GET['mode']=="unlinked_preparations") {
+		$mode = "unlinked_preparations"; 
+	}
 	if ($_GET['mode']=="agent_ages") {
 		$mode = "agent_ages"; 
 	}
@@ -43,40 +49,46 @@ echo pageheader('qc');
 if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 						
 
-if ($connection) { 
-	
-	switch ($mode) {
-	
-		case "unlinked_collectionobjects":	
-			echo unlinked_collectionobjects();
-			break;
-		case "agent_ages":
-			echo agent_ages();
-			break;
-		case "individual_agent_ages":
-			echo agent_ages(1);
-			break;
-		case "team_agent_ages":
-			echo agent_ages(3);
-			break;
-		case "collection_when_not_alive":	
-			echo collection_out_of_date_range();
-			break;
-		case "menu": 	
-		default:
-			echo menu(); 
+	if ($connection) { 
+		
+		switch ($mode) {
+		
+			case "unlinked_collectionobjects":	
+				echo unlinked_collectionobjects();
+				break;
+			case "unlinked_preparations":	
+				echo unlinked_preparations();
+				break;
+			case "agent_ages":
+				echo agent_ages();
+				break;
+			case "individual_agent_ages":
+				echo agent_ages(1);
+				break;
+			case "team_agent_ages":
+				echo agent_ages(3);
+				break;
+			case "collection_when_not_alive":	
+				echo collection_out_of_date_range();
+				break;
+			case "menu": 	
+			default:
+				echo menu(); 
+		}
+		
+		$connection->close();
+		
+	} else { 
+		$errormessage .= "Unable to connect to database. ";
 	}
 	
-	$connection->close();
+	if ($errormessage!="") {
+		echo "<strong>Error: $errormessage</strong>";
+	}
 	
-} else { 
-	$errormessage .= "Unable to connect to database. ";
-}
-
-if ($errormessage!="") {
-	echo "<strong>Error: $errormessage</strong>";
-}
-
+	
+    echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
+	
 } else {
 	echo "<h2>QC pages are available only within HUH</h2>"; 
 }
@@ -89,9 +101,10 @@ function menu() {
    $returnvalue = "";
 
    $returnvalue .= "<div>";
-   $returnvalue .= "<h2>Find anomalous values for Specimens</h2>";
+   $returnvalue .= "<h2>Find anomalous values for Collection Objects</h2>";
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=unlinked_preparations'>Preparations without Items</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Find anomalous values for Agents/Botanists</h2>";
    $returnvalue .= "<ul>";
@@ -196,15 +209,58 @@ function agent_ages($type="all") {
 }
  
 function unlinked_collectionobjects() { 
-	$returnvalue = "";
+	global $connection;
+   $returnvalue = "";
    $query = "select collectionobject.collectionobjectid, collectionobject.timestampcreated, lastname, collectionobject.description, fieldnumber " .
    		" from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid " .
    		" left join agent on collectionobject.createdbyagentid = agent.agentid " .
    		" where collectionobject.collectionobjectid is not null " .
    		" and fragment.fragmentid is null";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where a CollectionObject is not linked to any Item.  All of these are errors and need to be corrected.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($collectionobjectid,$timestampcreated,$createdby, $description, $fieldnumber);
+		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " orphan collection objects.</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Collector Number</th><th>Type</th><th>Description</th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$createdby</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$createdby</a></td><td>$fieldnumber</td><td>$description</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
    return $returnvalue;
 } 
  
+function unlinked_preparations() { 
+	global $connection;
+   $returnvalue = "";
+   $query = "select preptype.name, preparation.identifier, preparation.preparationid, preparation.timestampcreated, lastname " .
+   		" from preparation left join fragment on preparation.preparationid = fragment.preparationid " .
+   		" left join agent on preparation.createdbyagentid = agent.agentid " .
+   		" left join preptype on preparation.preptypeid = preptype.preptypeid " .
+   		" where preparation.preparationid is not null and fragment.fragmentid is null " .
+   		" and ((agent.lastname is null and preptype.name <> 'Lot') or agent.lastname is not null)";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where a Preparation is not linked to any Item.  These may be errors or may be loaned lots with no further information.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($preptype,$barcode,$preparationid, $datecreated, $createdby);
+		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " orphan preparations.</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Preparation Barcode</th><th>Type</th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$createdby</td><td>$createdby</td><td>$barcode</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+   return $returnvalue;
+} 
+
 mysqli_report(MYSQLI_REPORT_OFF);
  
 ?>

@@ -83,7 +83,7 @@
            <h3>Index of Botanical Specimens</h3>
 
 
-<p>Of the over 5 million specimens in the Harvard University Herbaria, over 210,000
+<p>Of the over 5 million specimens in the Harvard University Herbaria, over 220,000
 have records in the <a href="http://www.specifysoftware.org">Specify 6</a> database system
 of which about 100,000 correspond to type specimens of vascular plants and mosses.  Also included are fungi, lichens, bryophytes, and algae. </p>
 <h1>Databases</h1>
@@ -204,6 +204,11 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 	 If a barcode number is entered, all other search parameters will be ignored.</p>
 
 
+<?php
+   if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
+   }
+?>
 		    </div>
 	</div>
 </div>
