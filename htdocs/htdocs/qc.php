@@ -344,7 +344,7 @@ function collectionobjects_without_barcodes() {
    		" where fragment.identifier is null and preparation.identifier is null " .
    		" order by a.lastname, c.timestampcreated ";
 	if ($debug) { echo "[$query]<BR>"; } 
-    $returnvalue .= "<h2>Cases where a Collection object doesn't have any barcode'.</h2>";
+    $returnvalue .= "<h2>Cases where a Collection object lacks a barcode on one or more items.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
@@ -352,7 +352,7 @@ function collectionobjects_without_barcodes() {
 		$statement->store_result();
         $returnvalue .= "<h2>There are ". $statement->num_rows() . " collection objects without a barcode.</h2>";
 	    $returnvalue .= "<table>";
-	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Herbarium</th><th>Field Number</th><th>Remarks</th></tr>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Field Number</th><th>Herbarium</th><th>Remarks</th></tr>";
 		while ($statement->fetch()) {
 	        $returnvalue .= "<tr><td>$createdby</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$datecreated</a></td><td>$fieldnumber</td><td>$herbarium</td><td>$objectremarks</td></tr>";
 		}

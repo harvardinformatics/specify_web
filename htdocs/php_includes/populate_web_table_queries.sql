@@ -42,6 +42,7 @@ create table if not exists temp_web_search (
     country varchar (255),
     location text,
     substrate text,
+    habitat text,
     typestatus varchar (255),
     state varchar(255),
     county varchar (255),
@@ -370,6 +371,12 @@ update temp_web_search
 update temp_web_search left join collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid
     set temp_web_search.substrate = c.text2;
     
+-- set habitat (from collectingevent.remarks) 
+-- 36 sec.
+update temp_web_search left join collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid
+    left join collectingevent ce on c.collectingeventid = ce.collectingeventid
+    set temp_web_search.habitat = ce.remarks;
+    
 -- Very HUH specific - link from specify to ASA image tables
 -- 1 sec.
 update temp_web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid set w.specimenimages = true where i.collectionobjectid is not null;
@@ -384,6 +391,7 @@ create index idx_websearch_author on temp_web_search(author(50));
 create index idx_websearch_country on temp_web_search(country);
 create index idx_websearch_location on temp_web_search(location(100));
 create index idx_websearch_substrate on temp_web_search(substrate(100));
+create index idx_websearch_habitat on temp_web_search(habitat(100));
 create index idx_websearch_state on temp_web_search(state);
 create index idx_websearch_county on temp_web_search(county);
 create index idx_websearch_typestatus on temp_web_search(typestatus);
@@ -405,7 +413,7 @@ insert into temp_web_quicksearch (collectionobjectid, searchable) (
    select collectionobjectid, 
          concat_ws(" ",
             family,genus,species,infraspecific,author,yearpublished,typestatus,
-            country,state,county,location,datecollected,collector,collectornumber,barcode) 
+            country,state,county,location,substrate,habitat,datecollected,collector,collectornumber,barcode) 
          from temp_web_search
    ); 
 

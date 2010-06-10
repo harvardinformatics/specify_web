@@ -204,6 +204,7 @@ function details() {
 									}
 								}
 							}	    
+							$statement_cmp->close();
 							
 							//$query = "select gloc.name locality, a.localityname lname, a.geoid, a.catalognumber, a.collectionobjectid, a.remarks, a.startdate, a.enddate, a.maxelevation, a.minelevation, a.lat1text, a.lat2text, a.long1text, a.long2text, a.datum, a.latlongmethod, a.startdateprecision, a.enddateprecision, a.verbatimdate, a.fieldnumber from (select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, locality.long2text, locality.datum, locality.latlongmethod, fragment.catalognumber, collectionobject.collectionobjectid, collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, collectingevent.startdateprecision, collectingevent.enddateprecision from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
 							// Collection objects are linked to collecting events.
@@ -225,6 +226,7 @@ function details() {
 								while ($statement_hg->fetch()) { 
 								}
 							}	    
+							$statement_hg->close();
 							
 							// **** Harvard University Herbaria Specific ***
 							
@@ -235,7 +237,7 @@ function details() {
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_acc = $connection->prepare($query);
 							if ($statement_acc) { 
-								$statement_acc->bind_param("i",$CollectionObjectID);
+								$statement_acc->bind_param("i",$id);
 								$statement_acc->execute();
 								$statement_acc->bind_result($identifier,$institution);
 								$statement_acc->store_result();
@@ -245,6 +247,7 @@ function details() {
 							} else { 
 								echo "Error: " . $connection->error;
 							}
+							$statement_acc->close();
 							
 							// HUH Images are of collection objects
 							// HUH images are in separate set of IMAGE_ tables imported from ASA.
@@ -258,7 +261,7 @@ function details() {
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
 							if ($statement_img) { 
-								$statement_img->bind_param("i",$CollectionObjectID);
+								$statement_img->bind_param("i",$id);
 								$statement_img->execute();
 								$statement_img->bind_result($url,$height,$width,$imagename,$filesize);
 								$statement_img->store_result();
@@ -278,6 +281,7 @@ function details() {
 							} else { 
 								echo "Error: " . $connection->error;
 							}
+							$statement_img->close();
 							// **** End HUH Specific Block *****************
 							// *********************************************
 							// Locality and higher geography are tied to collecting events which are tied to collection objects.
@@ -303,6 +307,7 @@ function details() {
 							} else { 
 								echo "Error: " . $connection->error;
 							}
+							$statement_geo->close();
 							
 							// Set up to be able to redact locality information for CITES species on external connections.
 							$redactlocality = false;
@@ -319,7 +324,7 @@ function details() {
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_det = $connection->prepare($query);
 							if ($statement_det) { 
-								$statement_det->bind_param("i",$CollectionObjectID);
+								$statement_det->bind_param("i",$id);
 								$statement_det->execute();
 								$statement_det->bind_result($collectorName, $agentid);
 								$statement_det->store_result();
@@ -331,11 +336,13 @@ function details() {
 							} else {
 								echo "Error: " . $connection->error;
 							}
+							$statement_det->close();
 							
 							// ***********  Begin Fragments (Items) section ************** 
 							// obtain the list of fragments (items) for this collection object, and query for fragment related elements.
 							$query = "select fragmentid, provenance from fragment where collectionobjectid = ? ";  
 							if ($debug===true) {  echo "[$query]<BR>"; }
+							if ($debug===true) {  echo "CollectionObjectID=[".$id."]<BR>"; }
 							$statement_frag = $connection->prepare($query);
 							$items = "";
 							$itemcount = 0;
@@ -343,7 +350,8 @@ function details() {
 							$barcodelist = "";
 							$barcodelistseparator = "";
 							if ($statement_frag) { 
-								$statement_frag->bind_param("i",$CollectionObjectID);
+							    if ($debug===true) {  echo "CollectionObjectID=[".$id."]<BR>"; }
+								$statement_frag->bind_param("i",$id);
 								$statement_frag->execute();
 								$statement_frag->bind_result($fragmentid, $provenance);
 								$statement_frag->store_result();
@@ -355,19 +363,22 @@ function details() {
 									$acronym = "";
 									$query = "select text1 from fragment where fragment.fragmentid = ? ";
 									if ($debug===true) {  echo "[$query]<BR>"; }
-									$statement_geo = $connection->prepare($query);
-									if ($statement_geo) { 
-										$statement_geo->bind_param("i",$fragmentid);
-										$statement_geo->execute();
-										$statement_geo->bind_result($text1);
-										$statement_geo->store_result();
+									if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
+									$statement_herb = $connection->prepare($query);
+									if ($statement_herb) { 
+									    if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
+										$statement_herb->bind_param("i",$fragmentid);
+										$statement_herb->execute();
+										$statement_herb->bind_result($text1);
+										$statement_herb->store_result();
 										$separator = "";
-										while ($statement_geo->fetch()) { 
+										while ($statement_herb->fetch()) { 
 											$acronym = $text1;
 										}
 									} else { 
 										echo "Error: " . $connection->error;
 									}
+									$statement_herb->close();
 									// Barcode number is in fragment.identifier or prepration.identifier
 									// Obtain the barcodes associated with this fragment.  
 									$query = "select distinct fragment.identifier, preparation.identifier " .
@@ -378,6 +389,7 @@ function details() {
 									$fragments = array();
 									$statement_bar = $connection->prepare($query);
 									if ($statement_bar) { 
+									    if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
 										$statement_bar->bind_param("i",$fragmentid);
 										$statement_bar->execute();
 										$statement_bar->bind_result($identifierf,$identifierp);
@@ -753,7 +765,7 @@ function search() {
 			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
 			$and = " and ";
 		}
-		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,59);
+		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
 		if ($substrate!="") { 
 			$hasquery = true;
 			$question .= "$and substrate:[$substrate] ";
@@ -765,18 +777,18 @@ function search() {
 			$wherebit .= "$and web_search.substrate $operator ? ";
 			$and = " and ";
 		}
-//		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,59);
-//		if ($habitat!="") { 
-//			$hasquery = true;
-//			$question .= "$and habitat:[$habitat] ";
-//			$types .= "s";
-//			$parameters[$parametercount] = &$habitat;
-//			$parametercount++;
-//			$operator = "=";
-//			if (preg_match("/[%_]/",$habitat))  { $operator = " like "; }
-//			$wherebit .= "$and web_search.habitat $operator ? ";
-//			$and = " and ";
-//		}		
+		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,100);
+		if ($habitat!="") { 
+			$hasquery = true;
+			$question .= "$and habitat:[$habitat] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$habitat;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$habitat))  { $operator = " like "; }
+			$wherebit .= "$and web_search.habitat $operator ? ";
+			$and = " and ";
+		}		
 		$country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
 		if ($country!="") { 
 			$hasquery = true;
@@ -1064,6 +1076,46 @@ function search() {
 					}
 					
 				}
+                if ($habitat!= "" && preg_match('/[%_]/',$habitat)==0) {  
+					// Look for possibly related habitats
+					$query = " select habitat, count(collectionobjectid) " .
+						" from web_search  " .
+						" where habitat like ? or soundex(habitat) = soundex(?) or habitat like ? " .
+						" group by habitat order by habitat, count(collectionobjectid) ";
+					$wildhabitat = "%$habitat%";
+					$plainhabitat = str_replace("%","",$habitat);
+					$habitatparameters[0] = &$wildhabitat;   // agentvariant like 
+					$types = "s";
+					$habitatparameters[1] = &$plainhabitat;  // agentvariant soundex
+					$types .= "s";
+					$habitatparameters[2] = &$wildhabitat;   // agent like 
+					$types .= "s";
+					if ($debug===true  && $hasquery===true) {
+						echo "[$query][$wildhabitat][$plainhabitat][$wildhabitat]<BR>\n";
+					}
+					$statement = $connection->prepare($query);
+					$searchhabitat = preg_replace("/[^A-Za-z ]/","", $plainhabitat);
+					if ($statement) { 
+						$array = Array();
+						$array[] = $types;
+						foreach($habitatparameters as $par)
+						$array[] = $par;
+						call_user_func_array(array($statement, 'bind_param'),$array);
+						$statement->execute();
+						$statement->bind_result($habitat, $count);
+						$statement->store_result();
+						if ($statement->num_rows > 0 ) {
+							echo "<h3>Possibly matching habitats</h3>";
+							while ($statement->fetch()) {
+								$highlightedhabitat = preg_replace("/$searchhabitat/","<strong>$plainhabitat</strong>",$habitat);
+								echo "$highlightedhabitat [<a href='specimen_search.php?mode=search&habitat=$habitat'>$count records</a>]<br>";
+							}
+							echo "<BR>";
+						}
+					}
+					
+				}				
+				
 			$statement->close();
 		} else { 
 			echo $connection->error;
