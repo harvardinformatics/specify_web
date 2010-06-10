@@ -50,6 +50,12 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="collection_when_not_alive") {
 		$mode = "collection_when_not_alive"; 
 	}
+	if ($_GET['mode']=="weekly_rate_creation") {
+		$mode = "weekly_rate_creation"; 
+	}
+	if ($_GET['mode']=="weekly_rate_modification") {
+		$mode = "weekly_rate_modification"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -89,6 +95,12 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 				break;
 			case "collection_when_not_alive":	
 				echo collection_out_of_date_range();
+				break;
+			case "weekly_rate_creation":	
+				echo weekly_rate('created');
+				break;
+			case "weekly_rate_modification":	
+				echo weekly_rate('modified');
 				break;
 			case "menu": 	
 			default:
@@ -135,6 +147,11 @@ function menu() {
    $returnvalue .= "<li><a href='qc.php?mode=individual_agent_ages'>Individual Agent ages</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=team_agent_ages'>Team Agent ages</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=collection_when_not_alive'>Collections before birth/after death</a></li>";
+   $returnvalue .= "</ul>";
+   $returnvalue .= "<h2>Progress</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_creation'>Collection object records created per week</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_modification'>Collection object records last modified per week</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -358,6 +375,53 @@ function collectionobjects_without_barcodes() {
 		}
 	    $returnvalue .= "</table>";
 	}
+   return $returnvalue;
+}
+
+function weekly_rate($type='created') { 
+   global $connection;
+   $returnvalue = "";
+   if ($type=='modified') { 
+   	  $type='last modified';
+   $query = "select count(c.collectionobjectid), lastname, year(c.timestampmodified), week(c.timestampmodified) " .
+   		" from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid " .
+   		" group by lastname, year(c.timestampmodified), week(c.timestampmodified)" .
+   		" order by lastname, year(c.timestampmodified), week(c.timestampmodified) ";
+   } else { 
+   	  $type='created';
+   $query = "select count(c.collectionobjectid), lastname, year(c.timestampcreated), week(c.timestampcreated) " .
+   		" from collectionobject c left join agent on c.createdbyagentid = agent.agentid " .
+   		" group by lastname, year(c.timestampcreated), week(c.timestampcreated)" .
+   		" order by lastname, year(c.timestampcreated), week(c.timestampcreated) ";
+   }
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>New Collection Object Records $type per person per week.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($count, $createdby, $yearcreated, $weekcreated);
+		$statement->store_result();
+	    $fullist .= "<table>";
+	    $fullist .= "<tr><th>Record $type By</th><th>Year</th><th>Week</th><th>Number $type in Week</th></tr>";
+	    $summary .= "<table>";
+	    $summary .= "<tr><th>Record $type By</th><th>Total Collection Object Records $type</th></tr>";
+	    $persontotal = 0;
+	    $oldperson = "";
+		while ($statement->fetch()) {
+	        $fullist.= "<tr><td>$createdby</td><td>$yearcreated</td><td>$weekcreated</td><td><strong>$count</strong></td></tr>";
+	        $persontotal += $count;
+	        if ($oldperson != "" && $oldperson != $createdby) { 
+	             $summary .= "<tr><td>$createdby</td><td><strong>$persontotal</strong></td></tr>";
+	             $persontotal = 0;
+	        }
+	        $oldperson = $createdby;
+		}
+	    $fullist .= "</table>";
+	    $summary .= "</table>";
+	    
+	}   
+	$returnvalue .= "$summary\n$fullist";
+   
    return $returnvalue;
 }
 
