@@ -29,6 +29,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="unlinked_preparations") {
 		$mode = "unlinked_preparations"; 
 	}
+	if ($_GET['mode']=="collectionobjects_without_barcodes") {
+		$mode = "collectionobjects_without_barcodes"; 
+	}
 	if ($_GET['mode']=="collectingevents_without_locality") {
 		$mode = "collectingevents_without_locality"; 
 	}
@@ -64,6 +67,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 				break;
 			case "unlinked_preparations":	
 				echo unlinked_preparations();
+				break;
+			case "collectionobjects_without_barcodes":	
+				echo collectionobjects_without_barcodes();
 				break;
 			case "list_entry_for_collectingevents_without_locality":	
 				echo list_entry_for_collectingevents_without_locality();
@@ -118,6 +124,7 @@ function menu() {
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_preparations'>Preparations without Items</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=collectionobjects_without_barcodes'>Collection objects without barcodes</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=list_entry_for_collectingevents_without_locality'>Collecting Events without Localities</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</ul>";
@@ -324,7 +331,35 @@ function collectingevents_without_locality($agentid) {
 	    $returnvalue .= "</table>";
 	}
    return $returnvalue;
-} 
+}
+
+ 
+function collectionobjects_without_barcodes() { 
+	global $connection;
+   $returnvalue = "";
+   $query = " select c.collectionobjectid, a.lastname, c.timestampcreated, c.fieldnumber, fragment.text1, c.remarks " .
+   		" from collectionobject c left join fragment on c.collectionobjectid = fragment.collectionobjectid " .
+   		" left join preparation on fragment.preparationid = preparation.preparationid " .
+   		" left join agent a on c.createdbyagentid = a.agentid " .
+   		" where fragment.identifier is null and preparation.identifier is null " .
+   		" order by a.lastname, c.timestampcreated ";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where a Collection object doesn't have any barcode'.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($collectionobjectid, $createdby, $datecreated, $fieldnumber, $herbarium, $objectremarks);
+		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " collection objects without a barcode.</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Herbarium</th><th>Field Number</th><th>Remarks</th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$createdby</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$datecreated</a></td><td>$fieldnumber</td><td>$herbarium</td><td>$objectremarks</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+   return $returnvalue;
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
  

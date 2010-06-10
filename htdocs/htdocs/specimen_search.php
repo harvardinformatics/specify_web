@@ -765,6 +765,18 @@ function search() {
 			$wherebit .= "$and web_search.substrate $operator ? ";
 			$and = " and ";
 		}
+//		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,59);
+//		if ($habitat!="") { 
+//			$hasquery = true;
+//			$question .= "$and habitat:[$habitat] ";
+//			$types .= "s";
+//			$parameters[$parametercount] = &$habitat;
+//			$parametercount++;
+//			$operator = "=";
+//			if (preg_match("/[%_]/",$habitat))  { $operator = " like "; }
+//			$wherebit .= "$and web_search.habitat $operator ? ";
+//			$and = " and ";
+//		}		
 		$country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
 		if ($country!="") { 
 			$hasquery = true;
