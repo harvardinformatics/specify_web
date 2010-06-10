@@ -47,6 +47,9 @@ if ($connection) {
 	
 	switch ($mode) {
 	
+		case "unlinked_collectionobjects":	
+			echo unlinked_collectionobjects();
+			break;
 		case "agent_ages":
 			echo agent_ages();
 			break;
@@ -86,6 +89,10 @@ function menu() {
    $returnvalue = "";
 
    $returnvalue .= "<div>";
+   $returnvalue .= "<h2>Find anomalous values for Specimens</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
+   $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Find anomalous values for Agents/Botanists</h2>";
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=agent_ages'>Agents ages</a></li>";
@@ -188,6 +195,15 @@ function agent_ages($type="all") {
     return $returnvalue;
 }
  
+function unlinked_collectionobjects() { 
+	$returnvalue = "";
+   $query = "select collectionobject.collectionobjectid, collectionobject.timestampcreated, lastname, collectionobject.description, fieldnumber " .
+   		" from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid " .
+   		" left join agent on collectionobject.createdbyagentid = agent.agentid " .
+   		" where collectionobject.collectionobjectid is not null " .
+   		" and fragment.fragmentid is null";
+   return $returnvalue;
+} 
  
 mysqli_report(MYSQLI_REPORT_OFF);
  
