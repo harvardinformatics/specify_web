@@ -354,6 +354,7 @@ update temp_web_search w left join fragment f on w.collectionobjectid = f.collec
   where f.text1 is not null ;
 
 -- set year collected from date collected.
+-- 4 sec.
 update temp_web_search set yearcollected = year(datecollected);
 
 -- set year published (using year of publication of taxon, not of fragment or of determination)

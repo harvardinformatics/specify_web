@@ -709,11 +709,12 @@ function search() {
 	$locality = "";
 	$country = "";
 	if ($quick!="") { 
-		$question .= "Quick Search :[$quick]<BR>";
-		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid " .
+		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
+		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where match (searchable) against (?)";
+			" where match (searchable) against (?) limit 100";
 		$hasquery = true;
 	} else {
 		$joins = "";
@@ -752,7 +753,7 @@ function search() {
 			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
 			$and = " and ";
 		}
-		$substrate = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['substrate']),0,59);
+		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,59);
 		if ($substrate!="") { 
 			$hasquery = true;
 			$question .= "$and substrate:[$substrate] ";
@@ -878,6 +879,7 @@ function search() {
 		} else {
 			$question = "No search criteria provided.";
 		}
+		// Note: Changes to select field list need to be synchronized with query on web_quicksearch above, and bind_result below. 
 		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
 			" i.imagesetid, web_search.datecollected " . 
@@ -905,6 +907,7 @@ function search() {
 				}
 			}
 			$statement->execute();
+		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
 			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected);
 			$statement->store_result();
 			
@@ -1010,6 +1013,45 @@ function search() {
 					
 				}
 			}
+				if ($substrate!= "" && preg_match('/[%_]/',$substrate)==0) {  
+					// Look for possibly related substrates
+					$query = " select text2 as substrate, count(collectionobjectid) " .
+						" from collectionobject  " .
+						" where text2 like ? or soundex(text2) = soundex(?) or text2 like ? " .
+						" group by text2 order by text2, count(collectionobjectid) ";
+					$wildsubstrate = "%$substrate%";
+					$plainsubstrate = str_replace("%","",$substrate);
+					$substrateparameters[0] = &$wildsubstrate;   // agentvariant like 
+					$types = "s";
+					$substrateparameters[1] = &$plainsubstrate;  // agentvariant soundex
+					$types .= "s";
+					$substrateparameters[2] = &$wildsubstrate;   // agent like 
+					$types .= "s";
+					if ($debug===true  && $hasquery===true) {
+						echo "[$query][$wildsubstrate][$plainsubstrate][$wildsubstrate]<BR>\n";
+					}
+					$statement = $connection->prepare($query);
+					$searchsubstrate = preg_replace("/[^A-Za-z ]/","", $plainsubstrate);
+					if ($statement) { 
+						$array = Array();
+						$array[] = $types;
+						foreach($substrateparameters as $par)
+						$array[] = $par;
+						call_user_func_array(array($statement, 'bind_param'),$array);
+						$statement->execute();
+						$statement->bind_result($substrate, $count);
+						$statement->store_result();
+						if ($statement->num_rows > 0 ) {
+							echo "<h3>Possibly matching substrates</h3>";
+							while ($statement->fetch()) {
+								$highlightedsubstrate = preg_replace("/$searchsubstrate/","<strong>$plainsubstrate</strong>",$substrate);
+								echo "$highlightedsubstrate [<a href='specimen_search.php?mode=search&substrate=$substrate'>$count records</a>]<br>";
+							}
+							echo "<BR>";
+						}
+					}
+					
+				}
 			$statement->close();
 		} else { 
 			echo $connection->error;
