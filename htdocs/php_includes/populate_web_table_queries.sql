@@ -41,6 +41,7 @@ create table if not exists temp_web_search (
     author text,
     country varchar (255),
     location text,
+    substrate text,
     typestatus varchar (255),
     state varchar(255),
     county varchar (255),
@@ -363,6 +364,11 @@ update temp_web_search
     left join taxoncitation t on d.taxonid = t.taxonid 
     set temp_web_search.yearpublished = t.text2  ;
 
+-- set substrate (from collectionobject.text2)
+-- 15 sec. 
+update temp_web_search left join collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid
+    set temp_web_search.substrate = c.text2;
+    
 -- Very HUH specific - link from specify to ASA image tables
 -- 1 sec.
 update temp_web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid set w.specimenimages = true where i.collectionobjectid is not null;
@@ -376,6 +382,7 @@ create index idx_websearch_infraspecific on temp_web_search(infraspecific);
 create index idx_websearch_author on temp_web_search(author(50));
 create index idx_websearch_country on temp_web_search(country);
 create index idx_websearch_location on temp_web_search(location(100));
+create index idx_websearch_substrate on temp_web_search(substrate(100));
 create index idx_websearch_state on temp_web_search(state);
 create index idx_websearch_county on temp_web_search(county);
 create index idx_websearch_typestatus on temp_web_search(typestatus);

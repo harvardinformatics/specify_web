@@ -29,6 +29,12 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="unlinked_preparations") {
 		$mode = "unlinked_preparations"; 
 	}
+	if ($_GET['mode']=="collectingevents_without_locality") {
+		$mode = "collectingevents_without_locality"; 
+	}
+	if ($_GET['mode']=="list_entry_for_collectingevents_without_locality") {
+		$mode = "list_entry_for_collectingevents_without_locality"; 
+	}
 	if ($_GET['mode']=="agent_ages") {
 		$mode = "agent_ages"; 
 	}
@@ -58,6 +64,13 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 				break;
 			case "unlinked_preparations":	
 				echo unlinked_preparations();
+				break;
+			case "list_entry_for_collectingevents_without_locality":	
+				echo list_entry_for_collectingevents_without_locality();
+				break;
+			case "collectingevents_without_locality":	
+			    $agentid = preg_replace("/[^0-9]/","",$_GET['agentid']);
+				echo collectingevents_without_locality($agentid);
 				break;
 			case "agent_ages":
 				echo agent_ages();
@@ -105,6 +118,9 @@ function menu() {
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_preparations'>Preparations without Items</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=list_entry_for_collectingevents_without_locality'>Collecting Events without Localities</a></li>";
+   $returnvalue .= "</ul>";
+   $returnvalue .= "</ul>";
    $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Find anomalous values for Agents/Botanists</h2>";
    $returnvalue .= "<ul>";
@@ -254,7 +270,56 @@ function unlinked_preparations() {
 	    $returnvalue .= "<table>";
 	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Preparation Barcode</th><th>Type</th></tr>";
 		while ($statement->fetch()) {
-	        $returnvalue .= "<tr><td>$createdby</td><td>$createdby</td><td>$barcode</td></tr>";
+	        $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td>$barcode</td><td>$preptype</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+   return $returnvalue;
+} 
+
+function list_entry_for_collectingevents_without_locality() { 
+	global $connection;
+    $returnvalue = "";
+
+    $query = "select count(*),agent.lastname, agent.agentid from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join agent on collectionobject.createdbyagentid = agent.agentid where localityid is null and year(collectionobject.timestampcreated) > 2009 group by agent.lastname";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where a collecting event isn't linked to a locality.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($count, $createdby, $agentid);
+		$statement->store_result();
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Number of Records</th><th>Collection Object Record Created By</th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$count</td><td><a href='qc.php?mode=collectingevents_without_locality&agentid=$agentid'>$createdby</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+   return $returnvalue;
+
+}
+
+function collectingevents_without_locality($agentid) { 
+	global $connection;
+   $returnvalue = "";
+   $query = " select collectionobjectid, collectionobject.timestampcreated, agent.lastname, collectingevent.remarks, collectionobject.remarks " .
+   		" from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
+   		" left join agent on collectionobject.createdbyagentid = agent.agentid " .
+   		" where localityid is null and year(collectionobject.timestampcreated) > 2009 and agentid = ? ";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where a Collecting Event isn't linked to a locality for $agent.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->bind_param("s",$agentid);
+		$statement->execute();
+		$statement->bind_result($collectionobjectid, $datecreated, $createdby, $eventremarks, $objectremarks);
+		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " collecting events without a locality for this person.</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Remarks</th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$createdby</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$datecreated</a></td><td>$eventremarks $objectremarks</td></tr>";
 		}
 	    $returnvalue .= "</table>";
 	}
