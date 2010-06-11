@@ -748,7 +748,6 @@ function details() {
 								echo "</table></td></tr>";
 							} 
 						    echo "</table>";
-						    echo "<HR>\n";
 						    echo "<BR>\n";
 						}
 					}  // end else num_rows>0
