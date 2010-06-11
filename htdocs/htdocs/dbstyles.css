@@ -397,12 +397,13 @@ table.h-object {
 	border: 1px blue solid;
 }
 table.image {
-	vertical-align: text-top; 
+	vertical-align: top; 
 	valign: top;	
 }
 td {
 	font:normal 1.0em Arial, Helvetica, Sans-serif;	
 	valign: top;	
+	vertical-align: top; 
 }
 td.header {
 	font-style: bold;
