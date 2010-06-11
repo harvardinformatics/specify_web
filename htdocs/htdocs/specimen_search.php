@@ -1,14 +1,56 @@
 <?php
-/*
+/* 
+ * specimen_search.php
  * Created on Dec 3, 2009
  *
+ * Searches a customized Specify6 database 
  */
-$debug=false;
+
+// ***** Specify Database Customization Required *********
+// This code won't work on an out of the box Specify6 installation without customization.
+// specimen_search.php depends on the construction of the tables web_search and web_quicksearch
+// See the sql script populate_web_table_queries.sql 
+// *******************************************************
+
+// Uses of local customization fields in this version: 
+// 
+// collectionobject.text1  Host         [In web_search]
+// collectionobject.text2  Substrate    [In web_search]
+// collectionobject.text3  Vernacularname  ** depreciated, moving to determination.alternatename
+// collectionobject.text4  Frequency	
+// fragment.text1   Herbarium acronym	[In web_search]
+// reference.text1  Collation
+// reference.text2  Year/Volumes
+// determination.text1  Annotator (non-typifications) or Verifier (typifications)	
+// determination.text2  Annotation Text		
+//
+// Other custom field uses: 
+//
+// Accession number for specimen in otheridentifier typed by Remarks=accession
+
+// ****
+// NOTE: Departures from Specify6 design.  
+//
+// HUH Specify6-botany modifies the base Specify6 data model.
+// Instead of collectionobject->preparation Specify6-Botany uses
+// collectionobject->fragment(item)<-preparation 
+// where collecting events are associated with collection objects, and 
+// determinations are associated with fragments.
+// Either fragment or preparation may bear a barcode number (identifier).
+// 
+
+// ****
+// NOTE: HUH Instance of Specify6-botany has special case handling of images:
+//
+// HUH Images are of collection objects
+// HUH images are in separate set of IMAGE_ tables imported from legacy database ASA.
 
 include_once('connection_library.php');
 include_once('specify_library.php');
 
+// value for $debug is set in specify_library.php
 if ($debug) { 
+    // See PHP documentation. 
 	mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
 } else { 
 	mysqli_report(MYSQLI_REPORT_OFF);
@@ -46,14 +88,14 @@ if (preg_replace("[^0-9]","",$_GET['fragmentid'])!="") {
 	$mode = "details"; 
 }
 
-echo pageheader('specimen'); 
+echo pageheader('specimen');  // defined in function_lib.php
 
 if ($connection) { 
 	
 	switch ($mode) {
 	
 		case "browse_families":
-			echo browse("families");
+			echo browse("families");   // browse() is defined in function_lib.php
 			break;
 			
 		case "browse_countries":
@@ -65,7 +107,7 @@ if ($connection) {
 			break;
 			
 		case "stats": 
-			echo stats();
+			echo stats();  // stats() is defined in function_lib.php
 			break;
 			
 		case "search":
@@ -86,11 +128,23 @@ if ($errormessage!="") {
 	echo "<strong>Error: $errormessage</strong>";
 }
 
-echo pagefooter();
+echo pagefooter();   // defined in function_lib.php 
 
 // ******* main code block ends here, supporting functions follow. *****
 
-
+/** 
+ * function details() retrieves a set of one or more collection objects and displays their
+ *    details, drawing on fields from collecting event, locality, geography, fragment, determination
+ *    preparation, etc.  
+ * 
+ * Has no return value, embeds calls to echo in order to display the results. 
+ * 
+ * @param none passed to function,  id obtained from GET as one collectionobjectid to display 
+ * @param none passed to function,  id[] obtained from GET as array of collectionobjectids to display
+ * @param none passed to function,  barcode obtained from GET and used to find collectionobject(s) to display (HUH)
+ * @param none passed to function,  fragmentid obtained from GET and used to find collectionobject(s) to display (Specify6-Botany)
+ * 
+ */
 function details() { 
 	global $connection, $errormessage, $debug;
 	$id = preg_replace("[^0-9]","",$_GET['id']);
@@ -145,7 +199,6 @@ function details() {
 		// Retrieve collectionobject records by the collectionobjectid values.
 		foreach($ids as $value) { 
 			$id = substr(preg_replace("[^0-9]","",$value),0,20);
-			echo "id=[$id]<BR>";
 			
 			// There might be duplicates next to each other in list of checkbox records from search results 
 			// (from there being more than one current determination/typification for a specimen, or
@@ -161,7 +214,8 @@ function details() {
 					" collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, " .
 					" collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, " .
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
-					" collectingevent.verbatimlocality, collectionobject.text2 as substrate " .
+					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
+					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
@@ -172,12 +226,11 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
 					} else { 
-						echo "<table>";
 						while ($statement->fetch()) {
 							// Retrieve  each collection object
 							if ($debug) { echo "[$CollectionObjectID]"; }
@@ -229,7 +282,6 @@ function details() {
 							$statement_hg->close();
 							
 							// **** Harvard University Herbaria Specific ***
-							
 							// Accession number for specimen in otheridentifier typed by Remarks=accession
 							// other identifier is linked to collectionobject.
 							$accession = "";
@@ -284,6 +336,7 @@ function details() {
 							$statement_img->close();
 							// **** End HUH Specific Block *****************
 							// *********************************************
+							
 							// Locality and higher geography are tied to collecting events which are tied to collection objects.
 							// Obtain higher geography
 							$geography = "";
@@ -350,7 +403,6 @@ function details() {
 							$barcodelist = "";
 							$barcodelistseparator = "";
 							if ($statement_frag) { 
-							    if ($debug===true) {  echo "CollectionObjectID=[".$id."]<BR>"; }
 								$statement_frag->bind_param("i",$id);
 								$statement_frag->execute();
 								$statement_frag->bind_result($fragmentid, $provenance);
@@ -359,6 +411,8 @@ function details() {
 								while ($statement_frag->fetch()) {
 									$itemcount ++; 
 									$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount of $fragmentcount</td></tr>";
+									
+									// **** HUH Specific *****
 									// Acronym for herbarium is stored in fragment.text1
 									$acronym = "";
 									$query = "select text1 from fragment where fragment.fragmentid = ? ";
@@ -366,7 +420,6 @@ function details() {
 									if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
 									$statement_herb = $connection->prepare($query);
 									if ($statement_herb) { 
-									    if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
 										$statement_herb->bind_param("i",$fragmentid);
 										$statement_herb->execute();
 										$statement_herb->bind_result($text1);
@@ -379,6 +432,8 @@ function details() {
 										echo "Error: " . $connection->error;
 									}
 									$statement_herb->close();
+									
+									// **** HUH Specific *****
 									// Barcode number is in fragment.identifier or prepration.identifier
 									// Obtain the barcodes associated with this fragment.  
 									$query = "select distinct fragment.identifier, preparation.identifier " .
@@ -389,7 +444,6 @@ function details() {
 									$fragments = array();
 									$statement_bar = $connection->prepare($query);
 									if ($statement_bar) { 
-									    if ($debug===true) {  echo "FragmentID=[". $fragmentid. "]<BR>"; }
 										$statement_bar->bind_param("i",$fragmentid);
 										$statement_bar->execute();
 										$statement_bar->bind_result($identifierf,$identifierp);
@@ -416,7 +470,7 @@ function details() {
 									$items .= "<tr><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
 									if ($provenance != "") { $items .= "<tr><td class='cap'>Provenance</td><td class='val'>$provenance</td></tr>"; } 
 									// get any references linked to the fragment.
-									$query = "select r.title, r.text2, r.referenceworkid " .
+									$query = "select r.title, r.text2 as volumes, r.referenceworkid " .
 										" from referencework r left join fragmentcitation c on r.referenceworkid = c.referenceworkid " .
 										" where c.fragmentid = ? ";
 									if ($debug===true) {  echo "[$query]<BR>"; }
@@ -438,11 +492,12 @@ function details() {
 									}
 									$items .= $fragmentcitations;
 									
+									// **** Specify6-Botany Specific *****
 									// Determinations are associated with items (fragments).
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
-										" agent.lastname, determination.text2, determination.determinationid " .
+										" agent.lastname, determination.text2 as annotationtext, determination.determinationid " .
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -560,6 +615,7 @@ function details() {
 									
 									$items .=  $determinationHistory;
 									
+									// **** Specify6-Botany Specific [Fragment] *****
 									// Retrieve the fragment and preparation information about this fragment.
 									$query = "select fragment.sex, fragment.phenology, preptype.name, fragment.identifier, preparation.identifier, " .
 										" fragment.remarks, preparation.remarks, fragment.prepmethod, fragment.description " .
@@ -647,6 +703,8 @@ function details() {
 							}
 							
 							// Display results  
+						    echo "<table class='h-object'>";
+						    echo "<tr><td><table class='text'>\n";
 							echo $highertaxonomy;
 							echo $objectcomplexity;
 							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Harvard University Herbaria Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
@@ -675,15 +733,24 @@ function details() {
 								echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation</td></tr>"; 
 							}
 							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
-							if (trim($substrate!=""))   { echo "<tr><td class='cap'>substrate</td><td class='val'>$substrate</td></tr>"; }
+							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Hubstrate</td><td class='val'>$substrate</td></tr>"; }
+							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
+							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
+							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
 							echo $items;
+							echo "</table></td>\n";
+							echo "<td><table class='images'>\n";
 							echo $images;
-							if (trim($specimenRemarks!="")) {  
-								echo "<tr><td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
+							echo "</table></td></tr>\n";
+							if (trim($specimenRemarks!="")) { 
+								echo "<tr><td colspan='2'><table class='remarks'>";
+								echo "<td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
+								echo "</table></td></tr>";
 							} 
-							echo "<BR>\n";
+						    echo "</table>";
+						    echo "<HR>\n";
+						    echo "<BR>\n";
 						}
-						echo "</table>";
 					}  // end else num_rows>0
 				}
 				$statement->close();
@@ -693,34 +760,30 @@ function details() {
 	} // end else block countids<>0
 }
 
-/*
- // barcode bits to refactor into details search
-  $barcode = substr(preg_replace("/[^0-9]/","", $_GET['barcode']),0,59);
-  $catnum = $barcode;
-  $barcode = barcode_to_catalog_number($barcode);
-  if ($barcode==barcode_to_catalog_number("")) {
-  $barcode = "";
-  }
-  if ($barcode!="") { 
-  $hasquery = true;
-  $question .= "Search for Barcode:[$barcode]<BR>";
-  $wherebit = " fragment.catalognumber = ? or fragment.catalognumber = ? ";
-  $query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, fragment.catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
-  }
-  if ($barcode!="") { 
-  $statement->bind_param("ss",$barcode,$catnum);
-  }
-  
-  */
 
-
+/** 
+ * function search() either runs a free text search on table web_quicksearch, or obtains a list of
+ *     parameters from a GET submission and then constructs and runs an appropriate query on web_search.
+ *     Some search parameters and search result conditions can produce results in the form of lists of 
+ *     possible alternative search terms.  
+ * 
+ * search() has no return value, but uses echo to display the results of searches.
+ * 
+ * @param takes no parameters, but obtains quick from GET to run a free text search on web_quicksearch
+ * @param takes no parameters, but obtains form parameters by GET from specimen_index.html to construct 
+ *     and run searches on web_search;
+ * 
+ */
 function search() {  
 	global $connection, $errormessage, $debug;
 	$question = "";
-	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
 	$locality = "";
 	$country = "";
+	
+	// ***** Step 1: Obtain query parameters and assemble query ***********
+	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
 	if ($quick!="") { 
+		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected " .
@@ -729,6 +792,7 @@ function search() {
 			" where match (searchable) against (?) limit 100";
 		$hasquery = true;
 	} else {
+		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
 		$joins = "";
 		$wherebit = " where "; 
 		$and = "";
@@ -763,6 +827,18 @@ function search() {
 			$operator = "=";
 			if (preg_match("/[%_]/",$locality))  { $operator = " like "; }
 			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
+			$and = " and ";
+		}
+		$host = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['host']),0,100);
+		if ($host!="") { 
+			$hasquery = true;
+			$question .= "$and host:[$host] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$host;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$host))  { $operator = " like "; }
+			$wherebit .= "$and web_search.host $operator ? ";
 			$and = " and ";
 		}
 		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
@@ -914,6 +990,8 @@ function search() {
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
+	
+	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) { 
 		$statement = $connection->prepare($query);
 		if ($statement) { 
@@ -990,6 +1068,7 @@ function search() {
 				echo "</form>\n";
 				
 			} else {
+	            // ***** Step 3: Optionally look for alternate possible search terms ***********
 				$errormessage .= "No matching results. ";
 				if ($collector != "") {  
 					$statement->close();
@@ -1037,6 +1116,45 @@ function search() {
 					
 				}
 			}
+				if ($host!= "" && preg_match('/[%_]/',$host)==0) {  
+					// Look for possibly related hosts
+					$query = " select text1 as host, count(collectionobjectid) " .
+						" from collectionobject  " .
+						" where text1 like ? or soundex(text1) = soundex(?) or text1 like ? " .
+						" group by text1 order by text1, count(collectionobjectid) ";
+					$wildhost = "%$host%";
+					$plainhost = str_replace("%","",$host);
+					$hostparameters[0] = &$wildhost;   // agentvariant like 
+					$types = "s";
+					$hostparameters[1] = &$plainhost;  // agentvariant soundex
+					$types .= "s";
+					$hostparameters[2] = &$wildhost;   // agent like 
+					$types .= "s";
+					if ($debug===true  && $hasquery===true) {
+						echo "[$query][$wildhost][$plainhost][$wildhost]<BR>\n";
+					}
+					$statement = $connection->prepare($query);
+					$searchhost = preg_replace("/[^A-Za-z ]/","", $plainhost);
+					if ($statement) { 
+						$array = Array();
+						$array[] = $types;
+						foreach($hostparameters as $par)
+						$array[] = $par;
+						call_user_func_array(array($statement, 'bind_param'),$array);
+						$statement->execute();
+						$statement->bind_result($host, $count);
+						$statement->store_result();
+						if ($statement->num_rows > 0 ) {
+							echo "<h3>Possibly matching hosts</h3>";
+							while ($statement->fetch()) {
+								$highlightedhost = preg_replace("/$searchhost/","<strong>$plainhost</strong>",$host);
+								echo "$highlightedhost [<a href='specimen_search.php?mode=search&host=$host'>$count records</a>]<br>";
+							}
+							echo "<BR>";
+						}
+					}
+					
+				}
 				if ($substrate!= "" && preg_match('/[%_]/',$substrate)==0) {  
 					// Look for possibly related substrates
 					$query = " select text2 as substrate, count(collectionobjectid) " .
@@ -1130,6 +1248,7 @@ function search() {
 	
 }
 
+// See PHP documentation. 
 mysqli_report(MYSQLI_REPORT_OFF);
 
 ?>

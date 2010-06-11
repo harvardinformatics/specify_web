@@ -394,9 +394,15 @@ div.entity { /* name of div that includes the main table*/
 }
 table.h-object {
 	width: 80%;	
+	border: 1px blue solid;
+}
+table.image {
+	vertical-align: text-top; 
+	valign: top;	
 }
 td {
-	font:normal 1.0em Arial, Helvetica, Sans-serif;		
+	font:normal 1.0em Arial, Helvetica, Sans-serif;	
+	valign: top;	
 }
 td.header {
 	font-style: bold;

@@ -1,6 +1,8 @@
 -- Queries to build and populate specify 6 botany denormalized
 -- tables for searching the database over the web.
 
+-- Time benchmarks are on a laptop with a dual core 2GHz intel processor and 3GB ram. 
+
 -- Start by building a pair of tables, temp_web_search and temp_web_quicksearch
 -- When done switch these to web_search and web_quicksearch
 
@@ -41,7 +43,8 @@ create table if not exists temp_web_search (
     author text,
     country varchar (255),
     location text,
-    substrate text,
+    host text,      -- collectionobject.text1
+    substrate text, -- collectionobject.text2
     habitat text,
     typestatus varchar (255),
     state varchar(255),
@@ -206,7 +209,7 @@ update temp_web_search left join temp_taxon on temp_web_search.taxon_nodenumber 
    set temp_web_search.family = temp_taxon.family, 
        temp_web_search.genus = temp_taxon.genus;
 
--- cross join makes queries below too slow to use.
+-- cross join on InnoDB tables makes queries below too slow to use.
 -- Queries above make this possible without a cross join
 -- update temp_web_search, temp_taxon set family = temp_taxon.name 
 --  where highestchildnodenumber >= taxon_highestchild 
@@ -343,6 +346,7 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
    where agent.agentid is not null ;
     
 -- set collectornumber  
+-- 50 sec
 update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid  
     set w.collectornumber =  c.fieldnumber 
     where c.fieldnumber is not null; 
@@ -365,7 +369,12 @@ update temp_web_search
     left join determination d on f.fragmentid = d.fragmentid 
     left join taxoncitation t on d.taxonid = t.taxonid 
     set temp_web_search.yearpublished = t.text2  ;
-
+    
+-- set host (from collectionobject.text1)
+-- 20 sec
+update temp_web_search left join collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid
+    set temp_web_search.host = c.text1;
+    
 -- set substrate (from collectionobject.text2)
 -- 15 sec. 
 update temp_web_search left join collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid
@@ -390,6 +399,7 @@ create index idx_websearch_infraspecific on temp_web_search(infraspecific);
 create index idx_websearch_author on temp_web_search(author(50));
 create index idx_websearch_country on temp_web_search(country);
 create index idx_websearch_location on temp_web_search(location(100));
+create index idx_websearch_host on temp_web_search(host(100));
 create index idx_websearch_substrate on temp_web_search(substrate(100));
 create index idx_websearch_habitat on temp_web_search(habitat(100));
 create index idx_websearch_state on temp_web_search(state);
@@ -413,7 +423,7 @@ insert into temp_web_quicksearch (collectionobjectid, searchable) (
    select collectionobjectid, 
          concat_ws(" ",
             family,genus,species,infraspecific,author,yearpublished,typestatus,
-            country,state,county,location,substrate,habitat,datecollected,collector,collectornumber,barcode) 
+            country,state,county,location,host,substrate,habitat,datecollected,collector,collectornumber,barcode) 
          from temp_web_search
    ); 
 
@@ -424,5 +434,6 @@ create fulltext index i_temp_web_quicksearch on temp_web_quicksearch(searchable)
 
 rename table web_search to old_web_search, temp_web_search to web_search, web_quicksearch to old_web_quicksearch, temp_web_quicksearch to web_quicksearch;
 
+-- Clean up.  Remove the previous copies of the tables. 
 drop table old_web_search;
 drop table old_web_quicksearch;

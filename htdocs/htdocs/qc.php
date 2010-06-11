@@ -383,12 +383,14 @@ function weekly_rate($type='created') {
    $returnvalue = "";
    if ($type=='modified') { 
    	  $type='last modified';
+   	  $effort = "does not capture";
    $query = "select count(c.collectionobjectid), lastname, year(c.timestampmodified), week(c.timestampmodified) " .
    		" from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid " .
    		" group by lastname, year(c.timestampmodified), week(c.timestampmodified)" .
    		" order by lastname, year(c.timestampmodified), week(c.timestampmodified) ";
    } else { 
    	  $type='created';
+   	  $effort = "significantly underestimates";
    $query = "select count(c.collectionobjectid), lastname, year(c.timestampcreated), week(c.timestampcreated) " .
    		" from collectionobject c left join agent on c.createdbyagentid = agent.agentid " .
    		" group by lastname, year(c.timestampcreated), week(c.timestampcreated)" .
@@ -396,6 +398,7 @@ function weekly_rate($type='created') {
    }
 	if ($debug) { echo "[$query]<BR>"; } 
     $returnvalue .= "<h2>New Collection Object Records $type per person per week.</h2>";
+    $returnvalue .= "<h2>Note: This report $effort data quality and data enhancement efforts.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
