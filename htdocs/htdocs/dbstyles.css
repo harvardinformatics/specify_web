@@ -396,6 +396,10 @@ table.h-object {
 	width: 80%;	
 	border: 1px blue solid;
 }
+tr.item_row {
+	border-top: 1px indigo solid;
+	background: #CCFFFF; 
+}
 table.image {
 	vertical-align: top; 
 	valign: top;	

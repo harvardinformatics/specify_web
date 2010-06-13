@@ -108,47 +108,50 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
  				  <td>Genus</td>
     			<td colspan="2">%<input type="text" name="gen" value="" size="30" maxlength="59"></td>
 				  <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
-    			<td colspan="2"><input type="text" name="family" value="" size="30" maxlength="59"></td>
+    			<td colspan="2">%<input type="text" name="family" value="" size="30" maxlength="59"></td>
     		</tr>
 			<tr>			
 				  <td>Specific epithet</td>
     			<td colspan="2">%<input type="text" name="sp" value="" size="30" maxlength="59"></td>
 				  <td>Infraspecific epithet</td>
-    			<td colspan="2"><input type="text" name="infra" value="" size="30" maxlength="59"></td>
+    			<td colspan="2">%<input type="text" name="infra" value="" size="30" maxlength="59"></td>
 				  <td></td>
 		    </tr>
 			<tr>
  				<td>Author</td>
     			<td colspan="2">%<input type="text" name="author" value="" size="30" maxlength="59"></td>
 				  <td>Year published</td>
-    			<td colspan="2"><input type="text" name="year" value="" size="4" maxlength="59"></td>
+    			<td colspan="2">%<input type="text" name="year" value="" size="4" maxlength="59"></td>
     		</tr>
 			<tr>
  			  <td> </td>
-				<td colspan="2">&nbsp;<input type="checkbox" name="tp" value="on" />Types only</td>
+				<td colspan="2">&nbsp;<input type="checkbox" name="istype" value="on" />Types only</td>
 			    <td>Type status</td>
-					<td colspan="2" size="30"><select name="ts" size="1">
+					<td colspan="2" size="30"><select name="typestatus" size="1">
 								 <!--option value="none">&lt;ignore&gt; -->
-								 <option value="0" selected="true">any 
-								 <option value="111101">epitype</option>
-								 <option value="111103">holotype</option>
-								 <option value="111102">isoepitype</option>
-								 <option value="111106">isolectotype</option>
-								 <option value="111108">isoneotype</option>
-								 <option value="111110">isosyntype</option>
-								 <option value="111104">isotype</option>
-								 <option value="111105">lectotype</option>
-								 <option value="111111">neosyntype</option>
-								 <option value="111107">neotype</option>
-								 <option value="111109">syntype</option>
-								 <option value="111115">drawing of type</option>
-								 <option value="111116">photograph of type</option>
+								 <option value="" selected="true"></option>
+								 <option value="any" >any type </option>
+								 <option value="Epitype">epitype</option>
+								 <option value="Holotype">holotype</option>
+								 <option value="Isoepitype">isoepitype</option>
+								 <option value="Isolectotype">isolectotype</option>
+								 <option value="Isoneotype">isoneotype</option>
+								 <option value="Isosyntype">isosyntype</option>
+								 <option value="Isotype">isotype</option>
+								 <option value="Lectotype">lectotype</option>
+								 <option value="Neosyntype">neosyntype</option>
+								 <option value="Neotype">neotype</option>
+								 <option value="Syntype">syntype</option>
+								 <option value="DrawingOfType">drawing of type</option>
+								 <option value="PhotoOfType">photograph of type</option>
+								 <option value="NotType">Annotated as 'Not A Type'</option>
+								 <option value="Type">'Type'</option>
 					</select></td></tr>
 			<tr>
 				  <td>Collector</td>
     			<td colspan="2">%<input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
 					<td>Collector no.</td>
-    			<td colspan="2"><input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
+    			<td colspan="2">%<input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
     		</tr>
     		<tr>
     			<td><a href="specimen_search.php?browsemode=countries">Country</a></td>
@@ -157,16 +160,17 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 <?php
 
   @include_once("connection_library.php");
-  $query = "select name from geography where rankid = 200 order by name "; 
+  //$query = "select name from geography where rankid = 200 order by name "; 
+  $query = "select country, count(*) from web_search where country is not null group by country order by country "; 
   @$connection = specify_connect();
   if ($connection) {
 		@$statement = $connection->prepare($query);
 		if ($statement) {
 			@$statement->execute();
-			@$statement->bind_result($country);
+			@$statement->bind_result($country, $ct);
 			@$statement->store_result();
 			while (@$statement->fetch()) {
-                echo "<option value = '$country'>$country</option>\n";
+                echo "<option value = '$country'>$country ($ct)</option>\n";
             }
         }
   } 
@@ -174,7 +178,7 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 
                     </select></td>
     			<td>Year Collected</td>
-    			<td collspan="2"><input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
+    			<td collspan="2">%<input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
     		</tr>	
 			<tr>
 					<td>Location</td>
@@ -189,7 +193,7 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
     			<td colspan="2">%<input type="text" name="host" value="" size="20" maxlength="100" /></td></tr>
 			<tr>
 				    <td>Images</td>
-    			<td colspan="2"><input type="checkbox" name="imgs" value="on" />with images only </td>
+    			<td colspan="2"><input type="checkbox" name="hasimage" value="on" />with images only </td>
 					<td>Barcode</td>
     			<td colspan="2"><input type="text" name="barcode" value="" size="20" maxlength="59" /></td></tr>
 				<td> </td>
@@ -208,8 +212,9 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	
 	For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
 	 Enter a collector's name in any form.
-	 For location, enter a single placename of a country or a smaller geopolitical entity.
-	 If a barcode number is entered, all other search parameters will be ignored.</p>
+	 For location, enter any part of a possible locality string.
+	 The Specimen quick-search will do a free text search and return up to the 100 most relevant results for the terms you provide.
+	 If a barcode number is entered, all other search parameters will be ignored.  Barcode searches are exact match only, but don't need leading zeroes.</p>
 
 
 <?php

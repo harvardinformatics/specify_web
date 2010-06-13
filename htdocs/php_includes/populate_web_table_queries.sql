@@ -6,6 +6,12 @@
 -- Start by building a pair of tables, temp_web_search and temp_web_quicksearch
 -- When done switch these to web_search and web_quicksearch
 
+
+-- clean up if rerunning after incomplete run.
+-- drops are better here than deletes, as they will remove the indexes as well (improving insert performance)
+drop table if exists temp_web_search;
+drop table if exists temp_web_quicksearch;
+
 -- Table containing full text index on a subset of fields to 
 -- use MySQL's full text index capabilities for a 'quick search'
 create table if not exists temp_web_quicksearch (
@@ -13,22 +19,6 @@ create table if not exists temp_web_quicksearch (
   collectionobjectid bigint not null,
   searchable text
 ) ENGINE MyISAM CHARACTER SET utf8;
-
--- insert into temp_web_quicksearch (collectionobjectid, searchable) (
---   select a.collectionobjectid, concat(geography.name, ' ', gloc.name, ' ', a.fullname, ' ', a.catalognumber) 
---   from geography, 
---       (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid 
---        from collectionobject 
---            left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid 
---            left join determination on fragment.fragmentid = determination.fragmentid 
---            left join taxon on determination.taxonid = taxon.taxonid 
---            left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
---            left join locality on collectingevent.localityid = locality.localityid 
---        ) a
---   left join geography gloc on a.geoid = gloc.geographyid 
---   where geography.rankid = 200 
---     and geography.highestchildnodenumber >= a.geoid 
---     and geography.nodenumber <= a.geoid);
 
 
 -- Table to hold denormalized copy of key fields for searches, particularly
@@ -77,31 +67,6 @@ delete from temp_web_search;
 -- create index idx_agent_specialty_role on agentspecialty(role);
 -- create index idx_agent_specialty_name on agentspecialty(specialtyname);
 -- create index idx_taxontreedefitem_name on taxontreedefitem(name);
-
--- drop search indexes for faster population of temp_web_search table
--- not needed for drop/create temp_web tables.
--- drop index idx_websearch_collobjid on temp_web_search;
--- drop index idx_websearch_family on temp_web_search;
--- drop index idx_websearch_genus on temp_web_search;
--- drop index idx_websearch_species on temp_web_search;
--- drop index idx_websearch_infraspecific on temp_web_search;
--- drop index idx_websearch_author on temp_web_search;
--- drop index idx_websearch_country on temp_web_search;
--- drop index idx_websearch_location on temp_web_search;
--- drop index idx_websearch_state on temp_web_search;
--- drop index idx_websearch_county on temp_web_search;
--- drop index idx_websearch_typestatus on temp_web_search;
--- drop index idx_websearch_collector on temp_web_search;
--- drop index idx_websearch_collectornumber on temp_web_search;
--- drop index idx_websearch_herbaria on temp_web_search;
--- drop index idx_websearch_barcode on temp_web_search;
--- drop index idx_websearch_datecollected on temp_web_search;
--- drop index idx_yearcollected on temp_web_search;
--- drop index idx_yearpublished on temp_web_search;
--- drop index idx_websearch_taxon_highestchild on temp_web_search;
--- drop index idx_websearch_taxon_nodenumber on temp_web_search;
--- drop index idx_websearch_geo_highestchild on temp_web_search;
--- drop index idx_websearch_geo_nodenumber on temp_web_search;
 
 -- Queries that follow are designed and optimized for speed.  Fewer queries with more complex joins are 
 -- possible, but much less effiecient, particularly when updates involving selects from the native InnoDB
@@ -190,67 +155,106 @@ create index temp_taxon_rank on temp_taxon(rankid);
 -- 5 sec
 alter table temp_taxon add column family varchar(64);
 
--- about 6 minutes for the following
+-- lookup family for genera
+-- 1 sec
+update temp_taxon left join taxon on temp_taxon.parentid = taxon.taxonid 
+   set temp_taxon.family = taxon.name 
+   where temp_taxon.rankid = 180 and taxon.rankid = 140; 
+
+-- lookup family for species
+-- 2 sec. 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   left join taxon p2 on p1.parentid = p2.taxonid
+   set temp_taxon.family = p2.name 
+   where temp_taxon.rankid = 220 and p2.rankid = 140; 
+
+-- about 6 minutes for the following, if family for species and genera aren't looked up first
+-- 57 sec.
 update temp_taxon set family = getHigherTaxonOfRank(140,highestchildnodenumber,nodenumber) where family is null;
 
+-- 2 sec
 alter table temp_taxon add column genus varchar(64);
 
+-- populate the genus for taxa of rank genus
+-- 2 sec
+update temp_taxon left join taxon on temp_taxon.taxonid = taxon.taxonid 
+   set temp_taxon.genus = taxon.name 
+   where temp_taxon.rankid = 180 and taxon.rankid = 180; 
+   
+-- repeat for any ranks below genus that occur with non-trivial frequency in the data
+   
 -- look up the genus for taxa of rank species with a parent of rank genus
+-- 5 sec
 update temp_taxon left join taxon on temp_taxon.parentid = taxon.taxonid 
    set temp_taxon.genus = taxon.name 
    where temp_taxon.rankid = 220 and taxon.rankid = 180; 
+-- a few seconds each
+-- repeat for subspecific taxa of various sorts
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   left join taxon p2 on p1.parentid = p2.taxonid
+   set temp_taxon.genus = p2.name 
+   where temp_taxon.rankid = 230 and p2.rankid = 180; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   left join taxon p2 on p1.parentid = p2.taxonid
+   set temp_taxon.genus = p2.name 
+   where temp_taxon.rankid = 240 and p2.rankid = 180; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   left join taxon p2 on p1.parentid = p2.taxonid
+   set temp_taxon.genus = p2.name 
+   where temp_taxon.rankid = 250 and p2.rankid = 180; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   left join taxon p2 on p1.parentid = p2.taxonid
+   set temp_taxon.genus = p2.name 
+   where temp_taxon.rankid = 260 and p2.rankid = 180; 
 
---following takes hours to complete if run on the full set of records in temp_taxa.
---2 hours, 23 min if the query above looking up genera for species is run first.
-update temp_taxon set genus = getHigherTaxonOfRank(180, highestchildnodenumber, nodenumber) where genus is null;
+-- fill in the remainder (use the above queries to catch most cases) 
+-- following takes hours to complete if run on the full set of records in temp_taxa.
+-- 2 hours, 23 min if the query above looking up genera for species is run first.
+-- update temp_taxon set genus = getHigherTaxonOfRank(180, highestchildnodenumber, nodenumber) 
+--   where genus is null;
+-- 1.2 sec on just the few remaining rows 
+update temp_taxon set genus = getHigherTaxonOfRank(180, highestchildnodenumber, nodenumber) 
+   where genus is null and temp_taxon.rankid > 260;
 
 -- now update from temp_taxon into temp_web_search (19 seconds, now that nodes are set up)
+-- 19 sec
 update temp_web_search left join temp_taxon on temp_web_search.taxon_nodenumber = temp_taxon.nodenumber 
    set temp_web_search.family = temp_taxon.family, 
        temp_web_search.genus = temp_taxon.genus;
 
--- cross join on InnoDB tables makes queries below too slow to use.
--- Queries above make this possible without a cross join
--- update temp_web_search, temp_taxon set family = temp_taxon.name 
---  where highestchildnodenumber >= taxon_highestchild 
---    and nodenumber <= taxon_nodenumber 
---    and rankid = 140 
---    and family is null;
-    
--- takes 2.5 hours to run for family, more than 10 hours for genus    
--- update temp_web_search, temp_taxon set family = temp_taxon.name 
---  where taxon_nodenumber not between highestchildnodenumber and nodenumber 
---    and rankid = 140 
---    and family is null;    
-    
--- update temp_web_search, temp_taxon set genus = temp_taxon.name 
---  where highestchildnodenumber >= taxon_highestchild 
---    and nodenumber <= taxon_nodenumber 
---    and rankid = 180 
---    and genus is null;    
-
--- Following query works, but is much too slow.
--- update temp_web_search set family = getHigherTaxonOfRank(140,taxon_highestchild,taxon_nodenumber), 
---                      genus = getHigherTaxonOfRank(180,taxon_highestchild,taxon_nodenumber);
 
 -- family and above
+-- 3 sec
 insert into temp_web_search (taxon_highestchild,taxon_nodenumber,family,genus,author,collectionobjectid,barcode)  
    select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, c.collectionobjectid, f.identifier 
        from determination d left join taxon t on d.taxonid = t.taxonid  
        left join fragment f on d.fragmentid = f.fragmentid  
        left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
-       where t.rankid <= 180;
-       
+       where t.rankid < 180;
+-- 2 sec       
 insert into temp_web_search (taxon_highestchild,taxon_nodenumber,family,genus,author,collectionobjectid,barcode)  
     select t.highestchildnodenumber,t.nodenumber, t.name, '[None]', t.author, c.collectionobjectid, p.identifier  
         from determination d left join taxon t on d.taxonid = t.taxonid  
         left join fragment f on d.fragmentid = f.fragmentid
         left join preparation p on f.preparationid = p.preparationid 
         left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
-        where t.rankid <= 180;
-
+        where t.rankid < 180;        
+        
 -- Denormalize geography 
--- locality
+-- locality, append geo name if geo is not a country, state, or county.
+-- 44 sec
+update temp_web_search 
+   left join  collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid 
+   left join collectingevent e on c.collectingeventid = e.collectingeventid 
+   left join locality l on e.localityid = l.localityid 
+   left join geography g on l.geographyid = g.geographyid
+   set temp_web_search.location = 
+       concat(coalesce(g.name,''), ': ', coalesce(l.localityname,''), ' ', coalesce(e.verbatimlocality,'')), 
+       temp_web_search.geo_highestchild = g.highestchildnodenumber, 
+       temp_web_search.geo_nodenumber = g.nodenumber
+   where g.rankid <> 200 and g.rankid <> 300 and g.rankid <> 400;
+-- locality, don't append geo name for country, state or county, these will be represnted separately.
+-- 52 sec        
 update temp_web_search 
    left join  collectionobject c on temp_web_search.collectionobjectid = c.collectionobjectid 
    left join collectingevent e on c.collectingeventid = e.collectingeventid 
@@ -259,16 +263,21 @@ update temp_web_search
    set temp_web_search.location = 
        concat(coalesce(l.localityname,''), ' ', coalesce(e.verbatimlocality,'')), 
        temp_web_search.geo_highestchild = g.highestchildnodenumber, 
-       temp_web_search.geo_nodenumber = g.nodenumber;
-
+       temp_web_search.geo_nodenumber = g.nodenumber
+   where g.rankid = 200 or g.rankid = 300 or g.rankid = 400;
+       
+-- 9 sec   
 create index idx_websearch_geo_highestchild on temp_web_search(geo_highestchild);
+-- 8 sec
 create index idx_websearch_geo_nodenumber on temp_web_search(geo_nodenumber);       
        
 -- create temporary copy of geography tree in a myisam table.
 drop table if exists temp_geography;
+-- 0.24 sec
 create table temp_geography (geographyid int primary key, name varchar(64), highestchildnodenumber int, nodenumber int, rankid int) 
     engine myisam 
     as select geographyid, name, highestchildnodenumber, nodenumber, rankid from geography;
+-- about 0.1 sec each    
 create index temp_geography_hc on temp_geography(highestchildnodenumber);
 create index temp_geography_node on temp_geography(nodenumber);
 create index temp_geography_rank on temp_geography(rankid);
@@ -292,31 +301,6 @@ update temp_web_search left join temp_geography on temp_web_search.geo_nodenumbe
    set temp_web_search.state = temp_geography.state, 
        temp_web_search.county = temp_geography.county;
 
--- populate the state field
--- 1 hour 21 min.    
--- update temp_web_search, temp_geography set state = temp_geography.name 
---  where geo_highestchild <= highestchildnodenumber 
---    and geo_nodenumber >= nodenumber  
---    and rankid = 300 
---    and state is null;    
-
--- populate the county field   
--- 4 hours 13 min. 
--- update temp_web_search, temp_geography set county = temp_geography.name 
---  where geo_highestchild <= highestchildnodenumber 
---    and geo_nodenumber >= nodenumber  
---    and rankid = 400
---    and county is null;
-  
--- below are way too slow, involving join with transactional tables in update query.       
--- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
---   set w.country = getGeographyOfRank(200,g.highestchildnodenumber,g.nodenumber);
-
--- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
---   set w.state = getGeographyOfRank(300,g.highestchildnodenumber,g.nodenumber);
-
--- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
---   set w.county = getGeographyOfRank(400,g.highestchildnodenumber,g.nodenumber);
    
 -- Set type status (of specimens, not names)
 create index idx_websearch_collobjid on temp_web_search(collectionobjectid);
@@ -337,6 +321,8 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
 -- set collector
 -- Note: Assumes that there is only one collector record for each collecting event, and that
 -- teams of people are grouped as teams of agents.  
+-- TODO: Add new collector.etal field to concatenation.
+    
 -- 1 min 15 sec.
 update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid 
    left join collectingevent ce on c.collectingeventid = ce.collectingeventid 
@@ -437,3 +423,73 @@ rename table web_search to old_web_search, temp_web_search to web_search, web_qu
 -- Clean up.  Remove the previous copies of the tables. 
 drop table old_web_search;
 drop table old_web_quicksearch;
+
+-- Some things that don't work.
+
+-- Trying to do a nested join to populate a search table with a denormalized set of related data.
+-- insert into temp_web_quicksearch (collectionobjectid, searchable) (
+--   select a.collectionobjectid, concat(geography.name, ' ', gloc.name, ' ', a.fullname, ' ', a.catalognumber) 
+--   from geography, 
+--       (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid 
+--        from collectionobject 
+--            left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid 
+--            left join determination on fragment.fragmentid = determination.fragmentid 
+--            left join taxon on determination.taxonid = taxon.taxonid 
+--            left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+--            left join locality on collectingevent.localityid = locality.localityid 
+--        ) a
+--   left join geography gloc on a.geoid = gloc.geographyid 
+--   where geography.rankid = 200 
+--     and geography.highestchildnodenumber >= a.geoid 
+--     and geography.nodenumber <= a.geoid);
+
+-- populate the state field
+-- 1 hour 21 min.    
+-- update temp_web_search, temp_geography set state = temp_geography.name 
+--  where geo_highestchild <= highestchildnodenumber 
+--    and geo_nodenumber >= nodenumber  
+--    and rankid = 300 
+--    and state is null;    
+
+-- populate the county field   
+-- 4 hours 13 min. 
+-- update temp_web_search, temp_geography set county = temp_geography.name 
+--  where geo_highestchild <= highestchildnodenumber 
+--    and geo_nodenumber >= nodenumber  
+--    and rankid = 400
+--    and county is null;
+  
+-- below are way too slow, involving join with transactional tables in update query.       
+-- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.country = getGeographyOfRank(200,g.highestchildnodenumber,g.nodenumber);
+
+-- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.state = getGeographyOfRank(300,g.highestchildnodenumber,g.nodenumber);
+
+-- update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid left join collectingevent e on c.collectingeventid = e.collectingeventid left join locality l on e.localityid = l.localityid left join geography g on l.geographyid = g.geographyid 
+--   set w.county = getGeographyOfRank(400,g.highestchildnodenumber,g.nodenumber);
+
+-- cross join on InnoDB tables makes queries below too slow to use.
+-- Queries above make this possible without a cross join
+-- update temp_web_search, temp_taxon set family = temp_taxon.name 
+--  where highestchildnodenumber >= taxon_highestchild 
+--    and nodenumber <= taxon_nodenumber 
+--    and rankid = 140 
+--    and family is null;
+    
+-- takes 2.5 hours to run for family, more than 10 hours for genus    
+-- update temp_web_search, temp_taxon set family = temp_taxon.name 
+--  where taxon_nodenumber not between highestchildnodenumber and nodenumber 
+--    and rankid = 140 
+--    and family is null;    
+    
+-- update temp_web_search, temp_taxon set genus = temp_taxon.name 
+--  where highestchildnodenumber >= taxon_highestchild 
+--    and nodenumber <= taxon_nodenumber 
+--    and rankid = 180 
+--    and genus is null;    
+
+-- Using a function to look up nodes in the path to root in the trees.
+-- Following query works, but is much too slow.
+-- update temp_web_search set family = getHigherTaxonOfRank(140,taxon_highestchild,taxon_nodenumber), 
+--                      genus = getHigherTaxonOfRank(180,taxon_highestchild,taxon_nodenumber);

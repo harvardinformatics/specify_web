@@ -95,10 +95,10 @@ if ($connection) {
 	switch ($mode) {
 	
 		case "browse_families":
-			echo browse("families");   // browse() is defined in function_lib.php
+			echo browse("families");   // browse() is defined in specify_library.php
 			break;
 			
-		case "browse_countries":
+		case "browse_countries":       // browse() is defined in specify_library.php
 			echo browse("countries");
 			break;
 			
@@ -107,7 +107,7 @@ if ($connection) {
 			break;
 			
 		case "stats": 
-			echo stats();  // stats() is defined in function_lib.php
+			echo stats();  // stats() is defined in specify_library.php
 			break;
 			
 		case "search":
@@ -259,27 +259,7 @@ function details() {
 							}	    
 							$statement_cmp->close();
 							
-							//$query = "select gloc.name locality, a.localityname lname, a.geoid, a.catalognumber, a.collectionobjectid, a.remarks, a.startdate, a.enddate, a.maxelevation, a.minelevation, a.lat1text, a.lat2text, a.long1text, a.long2text, a.datum, a.latlongmethod, a.startdateprecision, a.enddateprecision, a.verbatimdate, a.fieldnumber from (select distinct locality.geographyid geoid, locality.localityname, locality.lat1text, locality.lat2text, locality.long1text, locality.long2text, locality.datum, locality.latlongmethod, fragment.catalognumber, collectionobject.collectionobjectid, collectionobject.fieldnumber, collectionobject.remarks, collectingevent.verbatimdate, collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, collectingevent.startdateprecision, collectingevent.enddateprecision from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a left join geography gloc on a.geoid = gloc.geographyid";
-							// Collection objects are linked to collecting events.
-							
-							// TODO: Was this block ever in use???? 
-							$query = "select gloc.name locality, a.geoid from " .
-								" (select distinct locality.geographyid geoid " .
-								"  from collectionobject " .
-								"  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
-								"  left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a " .
-								"  left join geography gloc on a.geoid = gloc.geographyid";
-							if ($debug) { echo "[$query]<BR>"; } 
-							$statement_hg = $connection->prepare($query);
-							if ($statement_hg) {
-								$statement_hg->bind_param("i",$id);
-								$statement_hg->execute();
-								$statement_hg->bind_result($locality, $geoid);
-								$statement_hg->store_result();
-								while ($statement_hg->fetch()) { 
-								}
-							}	    
-							$statement_hg->close();
+
 							
 							// **** Harvard University Herbaria Specific ***
 							// Accession number for specimen in otheridentifier typed by Remarks=accession
@@ -320,7 +300,7 @@ function details() {
 								$fullurl = "";
 								while ($statement_img->fetch()) { 
 									if ($imagename == "Thumbnail") {
-										$images .= "<tr><td class='cap'>Image </td><td class='val'><a href='$fullurl'><img src='$url' height='205px' width='150' ></a></td></tr>";
+										$images .= "<tr><td class='cap'>Image </td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
 									} else { 
 										if ($imagename == "Full") { 
 											$fullurl = $url;
@@ -339,6 +319,23 @@ function details() {
 							
 							// Locality and higher geography are tied to collecting events which are tied to collection objects.
 							// Obtain higher geography
+							// find the node numbers for the node that is linked to locality.
+							$query = "select nodenumber, highestchildnodenumber " .
+									" from geography " .
+									" where geographyid = ? ";
+							if ($debug) { echo "[$query]<BR>"; } 
+							$statement_hg = $connection->prepare($query);
+							if ($statement_hg) {
+								$statement_hg->bind_param("i",$geoid);
+								$statement_hg->execute();
+								$statement_hg->bind_result($geonodenumber, $geohighestchildnodenumber);
+								$statement_hg->store_result();
+								while ($statement_hg->fetch()) { 
+									// get the row
+								}
+							}	    
+							$statement_hg->close();
+							// find the path to root from that node in the geography tree.
 							$geography = "";
 							$country = "";
 							$state = "";
@@ -346,16 +343,20 @@ function details() {
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_geo = $connection->prepare($query);
 							if ($statement_geo) { 
-								$statement_geo->bind_param("ii",$geoid,$geoid);
+								$statement_geo->bind_param("ii",$geohighestchildnodenumber, $geonodenumber);
 								$statement_geo->execute();
 								$statement_geo->bind_result($geoRank,$geoName);
 								$statement_geo->store_result();
 								$separator = "";
+								$oldname = "";  // skip adjacent identical names if present in tree path.
 								while ($statement_geo->fetch()) { 
-									$geography .= $separator.$geoName;
-									$separator = ": ";
+									if ($geoName!='Earth' && $geoName!=$oldname) { 
+									   $geography .= $separator.$geoName;
+									   $separator = ": ";
+									}
 									if ($geoRank == "200") { $country = $geoName; } 
-									if ($geoRank == "300") { $state = $geoName; } 
+									if ($geoRank == "300") { $state = $geoName; }
+									$oldname = $geoName; 
 								}
 							} else { 
 								echo "Error: " . $connection->error;
@@ -368,6 +369,7 @@ function details() {
 							// collector is associated with collection objects through collecting events.
 							$collector = "";
 							$comma = "";
+							// TODO: Add new collector.etal field 
 							$query = "select agentvariant.name, agentvariant.agentid from collectionobject " .
 									" left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 									" left join collector on collectingevent.collectingeventid = collector.collectingeventid " .
@@ -466,8 +468,8 @@ function details() {
 									} else { 
 										echo "Error: " . $connection->error;
 									}
-									$items .= "<tr><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
-									$items .= "<tr><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
+									$items .= "<tr class='item_row' ><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
+									$items .= "<tr class='item_row'><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
 									if ($provenance != "") { $items .= "<tr><td class='cap'>Provenance</td><td class='val'>$provenance</td></tr>"; } 
 									// get any references linked to the fragment.
 									$query = "select r.title, r.text2 as volumes, r.referenceworkid " .
@@ -484,7 +486,7 @@ function details() {
 										$separator = "";
 										while ($statement_ref->fetch()) { 
 											if (trim($title)!="") { 
-												$fragmentcitations.= "<tr><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
+												$fragmentcitations.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
 											}
 										}
 									} else {
@@ -526,32 +528,32 @@ function details() {
 													$typeStatus .= trim("$separator$confidence $typeStatusName");
 													$separator = ", ";
 												}
-												$determinationHistory.= "<tr><td class='cap'>$det</td><td class='val'>$qualifier <em>$fullName</em> $author</td></tr>";
+												$determinationHistory.= "<tr class='item_row'><td class='cap'>$det</td><td class='val'>$qualifier <em>$fullName</em> $author</td></tr>";
 												// Determiner might be a text value
 												// Determiner for non types, type status verifier for types.
 												if (trim($verifier)!="") {
 													if ($typeStatusName != "") { 
-														$determinationHistory.= "<tr><td class='cap'>Verified by</td><td class='val'>$verifier</td></tr>";
+														$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$verifier</td></tr>";
 													}  else { 
-														$determinationHistory.= "<tr><td class='cap'>Determined by</td><td class='val'>$verifier</td></tr>";
+														$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$verifier</td></tr>";
 													}
 												}
 												// Determiner might be an agent instead of a text value
 												if (trim($determineragent)!="") {
 													if ($typeStatusName != "") { 
-														$determinationHistory.= "<tr><td class='cap'>Verified by</td><td class='val'>$determineragent</td></tr>";
+														$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$determineragent</td></tr>";
 													}  else { 
-														$determinationHistory.= "<tr><td class='cap'>Determined by</td><td class='val'>$determineragent</td></tr>";
+														$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$determineragent</td></tr>";
 													}
 												}
 												if (trim($determinedDate)!="") { 
-													$determinationHistory.= "<tr><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
+													$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
 												}
 												if (trim($determinationRemarks)!="") { 
-													$determinationHistory.= "<tr><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
+													$determinationHistory.= "<tr class='item_row'><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
 												}
 												if (trim($text2)!="") { 
-													$determinationHistory.= "<tr><td class='cap'>Annotation Text</td><td class='val'>$text2</td></tr>";
+													$determinationHistory.= "<tr class='item_row'><td class='cap'>Annotation Text</td><td class='val'>$text2</td></tr>";
 												}
 												// If a CITES listed species, set redactlocality flag.
 												if ($citesstatus != "None") {
@@ -603,7 +605,7 @@ function details() {
 												if (trim($title)!="") { 
 													if ($year!="") { $year = "$year."; }
 													if ($pages!="") { $pages = "$pages."; }
-													$determinationHistory.= "<tr><td class='cap'>Reference</td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages</td></tr>";
+													$determinationHistory.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages</td></tr>";
 												}
 											}
 										} else {
@@ -632,25 +634,25 @@ function details() {
 										$separator = "";
 										while ($statement_det->fetch()) { 
 											if (trim($sex)!="") { 
-												$attributes.= "<tr><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
 											}
 											if (trim($phenology)!="") { 
-												$attributes.= "<tr><td class='cap'>Phenology</td><td class='val'>$phenology</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Phenology</td><td class='val'>$phenology</td></tr>";
 											}
 											if (trim($preptype)!="") { 
-												$attributes.= "<tr><td class='cap'>Preparation Type</td><td class='val'>$preptype</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Type</td><td class='val'>$preptype</td></tr>";
 											}
 											if (trim($prepmethod)!="") { 
-												$attributes.= "<tr><td class='cap'>Preparation Method</td><td class='val'>$prepmethod</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Method</td><td class='val'>$prepmethod</td></tr>";
 											}
 											if (trim($fremarks)!="") { 
-												$attributes.= "<tr><td class='cap'>Item Remarks</td><td class='val'>$fremarks</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Item Remarks</td><td class='val'>$fremarks</td></tr>";
 											}
 											if (trim($premarks)!="") { 
-												$attributes.= "<tr><td class='cap'>Preparation Remarks</td><td class='val'>$premarks</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Remarks</td><td class='val'>$premarks</td></tr>";
 											}
 											if (trim($description)!="") { 
-												$attributes.= "<tr><td class='cap'>Description</td><td class='val'>$description</td></tr>";
+												$attributes.= "<tr class='item_row'><td class='cap'>Description</td><td class='val'>$description</td></tr>";
 											}
 										}
 									} else {
@@ -797,7 +799,8 @@ function search() {
 		$and = "";
 		$types = "";
 		$parametercount = 0;
-		$genus = substr(preg_replace("/[^A-Za-z_%]/","", $_GET['gen']),0,59);
+		$genus = substr(preg_replace("/[^A-Za-z_%*]/","", $_GET['gen']),0,59);
+		$genus = str_replace("*","%",$genus);
 		if ($genus!="") { 
 			$hasquery = true;
 			$question .= "$and genus:[$genus] ";
@@ -809,8 +812,49 @@ function search() {
 			$wherebit .= "$and web_search.genus $operator ? ";
 			$and = " and ";
 		}
-		$locality = substr(preg_replace("/[^A-Za-z%]/","", $_GET['loc']),0,59);
+		$istype = substr(preg_replace("/[^a-z]/","", $_GET['istype']),0,59);
+		if ($istype=="on") { 
+			$hasquery = true;
+			$question .= "$and is a type ";
+			$wherebit .= "$and web_search.typestatus is not null and web_search.typestatus <> 'Not a type' ";
+			$and = " and ";
+		}
+		$typestatus = substr(preg_replace("/[^A-Za-z_%*]/","", $_GET['typestatus']),0,59);
+		$typestatus = str_replace("*","%",$typestatus);
+		if ($typestatus!="") {
+			if ($typestatus=="any") {
+			    $hasquery = true;
+			    $question .= "$and type status is not null ";
+			    $wherebit .= "$and web_search.typestatus is not null ";
+			    $and = " and ";
+			} else { 
+			    $hasquery = true;
+			    $question .= "$and type status:[$typestatus] ";
+			    $types .= "s";
+			    $operator = "=";
+			    $parameters[$parametercount] = &$typestatus;
+			    $parametercount++;
+			    if (preg_match("/[%_]/",$typestatus))  { $operator = " like "; }
+			    if ($typestatus=="Type") { 
+			    	// use 'Type' as either of the vauge indications of possible type status
+			        $wherebit .= "$and (web_search.typestatus = ? or web_search.typestatus = 'TypeMaterial') ";
+			    } else { 
+			        $wherebit .= "$and web_search.typestatus $operator ? ";
+			    }
+			    $and = " and ";
+			} 
+		}
+		$hasimage = substr(preg_replace("/[^a-z]/","", $_GET['hasimage']),0,59);
+		if ($hasimage=="on") { 
+			$hasquery = true;
+			$question .= "$and has an image ";
+			$wherebit .= "$and i.collectionobjectid is not null ";
+			$and = " and ";
+		}
+		$locality = substr(preg_replace("/[^A-Za-z%*]/","", $_GET['loc']),0,59);
+		$locality = str_replace("*","%",$locality);
 		if ($locality!="") { 
+			// Search on both specific locality and on country/state/county.  
 			$hasquery = true;
 			$locality = "%$locality%";   // append wildcards 
 			$question .= "$and geographic name like:[$locality] ";
@@ -828,7 +872,8 @@ function search() {
 			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
 			$and = " and ";
 		}
-		$host = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['host']),0,100);
+		$host = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['host']),0,100);
+		$host = str_replace("*","%",$host);
 		if ($host!="") { 
 			$hasquery = true;
 			$question .= "$and host:[$host] ";
@@ -840,7 +885,8 @@ function search() {
 			$wherebit .= "$and web_search.host $operator ? ";
 			$and = " and ";
 		}
-		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
+		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
+		$substrate = str_replace("*","%",$substrate);
 		if ($substrate!="") { 
 			$hasquery = true;
 			$question .= "$and substrate:[$substrate] ";
@@ -852,7 +898,8 @@ function search() {
 			$wherebit .= "$and web_search.substrate $operator ? ";
 			$and = " and ";
 		}
-		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,100);
+		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,100);
+		$habitat = str_replace("*","%",$habitat);
 		if ($habitat!="") { 
 			$hasquery = true;
 			$question .= "$and habitat:[$habitat] ";
@@ -864,7 +911,8 @@ function search() {
 			$wherebit .= "$and web_search.habitat $operator ? ";
 			$and = " and ";
 		}		
-		$country = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['country']),0,59);
+		$country = substr(preg_replace("/[^A-Za-z _%*\(\)\.]/","", $_GET['country']),0,59);
+		$country = str_replace("*","%",$country);
 		if ($country!="") { 
 			$hasquery = true;
 			$question .= "$and country:[$country] ";
@@ -876,7 +924,8 @@ function search() {
 			$wherebit .= "$and web_search.country $operator ? ";
 			$and = " and ";
 		}
-		$species = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['sp']),0,59);
+		$species = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['sp']),0,59);
+		$species = str_replace("*","%",$species);
 		if ($species!="") { 
 			$hasquery = true;
 			$question .= "$and species:[$species]";
@@ -888,7 +937,8 @@ function search() {
 			$wherebit .= "$and web_search.species $operator ? ";
 			$and = " and ";
 		}
-		$infraspecific = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['infra']),0,59);
+		$infraspecific = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['infra']),0,59);
+		$infraspecific = str_replace("*","%",$infraspecific);
 		if ($infraspecific!="") { 
 			$hasquery = true;
 			$question .= "$and infraspecific epithet:[$infraspecific]";
@@ -900,7 +950,8 @@ function search() {
 			$wherebit .= "$and web_search.infraspecific $operator ? ";
 			$and = " and ";
 		}
-		$author = substr(preg_replace("/[^A-Za-z _%]/","", $_GET['author']),0,59);
+		$author = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['author']),0,59);
+		$author = str_replace("*","%",$author);
 		if ($author!="") { 
 			$hasquery = true;
 			$question .= "$and author:[$author]";
@@ -912,7 +963,8 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-z _%\.\,]/","", $_GET['cltr']),0,59);
+		$collector = substr(preg_replace("/[^A-Za-z _%*\.\,]/","", $_GET['cltr']),0,59);
+		$collector = str_replace("*","%",$collector);
 		if ($collector!="") { 
 			$hasquery = true;
 			$question .= "$and collector:[$collector]";
@@ -924,7 +976,8 @@ function search() {
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
-		$collectornumber = substr(preg_replace("/[^1-9\.A-Za-z _%]/","", $_GET['collectornumber']),0,59);
+		$collectornumber = substr(preg_replace("/[^1-9\.A-Za-z _%*]/","", $_GET['collectornumber']),0,59);
+		$collectornumber = str_replace("*","%",$collectornumber);
 		if ($collectornumber!="") { 
 			$hasquery = true;
 			$question .= "$and collectornumber:[$collectornumber]";
@@ -936,7 +989,8 @@ function search() {
 			$wherebit .= "$and web_search.collectornumber $operator ? ";
 			$and = " and ";
 		}
-		$yearpublished = substr(preg_replace("/[^0-9 _%]/","", $_GET['year']),0,59);
+		$yearpublished = substr(preg_replace("/[^0-9 _%*]/","", $_GET['year']),0,59);
+		$yearpublished = str_replace("*","%",$yearpublished);
 		if ($yearpublished!="") { 
 			$hasquery = true;
 			$question .= "$and yearpublished:[$yearpublished]";
@@ -948,7 +1002,8 @@ function search() {
 			$wherebit .= "$and web_search.yearpublished $operator ? ";
 			$and = " and ";
 		}
-		$yearcollected = substr(preg_replace("/[^0-9 _%]/","", $_GET['yearcollected']),0,59);
+		$yearcollected = substr(preg_replace("/[^0-9 _%*]/","", $_GET['yearcollected']),0,59);
+		$yearcollected = str_replace("*","%",$yearcollected);
 		if ($yearcollected!="") { 
 			$hasquery = true;
 			$question .= "$and year collected:[$yearcollected]";
@@ -1013,7 +1068,9 @@ function search() {
 			$statement->store_result();
 			
 			echo "<div>\n";
-			echo $statement->num_rows . " matches to query ";
+			$count = $statement->num_rows;
+			if ($count>1) { $s = "s"; } else { $s = ""; }
+			echo "$count matche$s to query ";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
@@ -1107,7 +1164,8 @@ function search() {
 							$errormessage = "";   // clear the error message so it doesn't show at the end.'
 							while ($statement->fetch()) {
 								$highlightedcollector = preg_replace("/$searchcollector/","<strong>$plaincollector</strong>",$collector);
-								echo "$highlightedcollector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count records</a>]<br>";
+								if ($count>1) { $s = "s"; } else { $s = ""; }
+								echo "$highlightedcollector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count record$s</a>]<br>";
 							}
 							echo "<BR>";
 						}
@@ -1147,7 +1205,8 @@ function search() {
 							echo "<h3>Possibly matching hosts</h3>";
 							while ($statement->fetch()) {
 								$highlightedhost = preg_replace("/$searchhost/","<strong>$plainhost</strong>",$host);
-								echo "$highlightedhost [<a href='specimen_search.php?mode=search&host=$host'>$count records</a>]<br>";
+								if ($count>1) { $s = "s"; } else { $s = ""; }
+								echo "$highlightedhost [<a href='specimen_search.php?mode=search&host=$host'>$count record$s</a>]<br>";
 							}
 							echo "<BR>";
 						}
@@ -1186,7 +1245,8 @@ function search() {
 							echo "<h3>Possibly matching substrates</h3>";
 							while ($statement->fetch()) {
 								$highlightedsubstrate = preg_replace("/$searchsubstrate/","<strong>$plainsubstrate</strong>",$substrate);
-								echo "$highlightedsubstrate [<a href='specimen_search.php?mode=search&substrate=$substrate'>$count records</a>]<br>";
+								if ($count>1) { $s = "s"; } else { $s = ""; }
+								echo "$highlightedsubstrate [<a href='specimen_search.php?mode=search&substrate=$substrate'>$count record$s</a>]<br>";
 							}
 							echo "<BR>";
 						}
@@ -1225,7 +1285,8 @@ function search() {
 							echo "<h3>Possibly matching habitats</h3>";
 							while ($statement->fetch()) {
 								$highlightedhabitat = preg_replace("/$searchhabitat/","<strong>$plainhabitat</strong>",$habitat);
-								echo "$highlightedhabitat [<a href='specimen_search.php?mode=search&habitat=$habitat'>$count records</a>]<br>";
+								if ($count>1) { $s = "s"; } else { $s = ""; }
+								echo "$highlightedhabitat [<a href='specimen_search.php?mode=search&habitat=$habitat'>$count record$s</a>]<br>";
 							}
 							echo "<BR>";
 						}
