@@ -1189,19 +1189,13 @@ function search() {
 				echo "<input type='hidden' name='mode' value='details'>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "<BR><div>\n";
+				$oldfamilylink = "";
 				while ($statement->fetch()) { 
-					//$wherebit = " collectionobject.collectionobjectid = ? ";
-					//$query = "select geography.name country, gloc.name locality, a.fullname, a.geoid, a.catalognumber, a.collectionobjectid from geography, (select distinct taxon.fullname, locality.geographyid geoid, collectionobject.altcatalognumber as catalognumber, collectionobject.collectionobjectid from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join determination on fragment.fragmentid = determination.fragmentid left join taxon on determination.taxonid = taxon.taxonid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  where $wherebit) a " .
-					//		"left join geography gloc on a.geoid = gloc.geographyid " .
-					//		"where geography.rankid = 200 and geography.highestchildnodenumber >= a.geoid and geography.nodenumber <= a.geoid";
-					//$statement2 = $connection->prepare($query);
-					//if ($statement2) { 
-					//$statement2->bind_param("s",$CollectionObjectID);
-					//$statement2->execute();
-					//$statement2->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID);
-					//$statement2->store_result();
-					//if ($statement2->num_rows > 0 ) {
-					//while ($statement2->fetch()) { 
+					$familylink = "<strong><a href='sepecimen_search.php?family=$family'>$family</a></strong>";
+					if ($familylink != $oldfamilylink) {
+						 echo "$familylink<BR>"; 
+					}
+					$oldfamilylink = $familylink;
 					if (strlen($locality) > 12) { 
 						$locality = substr($locality,0,11) . "...";
 					}
@@ -1210,31 +1204,21 @@ function search() {
 					} else {
 						$imageicon = "";
 					}
-					$FullName = "[<a href='sepecimen_search.php?family=$family'>$family</a>] <em>$genus $species $infraspecific</em> $author";
+					$FullName = " <em>$genus $species $infraspecific</em> $author";
 					$geography = "$country: $state $locality ";
 					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
 					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $datecollected $imageicon";
 					echo "<BR>\n";
-					//}
-					//} else { 
-					//echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> <a href='specimen_search.php?mode=details&id=$CollectionObjectID'>[Missing Data]</a> ";
-					//echo "<BR>\n";
-					//}
-					//} else { 
-					//    $errormessage .= "Query error. ";
-					//    if ($debug) {
-					//    	 $errormessage .= "[" . mysqli_error($connection); 
-					//    }
-					//}
 				}
 				echo "</div>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "</form>\n";
 				
 			} else {
-	            // ***** Step 3: Optionally look for alternate possible search terms ***********
 				$errormessage .= "No matching results. ";
-				if ($collector != "") {  
+			}
+	            // ***** Step 3: Optionally look for alternate possible search terms ***********
+							if ($collector != "") {  
 					$statement->close();
 					// Look for possibly related collectors
 					$query = " select  trim(concat(ifnull(agent.firstname,''), ' ', ifnull(agent.lastname,''))), count(collector.collectingeventid) " .
@@ -1280,7 +1264,6 @@ function search() {
 					}
 					
 				}
-			}
 				if ($host!= "" && preg_match('/[%_]/',$host)==0) {  
 					// Look for possibly related hosts
 					$query = " select text1 as host, count(collectionobjectid) " .
