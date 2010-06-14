@@ -285,7 +285,8 @@ function details() {
 							
 							// HUH Images are of collection objects
 							// HUH images are in separate set of IMAGE_ tables imported from ASA.
-							$images = "";
+							$images = array();
+							$firstimage = array();
 							$query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size " .
 								" from IMAGE_SET_collectionobject c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
 								" left join REPOSITORY r on o.repository_id = r.id " .
@@ -302,14 +303,16 @@ function details() {
 								$fullurl = "";
 								while ($statement_img->fetch()) { 
 									if ($imagename == "Thumbnail") {
-										$images .= "<tr><td class='cap'>Image </td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
+										//$firstimage .= "<tr><td class='cap'></td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
+										$firstimage[] = "<a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a>";
 									} else { 
 										if ($imagename == "Full") { 
 											$fullurl = $url;
 										}
 										$size = floor($filesize / 1024);
 										$size = $size . " kb";
-										$images .= "<tr><td class='cap'>Image </td><td class='val'><a href='$url'>$imagename</a> [$size]</td></tr>";
+										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
+										$images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
 									}
 								}
 							} else { 
@@ -537,28 +540,39 @@ function details() {
 											// Retrieve one determination from the determination of this fragment(item)
 											$determinationcounter++;   
 											if ($debug===true) {  echo "TaxonID=[$taxonid]<BR>"; }
-											$nodes[] = $nodenumber;
+											$nodes[] = $nodenumber;  // Store the taxon's node number to look up higher taxonomy later.'
 											if ($determinationid != "") {
+												if ($debug===true) { 
+												    $determination['detnumber'] = $determinationcounter;
+												}
 												// retrieve determination/annotation details and store in an array  
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
+												    $taxonname = "$qualifier <em>$fullName</em> $author";
+												    $determination["Determination"] = $taxonname;
+												    $determination["Type Status"] = "";
 												} else {
 													$det = trim("$confidence $typeStatusName of");
+												    $determination["Type Status"] = "$confidence $typeStatusName";
+													// Append to list of type statuses for this collection object
 													$typeStatus .= trim("$separator$confidence $typeStatusName");
 													$separator = ", ";
+												    $taxonname = "$qualifier <em>$fullName</em> $author";
+												    $determination["$det"] = $taxonname;
+												    $determination["Determination"] = "";
 												}
 												//$determinationHistory.= "<tr class='item_row'><td class='cap'>$det</td><td class='val'>$qualifier <em>$fullName</em> $author</td></tr>";
-												$taxonname = "$qualifier <em>$fullName</em> $author";
-												$determination["$det"] = $taxonname;
 												// Determiner might be a text value
 												// Determiner for non types, type status verifier for types.
 												if (trim($verifier)!="") {
 													if ($typeStatusName != "") { 
 														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$verifier</td></tr>";
 														$determination['Verified by'] = "$verifier";
+														$determination['Determined by'] = "";
 													}  else { 
 														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$verifier</td></tr>";
 														$determination['Determined by'] = "$verifier";
+														$determination['Verified by'] = "";
 													}
 												}
 												// Determiner might be an agent instead of a text value
@@ -566,9 +580,11 @@ function details() {
 													if ($typeStatusName != "") { 
 														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$determineragent</td></tr>";
 														$determination['Verified by'] = "$detrmineragent";
+														$determination['Determined by'] = "";
 													}  else { 
 														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$determineragent</td></tr>";
 														$determination['Determined by'] = "$determineragent";
+														$determination['Verified by'] = "";
 													}
 												}
 												if (trim($determinedDate)!="") { 
@@ -625,12 +641,13 @@ function details() {
 											$highertaxonomy = array();
 											$highercount = 0;
 											foreach ($nodes as $nodenumber) { 
-												$query = "select taxon.name from taxon where taxon.nodenumber < ? and taxon.highestchildnodenumber > ? ";
+												$query = "select taxon.name from taxon where taxon.nodenumber < ? and taxon.highestchildnodenumber > ? and rankid > 180 ";
 												$statement_ht = $connection->prepare($query);
 												if ($statement_ht) { 
 													if ($debug===true) {  echo "[$query]<BR>"; }
 													$statement_ht->bind_param("ii",$nodenumber,$nodenumber);
 													$statement_ht->execute();
+													$higherName = "";
 													$statement_ht->bind_result($higherName);
 													$statement_ht->store_result();
 													$colon = "";
@@ -803,10 +820,10 @@ function details() {
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
 							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
 							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
-							$itemcounter = 0;
+							$itemcounter = 0;  // check if even or odd to distinguish alternate pairs of items.
 							foreach ($itemarray as  $item) {
-								$itemcounter ++;
-								$detcounter = 0;
+								$itemcounter ++;  
+								$detcounter = 0;   // check if even or odd to distinguish alternate pairs of determinations 
 								foreach ($item as $itemnumber => $values) {
 									// These are elements of the item
 									$detcounter ++; 
@@ -828,7 +845,12 @@ function details() {
 							}
 							echo "</table></td>\n";
 							echo "<td><table class='images'>\n";
-							echo $images;
+							foreach ($firstimage as $value) { 
+							      if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+							}
+							foreach ($images as $value) { 
+							      if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+							}
 							echo "</table></td></tr>\n";
 							if (trim($specimenRemarks!="")) { 
 								echo "<tr><td colspan='2'><table class='remarks'>";
