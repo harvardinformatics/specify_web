@@ -395,14 +395,22 @@ div.entity { /* name of div that includes the main table*/
 table.h-object {
 	width: 80%;	
 	border: 1px blue solid;
+	background: #EEFFFF; 
 }
 tr.item_row {
-	border-top: 1px indigo solid;
 	background: #CCFFFF; 
+}
+tr.odd_item_row {
+	background: #DDEEFF; 
 }
 table.image {
 	vertical-align: top; 
 	valign: top;	
+}
+table.text {
+	vertical-align: top; 
+	valign: top;	
+	border-collapse:collapse;
 }
 td {
 	font:normal 1.0em Arial, Helvetica, Sans-serif;	
@@ -417,9 +425,28 @@ td.cap {
 	width: 20%;
 	color: brown;	
 }
+td.item_cap {
+	width: 20%;
+	color: brown;	
+}
+td.det_item_cap {
+	width: 20%;
+	color: brown;	
+}
 td.val {
 	width: 80%;
-	background-color: #fff;	
+	background: #EEFFFF; 
+}
+td.item_val {
+	width: 80%;
+}
+td.det_item_val {
+	width: 80%;
+	background: #CCEEFF; 
+}
+td.odd_det_item_val {
+	width: 80%;
+	background: #CCFFEE; 
 }
 td.section-header {
 	font: italic 0.84em Arial, Helvetica, Sans-serif;

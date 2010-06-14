@@ -236,7 +236,7 @@ function details() {
 							if ($debug) { echo "[$CollectionObjectID]"; }
 							
 							// Determine if this is a simple collection object (one collectionobject, one fragment, one preparation) or not. 
-							$objectcomplexity = "";
+							$objectcomplexity = array();
 							$query = "select count(*) from collectionobject c " .
 									" left join fragment f on c.collectionobjectid = f.collectionobjectid " .
 									" left join preparation p on f.preparationid = p.preparationid " .
@@ -251,30 +251,32 @@ function details() {
 								$statement_cmp->store_result();
 								while ($statement_cmp->fetch()) { 
 									if ($objectfragmentprepfragmentrows==1) { 
-										$objectcomplexity = "<tr><td class='cap'>Simple Object</td><td class='val'>This is a simple collection object (one sheet-item-preparation)</td></tr>";
+										//$objectcomplexity = "<tr><td class='cap'>Simple Object</td><td class='val'>This is a simple collection object (one sheet-item-preparation)</td></tr>";
+										$objectcomplexity['Simple Object'] = "This is a simple collection object (one sheet-item-preparation)";
 									} else { 
-										$objectcomplexity = "<tr><td class='cap'>Complex Object</td><td class='val'>This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))</td></tr>";
+										//$objectcomplexity = "<tr><td class='cap'>Complex Object</td><td class='val'>This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))</td></tr>";
+										$objectcomplexity['Complex Object'] = "This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))";
 									}
 								}
 							}	    
 							$statement_cmp->close();
 							
-
+							// Retrieve any other identifying numbers associated with this collection object.
+							// other identifier is linked to collection object (original label).
+							$otheridentifiers = array();
+							$query = "select identifier, institution, remarks from otheridentifier where collectionobjectid = ? ";
 							
-							// **** Harvard University Herbaria Specific ***
-							// Accession number for specimen in otheridentifier typed by Remarks=accession
-							// other identifier is linked to collectionobject.
-							$accession = "";
-							$query = "select identifier, institution from otheridentifier where remarks = 'accession' and collectionobjectid = ? ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_acc = $connection->prepare($query);
 							if ($statement_acc) { 
 								$statement_acc->bind_param("i",$id);
 								$statement_acc->execute();
-								$statement_acc->bind_result($identifier,$institution);
+								$statement_acc->bind_result($identifier,$institution,$remarks);
 								$statement_acc->store_result();
-								while ($statement_acc->fetch()) { 
-									$accession .= "<tr><td class='cap'>Accession</td><td class='val'>$institution $identifier</td></tr>";
+								while ($statement_acc->fetch()) {
+									//$otheridentifiers .= "<tr><td class='cap'>Accession</td><td class='val'>$institution $identifier</td></tr>";
+									// Note: otheridentifiers is a numeric array of values, not key-value pairs.
+									$otheridentifiers[] = "$institution: $identifier [$remarks]";
 								}
 							} else { 
 								echo "Error: " . $connection->error;
@@ -399,7 +401,11 @@ function details() {
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							if ($debug===true) {  echo "CollectionObjectID=[".$id."]<BR>"; }
 							$statement_frag = $connection->prepare($query);
-							$items = "";
+							// Note: the array $itemarrray is an array of items, each of which contains a set of key-value pairs.
+							// An item array is a list of key-value descriptors of that fragment(item).
+							// Where the items with keys beginning with "Determination" are themesleves arrays of key-value pairs
+							// A determination array is a list of key-value decriptors of an identification of a fragment(item).
+							$itemarray = array();   // $itemarray[0] is the first item, a $item[] array
 							$itemcount = 0;
 							// obtain a full list of barcodes associated with this collection object
 							$barcodelist = "";
@@ -410,9 +416,13 @@ function details() {
 								$statement_frag->bind_result($fragmentid, $provenance);
 								$statement_frag->store_result();
 								$fragmentcount = $statement_frag->num_rows();
+								$itemheader = array();
 								while ($statement_frag->fetch()) {
+							        $item = array();        // Each $item array contains key - value pairs for the fields associated with that item.
 									$itemcount ++; 
-									$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount of $fragmentcount</td></tr>";
+									//$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount of $fragmentcount</td></tr>";
+									$itemheader['Item'] = "$itemcount of $fragmentcount";
+									$item[] = $itemheader;
 									
 									// **** HUH Specific *****
 									// Acronym for herbarium is stored in fragment.text1
@@ -468,16 +478,21 @@ function details() {
 									} else { 
 										echo "Error: " . $connection->error;
 									}
-									$items .= "<tr class='item_row' ><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
-									$items .= "<tr class='item_row'><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
-									if ($provenance != "") { $items .= "<tr><td class='cap'>Provenance</td><td class='val'>$provenance</td></tr>"; } 
+									//$items .= "<tr class='item_row' ><td class='cap'>Harvard University Herbaria Barcode</td><td class='val'>$CatalogNumber</td></tr>";
+									//$items .= "<tr class='item_row'><td class='cap'>Herbarium</td><td class='val'>$acronym</td></tr>";
+									//if ($provenance != "") { $items .= "<tr><td class='cap'>Provenance</td><td class='val'>$provenance</td></tr>"; } 
+									$itemcuration = array();
+									$itemcuration['Harvard University Herbaria Barcode'] = $CatalogNumber;
+									$itemcuration['Herbarium'] = $acronym;
+									if ($provenance != "") { $itemcuration['Provenance'].= "$provenance"; } 
+									$item[] = $itemcuration;
 									// get any references linked to the fragment.
 									$query = "select r.title, r.text2 as volumes, r.referenceworkid " .
 										" from referencework r left join fragmentcitation c on r.referenceworkid = c.referenceworkid " .
 										" where c.fragmentid = ? ";
 									if ($debug===true) {  echo "[$query]<BR>"; }
 									$statement_ref = $connection->prepare($query);
-									$fragmentcitations = "";
+									$fragmentcitations = array();
 									if ($statement_ref) { 
 										$statement_ref->bind_param("i",$fragmentid);
 										$statement_ref->execute();
@@ -486,13 +501,14 @@ function details() {
 										$separator = "";
 										while ($statement_ref->fetch()) { 
 											if (trim($title)!="") { 
-												$fragmentcitations.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
+												//$fragmentcitations.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
+												$fragmentcitations['Item Reference'] = $title;
 											}
 										}
 									} else {
 										echo "Error: " . $connection->error;
 									}
-									$items .= $fragmentcitations;
+									$item[] = $fragmentcitations;
 									
 									// **** Specify6-Botany Specific *****
 									// Determinations are associated with items (fragments).
@@ -507,7 +523,8 @@ function details() {
 										" where fragment.fragmentid = ? order by typeStatusName, isCurrent, determinedDate"; 
 									if ($debug===true) {  echo "[$query]<BR>"; }
 									$statement_det = $connection->prepare($query);
-									$determinationHistory = "";
+									$determinationcounter = 0;
+									$determination = array();
 									if ($statement_det) { 
 										$statement_det->bind_param("i",$fragmentid);
 										$statement_det->execute();
@@ -517,10 +534,12 @@ function details() {
 										$typeStatus = "";
 										$nodes = array();
 										while ($statement_det->fetch()) {
+											// Retrieve one determination from the determination of this fragment(item)
+											$determinationcounter++;   
 											if ($debug===true) {  echo "TaxonID=[$taxonid]<BR>"; }
 											$nodes[] = $nodenumber;
 											if ($determinationid != "") {
-												// display determination/annotation details  
+												// retrieve determination/annotation details and store in an array  
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
 												} else {
@@ -528,42 +547,83 @@ function details() {
 													$typeStatus .= trim("$separator$confidence $typeStatusName");
 													$separator = ", ";
 												}
-												$determinationHistory.= "<tr class='item_row'><td class='cap'>$det</td><td class='val'>$qualifier <em>$fullName</em> $author</td></tr>";
+												//$determinationHistory.= "<tr class='item_row'><td class='cap'>$det</td><td class='val'>$qualifier <em>$fullName</em> $author</td></tr>";
+												$taxonname = "$qualifier <em>$fullName</em> $author";
+												$determination["$det"] = $taxonname;
 												// Determiner might be a text value
 												// Determiner for non types, type status verifier for types.
 												if (trim($verifier)!="") {
 													if ($typeStatusName != "") { 
-														$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$verifier</td></tr>";
+														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$verifier</td></tr>";
+														$determination['Verified by'] = "$verifier";
 													}  else { 
-														$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$verifier</td></tr>";
+														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$verifier</td></tr>";
+														$determination['Determined by'] = "$verifier";
 													}
 												}
 												// Determiner might be an agent instead of a text value
 												if (trim($determineragent)!="") {
 													if ($typeStatusName != "") { 
-														$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$determineragent</td></tr>";
+														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Verified by</td><td class='val'>$determineragent</td></tr>";
+														$determination['Verified by'] = "$detrmineragent";
 													}  else { 
-														$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$determineragent</td></tr>";
+														//$determinationHistory.= "<tr class='item_row'><td class='cap'>Determined by</td><td class='val'>$determineragent</td></tr>";
+														$determination['Determined by'] = "$determineragent";
 													}
 												}
 												if (trim($determinedDate)!="") { 
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
+													$determination['Date Determined'] = "$determinedDate";
 												}
 												if (trim($determinationRemarks)!="") { 
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
+													$determination['Determination Remarks'] = "$determinationRemarks";
 												}
 												if (trim($text2)!="") { 
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>Annotation Text</td><td class='val'>$text2</td></tr>";
+													$determination['Annotation Text'] = "$text2";
 												}
 												// If a CITES listed species, set redactlocality flag.
 												if ($citesstatus != "None") {
 													$redactlocality = true; 
 												}
-											}  // end retrieve determination/annotation details
-										}
+												if ($typeStatusName != "") {
+													// If this has any type status (including 'Not a type'), link to taxon name reference.
+													// Add any references that are linked to the taxon name
+													$query = "select r.title, c.text1 as pages, c.text2 as year, r.referenceworkid " .
+														" from referencework r left join taxoncitation c on r.referenceworkid = c.referenceworkid " .
+														" where c.taxonid = ? ";
+													if ($debug===true) {  echo "[$query]<BR>"; }
+													$statement_ref = $connection->prepare($query);
+													if ($statement_ref) { 
+														$statement_ref->bind_param("i",$taxonid);
+														$statement_ref->execute();
+														$statement_ref->bind_result($title, $pages, $year, $referenceworkid);
+														$statement_ref->store_result();
+														$x= 0;
+														while ($statement_ref->fetch()) {
+															$x++; 
+															if (trim($title)!="") { 
+																if ($year!="") { $year = "$year."; }
+																if ($pages!="") { $pages = "$pages."; }
+																// $determinationHistory.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages</td></tr>";
+																$determination["Taxon Reference $x"] = "(for $taxonname) <a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages";
+															}
+														}
+													} else {
+														echo "Error: " . $connection->error;
+													}
+												}
+												// add this determination history item as an array element of $item 
+												$det = array();
+												$det[] = $determination;
+												$item["Determination $determinationcounter"] = $det;
+											} // end if $determinationid != ""
+										}  // end retrieve list of determination/annotations of this fragment(item)
 										if (count($nodes)>0) { 
 											$oldhigher = "";
-											$highertaxonomy = "";
+											$highertaxonomy = array();
+											$highercount = 0;
 											foreach ($nodes as $nodenumber) { 
 												$query = "select taxon.name from taxon where taxon.nodenumber < ? and taxon.highestchildnodenumber > ? ";
 												$statement_ht = $connection->prepare($query);
@@ -585,82 +645,79 @@ function details() {
 												}
 												if ($higher!="" && $higher!=$oldhigher ) {
 													$oldhigher = $higher; 
-													$highertaxonomy.= "<tr><td class='cap'>Classification</td><td class='val'>$higher</td></tr>";
+													//$highertaxonomy.= "<tr><td class='cap'>Classification</td><td class='val'>$higher</td></tr>";
+													if ($highercount==0) { 
+													    $highertaxonomy['Classification'] = "$higher";
+													} else { 
+													    $highertaxonomy["Classification $highercount"] = "$higher";
+													}
+													$highercount++;
 												}
 											}
 										}
-										$query = "select r.title, c.text1 as pages, c.text2 as year, r.referenceworkid " .
-											" from referencework r left join taxoncitation c on r.referenceworkid = c.referenceworkid " .
-											" where c.taxonid = ? ";
-										if ($debug===true) {  echo "[$query]<BR>"; }
-										$statement_ref = $connection->prepare($query);
-										$fragmentcitations = "";
-										if ($statement_ref) { 
-											$statement_ref->bind_param("i",$taxonid);
-											$statement_ref->execute();
-											$statement_ref->bind_result($title, $pages, $year, $referenceworkid);
-											$statement_ref->store_result();
-											$separator = "";
-											while ($statement_ref->fetch()) { 
-												if (trim($title)!="") { 
-													if ($year!="") { $year = "$year."; }
-													if ($pages!="") { $pages = "$pages."; }
-													$determinationHistory.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'><a href='publication_search.php?mode=details&id=$referenceworkid'>$title</a> $year $pages</td></tr>";
-												}
-											}
-										} else {
-											echo "Error: " . $connection->error;
-										}
+										
 									} else {
 										echo "Error: " . $connection->error;
 									}
-									
-									$items .=  $determinationHistory;
 									
 									// **** Specify6-Botany Specific [Fragment] *****
 									// Retrieve the fragment and preparation information about this fragment.
 									$query = "select fragment.sex, fragment.phenology, preptype.name, fragment.identifier, preparation.identifier, " .
-										" fragment.remarks, preparation.remarks, fragment.prepmethod, fragment.description " .
+										" fragment.remarks, preparation.remarks, fragment.prepmethod, fragment.description, " .
+										" fragment.text1 as herbarium, fragment.accessionnumber " .
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
 										" left join preptype on preparation.preptypeid = preptype.preptypeid where fragment.fragmentid = ?";
 									if ($debug===true) {  echo "[$query]<BR>"; }
 									$statement_det = $connection->prepare($query);
-									$attributes = "";
+									$attributes = array();
 									if ($statement_det) { 
 										$statement_det->bind_param("i",$fragmentid);
 										$statement_det->execute();
-										$statement_det->bind_result($sex, $phenology, $preptype, $fbarcode, $pbarcode, $fremarks, $premarks, $prepmethod, $description);
+										$statement_det->bind_result($sex, $phenology, $preptype, $fbarcode, $pbarcode, $fremarks, $premarks, $prepmethod, $description, $institution, $accessionnumber);
 										$statement_det->store_result();
 										$separator = "";
 										while ($statement_det->fetch()) { 
+											if (trim($accessionnumber)!="") { 
+												//$attributes.= "<tr class='item_row'><td class='cap'>Accession Number</td><td class='val'>$institution $accessionnumber</td></tr>";
+												$attributes['Accession Number'] = "$institution $accessionnumber";
+											}
 											if (trim($sex)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
+												$attributes['Sex'] = $sex;
 											}
 											if (trim($phenology)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Phenology</td><td class='val'>$phenology</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Phenology</td><td class='val'>$phenology</td></tr>";
+												$attributes['Phenology'] = $phenology;
 											}
 											if (trim($preptype)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Type</td><td class='val'>$preptype</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Preparation Type</td><td class='val'>$preptype</td></tr>";
+												$attributes['Preparation Type'] = $preptype;
 											}
 											if (trim($prepmethod)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Method</td><td class='val'>$prepmethod</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Preparation Method</td><td class='val'>$prepmethod</td></tr>";
+												$attributes['Preparation Method'] = $prepmethod;
 											}
 											if (trim($fremarks)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Item Remarks</td><td class='val'>$fremarks</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Item Remarks</td><td class='val'>$fremarks</td></tr>";
+												$attributes['Item Remarks'] = $fremarks;
 											}
 											if (trim($premarks)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Preparation Remarks</td><td class='val'>$premarks</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Preparation Remarks</td><td class='val'>$premarks</td></tr>";
+												$attributes['Preparation Remarks'] = $premarks;
 											}
 											if (trim($description)!="") { 
-												$attributes.= "<tr class='item_row'><td class='cap'>Description</td><td class='val'>$description</td></tr>";
+												//$attributes.= "<tr class='item_row'><td class='cap'>Description</td><td class='val'>$description</td></tr>";
+												$attributes['Description'] = $description;
 											}
 										}
 									} else {
 										echo "Error: " . $connection->error;
 									}
+									// Add each attribute key-value pair to the item.
+									$item[] = $attributes;
 									
-									$items .= $attributes;    	
-									
+									// Copy the array of key-value pairs for this fragment(item) as an element in $itemarray
+									$itemarray[] = $item;
 								}
 							} else {
 								echo "Error: " . $connection->error;
@@ -683,8 +740,8 @@ function details() {
 							} else { 
 								$dateCollected = "$startDate";
 							}
-							if ($verbatimDate != "") { 
-								$dateCollected .= " [$verbatimDate]";
+							if ($verbatimdate != "") { 
+								$dateCollected .= " [$verbatimdate]";
 							}
 							$georeference = "";
 							if ($lat1text !="" && $long1text != "") { 
@@ -704,13 +761,20 @@ function details() {
 								$redactlocality = false; 
 							}
 							
-							// Display results  
+							// **** Presentation:  Display results ******  
 						    echo "<table class='h-object'>";
 						    echo "<tr><td><table class='text'>\n";
-							echo $highertaxonomy;
-							echo $objectcomplexity;
+							foreach ($highertaxonomy as $key => $value) { 
+							      if (trim(value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
+							}
+							foreach ($objectcomplexity as $key => $value) { 
+							      if (trim(value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
+							}
 							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Harvard University Herbaria Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
-							echo $accession;
+							// list of other identifiers for collection object is just array of values, not key-value pairs.
+							foreach ($otheridentifiers as $value) { 
+							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
+							}
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>$typeStatus</td></tr>"; }
 							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
 							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$fieldnumber</td></tr>"; } 
@@ -739,7 +803,29 @@ function details() {
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
 							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
 							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
-							echo $items;
+							$itemcounter = 0;
+							foreach ($itemarray as  $item) {
+								$itemcounter ++;
+								$detcounter = 0;
+								foreach ($item as $itemnumber => $values) {
+									// These are elements of the item
+									$detcounter ++; 
+									foreach ($values as $key => $value) { 
+										if (is_array($value)) {
+											foreach ($value as $detkey => $detvalue) {
+												// strip off unneeded numbers for taxon refences (1 for most or all cases
+												if (substr($detkey,0,15)=="Taxon Reference") { $detkey = "Taxon Reference"; }
+												if ($itemcounter % 2) { $rowclass = "item_row"; } else { $rowclass = "odd_item_row"; }
+												if ($detcounter % 2) { $tdclass = "det_item_val"; } else { $tdclass = "odd_det_item_val"; }
+												if (trim($detvalue!=""))   { echo "<tr class='$rowclass'><td class='det_item_cap'>$detkey</td><td class='$tdclass'>$detvalue</td></tr>"; }
+											}
+										} else {
+											if ($itemcounter % 2) { $rowclass = "item_row"; } else { $rowclass = "odd_item_row"; }
+											if (trim($value!=""))   { echo "<tr class='$rowclass'><td class='item_cap'>$key</td><td class='item_val'>$value</td></tr>"; }
+										}
+									}
+								}
+							}
 							echo "</table></td>\n";
 							echo "<td><table class='images'>\n";
 							echo $images;
