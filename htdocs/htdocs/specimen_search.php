@@ -525,14 +525,16 @@ function details() {
 										" left join agent on determinerid = agentid " .
 										" where fragment.fragmentid = ? order by typeStatusName, isCurrent, determinedDate"; 
 									if ($debug===true) {  echo "[$query]<BR>"; }
-                                                                        if ($debug===true) {  echo "FragmentId=[$fragmentid]<BR>"; }
+									if ($debug===true) {  echo "FragmentId=[$fragmentid]<BR>"; }
 									$statement_det = $connection->prepare($query);
 									$determinationcounter = 0;
 									$determination = array();
 									if ($statement_det) { 
 										$statement_det->bind_param("i",$fragmentid);
 										$statement_det->execute();
-										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid, $determineragent, $text2, $determinationid );
+										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, 
+										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
+										              $determineragent, $text2, $determinationid );
 										$statement_det->store_result();
 										$separator = "";
 										$typeStatus = "";
@@ -541,7 +543,7 @@ function details() {
 											// Retrieve one determination from the determination of this fragment(item)
 											$determinationcounter++;   
 											if ($debug===true) {  echo "TaxonID=[$taxonid]<BR>"; }
-											$nodes[] = $nodenumber;  // Store the taxon's node number to look up higher taxonomy later.'
+											$nodes[] = $nodenumber;  // Store the taxon's node number to look up higher taxonomy later.
 											if ($determinationid != "") {
 												if ($debug===true) { 
 												    $determination['detnumber'] = $determinationcounter;
@@ -633,7 +635,7 @@ function details() {
 												}
 												// add this determination history item as an array element of $item 
 												$det = array();
-                                                                                                if ($debug===true) {  echo "Determination [$determinationcounter][$determination]<BR>"; }
+												if ($debug===true) {  echo "Determination [$determinationcounter][$determination]<BR>"; }
 												$det[] = $determination;
 												$item["Determination $determinationcounter"] = $det;
 											} // end if $determinationid != ""
