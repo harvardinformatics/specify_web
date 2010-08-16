@@ -53,6 +53,19 @@ BEGIN
 END |
 delimiter ;
 
-grant execute on procedure specify.getTextDate to 'specify_user'@'localhost';
-grant execute on procedure specify.getGeographyOfRank to 'specify_user'@'localhost';
-grant execute on procedure specify.getHigherTaxonOfRank to 'specify_user'@'localhost';
+delimiter |
+create function specify.getAgentName(aId INT)
+returns VARCHAR(255)
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+	declare t_result varchar(255) default '' ;
+	select name into t_result from agentvariant where agentid = aId order by vartype desc limit 1;
+	return t_result;
+END | 
+delimiter ;
+
+grant execute on procedure specify.getTextDate to 'specify_web_user'@'kiki.huh.harvard.edu';
+grant execute on procedure specify.getGeographyOfRank to 'specify_web_user'@'kiki.huh.harvard.edu';
+grant execute on procedure specify.getHigherTaxonOfRank to 'specify_web_user'@'kiki.huh.harvard.edu';
+grant execute on procedure specify.getAgentName to 'specify_web_user'@'kiki.huh.harvard.edu';

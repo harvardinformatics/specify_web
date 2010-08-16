@@ -322,14 +322,16 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
 -- Note: Assumes that there is only one collector record for each collecting event, and that
 -- teams of people are grouped as teams of agents.  
 -- TODO: Add new collector.etal field to concatenation.
+-- 
+-- AgentVariant.vartype = 4 is label name/collector name
     
 -- 1 min 15 sec.
 update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid 
    left join collectingevent ce on c.collectingeventid = ce.collectingeventid 
    left join collector coll on ce.collectingeventid = coll.collectingeventid 
-   left join agent on coll.agentid = agent.agentid 
-   set w.collector =  trim(concat(ifnull(agent.firstname,''), ' ', ifnull(agent.lastname,'')))  
-   where agent.agentid is not null ;
+   left join agentvariant on coll.agentid = agentvariant.agentid 
+   set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(collector.etal,'')))  
+   where agentvariant.agentid is not null and agentvariant.vartype = 4 ;
     
 -- set collectornumber  
 -- 50 sec
