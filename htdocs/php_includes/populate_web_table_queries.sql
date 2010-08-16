@@ -330,7 +330,7 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
    left join collectingevent ce on c.collectingeventid = ce.collectingeventid 
    left join collector coll on ce.collectingeventid = coll.collectingeventid 
    left join agentvariant on coll.agentid = agentvariant.agentid 
-   set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(collector.etal,'')))  
+   set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(coll.etal,'')))  
    where agentvariant.agentid is not null and agentvariant.vartype = 4 ;
     
 -- set collectornumber  
