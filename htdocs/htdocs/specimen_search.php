@@ -375,7 +375,7 @@ function details() {
 							$collector = "";
 							$comma = "";
 							// TODO: Add new collector.etal field 
-							$query = "select agentvariant.name, agentvariant.agentid from collectionobject " .
+							$query = "select agentvariant.name, agentvariant.agentid, collector.etal from collectionobject " .
 									" left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 									" left join collector on collectingevent.collectingeventid = collector.collectingeventid " .
 									" left join agent on collector.agentid = agent.agentid " .
@@ -386,11 +386,11 @@ function details() {
 							if ($statement_det) { 
 								$statement_det->bind_param("i",$id);
 								$statement_det->execute();
-								$statement_det->bind_result($collectorName, $agentid);
+								$statement_det->bind_result($collectorName, $agentid, $etal);
 								$statement_det->store_result();
 								$separator = "";
 								while ($statement_det->fetch()) { 
-									$collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName</a>";
+									$collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName $etal</a>";
 									$comma = "; ";
 								}
 							} else {
@@ -518,7 +518,7 @@ function details() {
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
-										" agent.lastname, determination.text2 as annotationtext, determination.determinationid " .
+										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid " .
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -1160,18 +1160,16 @@ function search() {
 			if ($quick!="") { 
 				$statement->bind_param("s",$quick);
 			} else { 
-				if ($barcode!="") { 
-					$statement->bind_param("s",$barcode);
-				} else { 
-					$array = Array();
-					$array[] = $types;
-					foreach($parameters as $par)
-					$array[] = $par;
-					call_user_func_array(array($statement, 'bind_param'),$array);
-				}
+				$array = Array();
+				$array[] = $types;
+				foreach($parameters as $par)
+				$array[] = $par;
+				call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
+		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
+		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
 			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected);
 			$statement->store_result();
 			

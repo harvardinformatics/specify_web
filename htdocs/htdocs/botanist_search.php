@@ -85,10 +85,9 @@ function details() {
 		$id = substr(preg_replace("[^0-9]","",$value),0,20);
 		// skip adgacent duplicates, if any
 		if ($oldid!=$id)  { 
-			$wherebit = "where agent.agentid = ? ";
-			$query = "select lastname, firstname, remarks, dateofbirth, dateofbirthprecision, " .
+			$query = "select firstname, lastname, remarks, dateofbirth, dateofbirthprecision, " .
 				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, initials as datetype " .
-				" from agent  $wherebit";
+				" from agent where agent.agentid = ?  ";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
 			$statement = $connection->prepare($query);
@@ -96,11 +95,11 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($lastname,$firstname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype);
+				$statement->bind_result($firstname, $lastname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype);
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
-					$agent .=  "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
+					//$agent .=  "<tr><td class='cap'>Name</td><td class='val'>$lastname, $firstname</td></tr>";
 					if ($agenttype=="3") { 
 					      $is_group = true;
 					      $agent .=  "<tr><td class='cap'>Agent type</td><td class='val'>Team/Group</td></tr>";
@@ -133,6 +132,8 @@ function details() {
 					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>$startdatetext</td><td class='val'>$dateofbirth</td></tr>"; }
 					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>$enddatetext</td><td class='val'>$dateofdeath</td></tr>"; }
 					
+					$name = "$firstname $lastname";
+					$numberofvariants = 0;
 					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($url!=""))   { $agent .=  "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
 					$query = "select name, vartype from agentvariant where agentid = ? order by vartype ";
@@ -168,6 +169,8 @@ function details() {
 							}
 							$agent .= "<tr><td class='cap'>$typestring</td><td class='val'>$name</td></tr>";
 						}
+						// set the name from the highest valued variant name found, or from first/last if no variants.
+					    $agent =  "<tr><td class='cap'>Name</td><td class='val'>$name</td></tr>" . $agent ;
 						$query = "select geography.name, agentgeography.role " .
 							" from agentgeography left join geography on agentgeography.geographyid = geography.geographyid " .
 							" where agentid = ? " .
@@ -329,6 +332,12 @@ function details() {
 					}
 					
 				}
+				// Don't display details for agents that are only involved in transactions to users outside the herbarium. 
+				if (!preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+					if ($numberofvariants==0) {
+						 $agent = "[Redacted]"; 
+					}
+				} 
 				echo "<table>";
 				echo "$agent";
 				echo "</table>";
@@ -356,7 +365,7 @@ function search() {
 		$hasquery = true;
 		$namepad = "%$name%";
 		$question .= "$and name:[$name] or name like:[$namepad] or name sounds like [$name] ";
-		$types .= "sss";
+		$types .= "ssss";
 		$operator = "=";
 		$parameters[$parametercount] = &$name;
 		$parametercount++;
@@ -364,8 +373,10 @@ function search() {
 		$parametercount++;
 		$parameters[$parametercount] = &$namepad;
 		$parametercount++;
+		$parameters[$parametercount] = &$name;
+		$parametercount++;
 		if (preg_match("/[%_]/",$name))  { $operator = " like "; }
-		$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? )";
+		$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
 		$and = " and ";
 	}
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
@@ -420,10 +431,10 @@ function search() {
 	} else {
 		$question = "No search criteria provided.";
 	}
-	$query = "select distinct agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, year(agent.dateofbirth), year(agent.dateofdeath) " . 
+	$query = "select agent.agentid, " .
+		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, year(agent.dateofbirth), year(agent.dateofdeath) " . 
 		" from agent " .  
-		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agent.lastname, agent.firstname, agent.dateofbirth ";
+		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agentvariant.name, agent.lastname, agent.firstname, agent.dateofbirth ";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
@@ -436,7 +447,7 @@ function search() {
 			$array[] = $par;
 			call_user_func_array(array($statement, 'bind_param'),$array);
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $yearofbirth, $yearofdeath);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath);
 			$statement->store_result();
 			echo "<div>\n";
 			echo $statement->num_rows . " matches to query ";
@@ -451,8 +462,9 @@ function search() {
 				echo "<BR><div>\n";
 				while ($statement->fetch()) { 
 					if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
+					if ($fullname=="") { $fullname = "$firstname $lastname"; }
 					$plainname = preg_replace("/[^A-Za-z ]/","",$name);
-					$highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$firstname $lastname");
+					$highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
 					echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
 					echo "<BR>\n";
 				}
