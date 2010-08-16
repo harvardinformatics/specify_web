@@ -1,0 +1,78 @@
+<?php
+	// Collections Home page
+	$majorContext = "Databases";
+	require_once("../templates/header.php");
+?>
+	
+<div id="sidenav">
+  <ul>
+    <li><a href="http://asaweb.huh.harvard.edu:8080/databases/addenda.html#hints">SEARCH HINTS</a></li>
+    <li><a href="http://asaweb.huh.harvard.edu:8080/databases/addenda.html#policy">DISTRIBUTION AND USE POLICY</a></li>
+
+  <hr />
+    <li><a href="botanist_index.html">BOTANISTS</a></li>
+    <li><a href="publication_index.html">PUBLICATIONS</a></li>
+    <li><a href="specimen_index.html">SPECIMENS</a></li>
+  <hr />   
+    <li><a href="http://asaweb.huh.harvard.edu:8080/databases/add_correct.html">Contribute additions/corrections</a></li>
+    <li><a href="http://asaweb.huh.harvard.edu:8080/databases/comment.html">Send comments/questions</a></li>    
+    
+  </ul>
+
+</div>  <!-- sidenav ends -->			
+
+	<!-- main content begins -->
+	<div id="main">
+		
+		<div id="main_text">
+			<h1>Databases</h1>
+		       <table border="0" cellpadding="10" cellspacing="2" width="560" summary="">
+					<tr>
+						<td class="nm" width="40%">The Gray Herbarium Index of New World Plant Names</td>
+						<td>The Gray Index (in part) is now incorporated into the <a href="http://www.ipni.org" target="_blank">International Plant Names Index</a></td>
+					</tr>
+					<tr>
+						<td class="nm"><a href="http://www.ipni.org" target="_blank">The International Plant Names Index</a></td>
+						<td>IPNI is a joint project with the Royal Botanic Gardens, Kew and the Australian National Herbaria 
+							to provide an online database of the names and associated basic bibliographical details of all vascular plants.</td>
+					</tr>
+					<tr>
+						<td colspan="2"><hr size="1" width="300" align="center" /></td>
+					</tr>
+<!--<tr> 
+<td colspan="2" align="center">
+<p>
+<h1> Please note, starting on Wednesday, November 19th, the following database resources may be temporarily unavailable: 
+</h1>
+<p>
+</td>
+</tr>-->
+                    <tr>
+                        <td colspan="2">All of the lists below are generated from sources that include vascular plants
+                    and cryptogams. </td>
+                    </tr>
+					<tr>
+						<td class="nm"><a href="botanist_index.html">Botanists</a></td>
+						<td>Authors of botanical names, collectors of botanical specimens, and authors of botanical publications.</td>
+					</tr>
+					<tr>
+						<td class="nm"><a href="publication_index.html">Publications</a></td>
+						<td>Titles and abbreviations of botanical publications with authors, dates of publication and BPH and TL2 references.</td>
+					</tr>
+
+					<tr>
+						<td class="nm"><a href="specimen_index.html">Specimens</a></td>
+						<td>Specimen records, primarily type specimens from the Harvard University Herbaria and New England Botanical Club served from our Specify6 specimen database.</td>
+					</tr>
+			</table>
+
+
+		    </div>
+	</div>
+	<!-- main content ends -->
+	
+<?php
+	$theDate = "08/16/2010"; //date last updated, Paul J. Morris
+	//$filename = 'index.php'; //automatically generated update date, when files updated to server automatically	
+	require_once("../templates/footer.php");
+?>
