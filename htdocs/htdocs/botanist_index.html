@@ -172,6 +172,8 @@
 </form>
 
 <?php
+  @include_once("connection_library.php");
+  @$connection = specify_connect();
    if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
       echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
    }

@@ -525,6 +525,7 @@ function details() {
 										" left join agent on determinerid = agentid " .
 										" where fragment.fragmentid = ? order by typeStatusName, isCurrent, determinedDate"; 
 									if ($debug===true) {  echo "[$query]<BR>"; }
+                                                                        if ($debug===true) {  echo "FragmentId=[$fragmentid]<BR>"; }
 									$statement_det = $connection->prepare($query);
 									$determinationcounter = 0;
 									$determination = array();
@@ -632,6 +633,7 @@ function details() {
 												}
 												// add this determination history item as an array element of $item 
 												$det = array();
+                                                                                                if ($debug===true) {  echo "Determination [$determinationcounter][$determination]<BR>"; }
 												$det[] = $determination;
 												$item["Determination $determinationcounter"] = $det;
 											} // end if $determinationid != ""
