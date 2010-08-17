@@ -371,18 +371,20 @@ function search() {
 		$hasquery = true;
 		$namepad = "%$name%";
 		$question .= "$and name:[$name] or name like:[$namepad] or name sounds like [$name] ";
-		$types .= "ssss";
+		//$types .= "ssss";
+		$types .= "ss";
 		$operator = "=";
-		$parameters[$parametercount] = &$name;
-		$parametercount++;
-		$parameters[$parametercount] = &$name;
-		$parametercount++;
+		//$parameters[$parametercount] = &$name;
+		//$parametercount++;
+		//$parameters[$parametercount] = &$name;
+		//$parametercount++;
 		$parameters[$parametercount] = &$namepad;
 		$parametercount++;
 		$parameters[$parametercount] = &$name;
 		$parametercount++;
 		if (preg_match("/[%_]/",$name))  { $operator = " like "; }
-		$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
+		//$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
+		$wherebit .= "$and (agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
 		$and = " and ";
 	}
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
