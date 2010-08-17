@@ -1226,7 +1226,8 @@ function search() {
 					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid) " .
 						" from collector left join agent on collector.agentid = agent.agentid " .
 						" left join agentvariant on agent.agentid = agentvariant.agentid " .
-						" where (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) " .
+						" where (agentvariant.name like ? or soundex(agentvariant.name) = soundex(?)) " .
+						" and agentvariant.vartype =  4 " .
 						" group by agentvariant.name, agent.agentid order by agentvariant.name, count(collector.collectingeventid) ";
 					$wildcollector = "%$collector%";
 					$plaincollector = str_replace("%","",$collector);
@@ -1234,10 +1235,10 @@ function search() {
 					$types = "s";
 					$collectorparameters[1] = &$plaincollector;  // agentvariant soundex
 					$types .= "s";
-					$collectorparameters[2] = &$wildcollector;   // agent like 
-					$types .= "s";
-					$collectorparameters[3] = &$plaincollector;  // agent soundex
-					$types .= "s";
+					//$collectorparameters[2] = &$wildcollector;   // agent like 
+					//$types .= "s";
+					//$collectorparameters[3] = &$plaincollector;  // agent soundex
+					//$types .= "s";
 					if ($debug===true  && $hasquery===true) {
 						echo "[$query][$wildcollector][$plaincollector][$wildcollector][$plaincollector]<BR>\n";
 					}
