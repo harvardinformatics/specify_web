@@ -468,13 +468,18 @@ function search() {
 				echo "<input type='hidden' name='mode' value='details'>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "<BR><div>\n";
-				while ($statement->fetch()) { 
-					if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
-					if ($fullname=="") { $fullname = "$firstname $lastname"; }
-					$plainname = preg_replace("/[^A-Za-z ]/","",$name);
-					$highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
-					echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
-					echo "<BR>\n";
+				$lastpair = "";
+				while ($statement->fetch()) {
+					if ($lastpair != "$agentid$fullname")  {
+						// omit identical agent records with identical names 
+					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
+					    if ($fullname=="") { $fullname = "$firstname $lastname"; }
+					    $plainname = preg_replace("/[^A-Za-z ]/","",$name);
+					    $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
+					    echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
+					    echo "<BR>\n";
+					}
+					$lastpair = "$agentid$fullname";
 				}
 				echo "</div>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
