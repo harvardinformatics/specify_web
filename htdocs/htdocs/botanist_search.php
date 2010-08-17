@@ -144,7 +144,9 @@ function details() {
 						$statement_var->execute();
 						$statement_var->bind_result($name,$type);
 						$statement_var->store_result();
+						$collectorname = "";
 						while ($statement_var->fetch()) {
+					        $numberofvariants++;
 							// For types, see Specify  config/common/picklist.xml <picklist name="AgentVariant">
 							$typestring = "Variant name";
 							switch ($type) { 
@@ -162,6 +164,7 @@ function details() {
 							       break;
 							    case 4: 
 							       $typestring = "Standard/Label Name";
+							       $collectorname = $name;
 							       break;
 							    case 5: 
 							       $typestring = "Full Name";
@@ -170,6 +173,9 @@ function details() {
 							$agent .= "<tr><td class='cap'>$typestring</td><td class='val'>$name</td></tr>";
 						}
 						// set the name from the highest valued variant name found, or from first/last if no variants.
+						
+						// if a collector name wasn't found, set from any found name.
+						if ($collectorname == "") { $collectorname = $name; }
 					    $agent =  "<tr><td class='cap'>Name</td><td class='val'>$name</td></tr>" . $agent ;
 						$query = "select geography.name, agentgeography.role " .
 							" from agentgeography left join geography on agentgeography.geographyid = geography.geographyid " .
@@ -257,7 +263,7 @@ function details() {
 							$statement_geo->bind_result($count, $year);
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
-								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$lastname'>Search for specimens collected by $lastname</a></td></tr>";
+								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$collectorname'>Search for specimens collected by $collectorname</a></td></tr>";
 								while ($statement_geo->fetch()) {
 									// for each year
 									// obtain the list of collection objects collected by this collector in this year
