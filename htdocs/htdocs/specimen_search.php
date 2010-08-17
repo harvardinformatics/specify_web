@@ -1179,13 +1179,13 @@ function search() {
 			
 			echo "<div>\n";
 			$count = $statement->num_rows;
-			if ($count>1) { $s = "s"; } else { $s = ""; }
-			echo "$count matche$s to query ";
+			if ($count==1) { $s = ""; } else { $s = "es"; }
+			echo "$count match$s to query ";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
 			
-			if ($statement->num_rows > 0 ) {
+			if ($count > 0 ) {
 				echo "<div id='image-key'><img height='16' alt='has image' src='images/leaf.gif' /> = with images</div>\n";
 				echo "<form  action='specimen_search.php' method='get'>\n";
 				echo "<input type='hidden' name='mode' value='details'>\n";
@@ -1223,11 +1223,11 @@ function search() {
 							if ($collector != "") {  
 					$statement->close();
 					// Look for possibly related collectors
-					$query = " select  trim(concat(ifnull(agent.firstname,''), ' ', ifnull(agent.lastname,''))), count(collector.collectingeventid) " .
+					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid) " .
 						" from collector left join agent on collector.agentid = agent.agentid " .
 						" left join agentvariant on agent.agentid = agentvariant.agentid " .
 						" where (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) " .
-						" group by agent.firstname, agent.lastname, agent.agentid order by agent.lastname, count(collector.collectingeventid) ";
+						" group by agentvariant.name, agent.agentid order by agentvariant.name, count(collector.collectingeventid) ";
 					$wildcollector = "%$collector%";
 					$plaincollector = str_replace("%","",$collector);
 					$collectorparameters[0] = &$wildcollector;   // agentvariant like 
