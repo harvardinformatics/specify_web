@@ -146,7 +146,7 @@ function details() {
 						$statement_var->store_result();
 						$collectorname = "";
 						while ($statement_var->fetch()) {
-					        $numberofvariants++;
+             						$numberofvariants++;
 							// For types, see Specify  config/common/picklist.xml <picklist name="AgentVariant">
 							$typestring = "Variant name";
 							switch ($type) { 
