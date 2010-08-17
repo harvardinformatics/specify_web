@@ -359,17 +359,26 @@ function search() {
 			if ($hasauthor && $author != "") {
 				$statement->close();
 				// Look for possibly related authors
-				$query = " select agent.lastname, agent.firstname, agent.agentid, count(author.referenceworkid) from referencework left join author on referencework.referenceworkid = author.referenceworkid left join agent on author.agentid = agent.agentid left join agentvariant on agent.agentid = agentvariant.agentid where referenceworktype<>5 and (agentvariant.name like ? or soundex(agent.lastname) = soundex(?) or agent.lastname like ? or soundex(agent.lastname) = soundex(?)) group by agent.firstname, agent.lastname, agent.agentid ";
+				$query = " select agentvariant.name, agent.agentid, count(author.referenceworkid) " .
+						" from referencework " .
+						" left join author on referencework.referenceworkid = author.referenceworkid " .
+						" left join agent on author.agentid = agent.agentid " .
+						" left join agentvariant on agent.agentid = agentvariant.agentid " .
+						" where referenceworktype<>5 " .
+						" and (agentvariant.name like ? " .
+						"     or soundex(agentvariant.name) = soundex(?) " .
+						"     ) " .
+						" group by agent.firstname, agent.lastname, agent.agentid ";
 				$wildauthor = "%$author%";
 				$plainauthor = str_replace("%","",$author);
        		    $authorparameters[0] = &$wildauthor;   // agentvariant like 
  		        $types = "s";
        		    $authorparameters[1] = &$plainauthor;  // agentvariant soundex
  		        $types .= "s";
-       		    $authorparameters[2] = &$wildauthor;   // agent like 
- 		        $types .= "s";
-       		    $authorparameters[3] = &$plainauthor;  // agent soundex
- 		        $types .= "s";
+       		    //$authorparameters[2] = &$wildauthor;   // agent like 
+ 		        //$types .= "s";
+       		    //$authorparameters[3] = &$plainauthor;  // agent soundex
+ 		        //$types .= "s";
              	if ($debug===true  && $hasquery===true) {
 		              echo "[$query][$wildauthor][$plainauthor][$wildauthor][$plainauthor]<BR>\n";
 	            }
@@ -381,13 +390,13 @@ function search() {
 					      $array[] = $par;
 					call_user_func_array(array($statement, 'bind_param'),$array);
 					$statement->execute();
-					$statement->bind_result($authorlast, $authorfirst, $agentid, $count);
+					$statement->bind_result($authorname, $agentid, $count);
 					$statement->store_result();
 			        if ($statement->num_rows > 0 ) {
 			        	echo "<h3>Possibly matching authors</h3>";
 			        	$separator = "";
 				         while ($statement->fetch()) {
-			        	    $highlightedauthor = preg_replace("/$plainauthor/","<strong>$plainauthor</strong>","$authorlast, $authorfirst");
+			        	    $highlightedauthor = preg_replace("/$plainauthor/","<strong>$plainauthor</strong>","$authorname");
 				         	echo "$highlightedauthor [<a href='publication_search.php?mode=search&agentid=$agentid'>$count pubs</a>]<BR>";
 				         }
 				         echo "<BR>";
