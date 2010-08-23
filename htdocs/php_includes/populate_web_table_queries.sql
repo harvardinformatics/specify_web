@@ -48,6 +48,7 @@ create table if not exists temp_web_search (
     ex_title text,
     ex_author text,
     ex_number varchar (255),
+    provenance varchar(255), 
     subcollection varchar (255),
     barcode varchar (255),
     yearpublished varchar(255),
@@ -346,6 +347,12 @@ update temp_web_search w left join fragment f on w.collectionobjectid = f.collec
   set w.herbaria = f.text1 
   where f.text1 is not null ;
 
+-- set provenance  
+update temp_web_search w left join fragment f on w.collectionobjectid = f.collectionobjectid 
+  set w.provenance = f.provinance 
+  where f.provenance is not null ;  
+  
+  
 -- set year collected from date collected.
 -- 4 sec.
 update temp_web_search set yearcollected = year(datecollected);
@@ -396,6 +403,7 @@ create index idx_websearch_typestatus on temp_web_search(typestatus);
 create index idx_websearch_collector on temp_web_search(collector(50));
 create index idx_websearch_collectornumber on temp_web_search(collectornumber);
 create index idx_websearch_herbaria on temp_web_search(herbaria);
+create index idx_websearch_provenance on temp_web_search(provenance);
 create index idx_websearch_barcode on temp_web_search(barcode);
 create index idx_websearch_datecollected on temp_web_search(datecollected);
 create index idx_yearcollected on temp_web_search(yearcollected);
