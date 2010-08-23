@@ -418,7 +418,7 @@ delete from temp_web_quicksearch;
 insert into temp_web_quicksearch (collectionobjectid, searchable) (
    select collectionobjectid, 
          concat_ws(" ",
-            family,genus,species,infraspecific,author,yearpublished,typestatus,
+            family,genus,species,infraspecific,author,yearpublished,typestatus,provenance
             country,state,county,location,host,substrate,habitat,datecollected,collector,collectornumber,barcode) 
          from temp_web_search
    ); 
