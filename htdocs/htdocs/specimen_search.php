@@ -997,6 +997,20 @@ function search() {
 			$wherebit .= "$and web_search.host $operator ? ";
 			$and = " and ";
 		}
+		$provenance = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['provenance']),0,100);
+		$provenance = str_replace("*","%",$provenance);
+		$provenance = "%$provenance%";   // automatic wildcard search for this field, values highly variable
+		if ($provenance!="") { 
+			$hasquery = true;
+			$question .= "$and provenance:[$host] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$provenance;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$provenance))  { $operator = " like "; }
+			$wherebit .= "$and web_search.provenance $operator ? ";
+			$and = " and ";
+		}
 		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
 		$substrate = str_replace("*","%",$substrate);
 		if ($substrate!="") { 
