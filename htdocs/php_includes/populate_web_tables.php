@@ -27,7 +27,7 @@
  
      $query = " CALL specify.populate_web_tables ";
  
-     $result = $connection->exec($query);
+     $result = $connection->query($query);
      if (!$result) {
      	echo $connection->mysql_error(); 
      }
