@@ -348,9 +348,10 @@ update temp_web_search w left join fragment f on w.collectionobjectid = f.collec
   where f.text1 is not null ;
 
 -- set provenance  
+-- 3.3. sec.
 update temp_web_search w left join fragment f on w.collectionobjectid = f.collectionobjectid 
-  set w.provenance = f.provinance 
-  where f.provenance is not null ;  
+  set w.provenance = f.Provenance 
+  where f.Provenance is not null ;  
   
   
 -- set year collected from date collected.
@@ -418,7 +419,7 @@ delete from temp_web_quicksearch;
 insert into temp_web_quicksearch (collectionobjectid, searchable) (
    select collectionobjectid, 
          concat_ws(" ",
-            family,genus,species,infraspecific,author,yearpublished,typestatus,provenance
+            family,genus,species,infraspecific,author,yearpublished,typestatus,provenance,
             country,state,county,location,host,substrate,habitat,datecollected,collector,collectornumber,barcode) 
          from temp_web_search
    ); 
