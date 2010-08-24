@@ -1002,7 +1002,7 @@ function search() {
 		$provenance = "%$provenance%";   // automatic wildcard search for this field, values highly variable
 		if ($provenance!="") { 
 			$hasquery = true;
-			$question .= "$and provenance:[$host] ";
+			$question .= "$and provenance:[$provenance] ";
 			$types .= "s";
 			$parameters[$parametercount] = &$provenance;
 			$parametercount++;
