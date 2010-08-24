@@ -9,7 +9,7 @@
 -- When done switch these to web_search and web_quicksearch
 
 -- Create as a stored procedure that can be run by MySQL with the 
--- Event Scheduler: 
+-- Event Scheduler (Needs MySQL 5.1.6+): 
 -- CREATE EVENT event_call_populateweb
 --    ON SCHEDULE
 --      AT CURRENT_TIMESTAMP + INTERVAL 1 DAY
