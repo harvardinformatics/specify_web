@@ -1,11 +1,25 @@
 -- Queries to build and populate specify 6 botany denormalized
 -- tables for searching the database over the web.
 
--- Time benchmarks are on a laptop with a dual core 2GHz intel processor and 3GB ram. 
+-- Time benchmarks are on a laptop with a dual core 2GHz intel processor and 3GB ram.
+-- The following index is needed for any non-trivial taxonomic tree:
+-- create index idx_taxon_rankid on taxon(rankid); 
 
 -- Start by building a pair of tables, temp_web_search and temp_web_quicksearch
 -- When done switch these to web_search and web_quicksearch
 
+-- Create as a stored procedure that can be run by MySQL with the 
+-- Event Scheduler: 
+-- CREATE EVENT event_call_populateweb
+--    ON SCHEDULE
+--      AT CURRENT_TIMESTAMP + INTERVAL 1 DAY
+--  DO CALL populate_web_tables();
+
+-- Comment out the next 4 lines and the last two lines to run queries directly.
+DROP PROCEDURE IF EXISTS specify.populate_web_tables;
+DELIMITER | 
+create procedure specify.populate_web_tables ()
+BEGIN
 
 -- clean up if rerunning after incomplete run.
 -- drops are better here than deletes, as they will remove the indexes as well (improving insert performance)
@@ -504,3 +518,7 @@ drop table old_web_quicksearch;
 -- Following query works, but is much too slow.
 -- update temp_web_search set family = getHigherTaxonOfRank(140,taxon_highestchild,taxon_nodenumber), 
 --                      genus = getHigherTaxonOfRank(180,taxon_highestchild,taxon_nodenumber);
+
+-- Comment out the leading 4 lines and the next two lines to run queries directly.
+END| 
+DELIMITER ;
