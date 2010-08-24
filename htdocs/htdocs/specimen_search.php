@@ -999,8 +999,8 @@ function search() {
 		}
 		$provenance = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['provenance']),0,100);
 		$provenance = str_replace("*","%",$provenance);
-		$provenance = "%$provenance%";   // automatic wildcard search for this field, values highly variable
 		if ($provenance!="") { 
+		    $provenance = "%$provenance%";   // automatic wildcard search for this field, values highly variable
 			$hasquery = true;
 			$question .= "$and provenance:[$provenance] ";
 			$types .= "s";
