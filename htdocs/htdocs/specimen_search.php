@@ -1076,7 +1076,7 @@ function search() {
 			$wherebit .= "$and web_search.infraspecific $operator ? ";
 			$and = " and ";
 		}
-		$author = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['author']),0,59);
+		$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*]/","", $_GET['author']),0,59);
 		$author = str_replace("*","%",$author);
 		if ($author!="") { 
 			$hasquery = true;
@@ -1089,7 +1089,7 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-z _%*\.\,]/","", $_GET['cltr']),0,59);
+		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*\.\,]/","", $_GET['cltr']),0,59);
 		$collector = str_replace("*","%",$collector);
 		if ($collector!="") { 
 			$hasquery = true;

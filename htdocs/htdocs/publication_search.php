@@ -234,7 +234,7 @@ function search() {
 	$order = "";
 	$parametercount = 0;
 	$hasauthor = false;
-	$title = substr(preg_replace("/[^A-Za-z_0-9%]/","", $_GET['title']),0,59);
+	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['title']),0,59);
 	if ($title!="") { 
 		$hasquery = true;
 		$question .= "$and title:[$title] ";
@@ -247,7 +247,7 @@ function search() {
 		$and = " and ";
 		$order = " order by r.text1 ";
 	}
-	$author = substr(preg_replace("/[^A-Za-z_0-9\. %]/","", $_GET['author']),0,59);
+	$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ_0-9\. %]/","", $_GET['author']),0,59);
 	if ($author!="") { 
 		$hasauthor = true;
 		$hasquery = true;
