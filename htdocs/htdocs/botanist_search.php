@@ -397,6 +397,17 @@ function search() {
 		$joined_to_specialty = true;
 		$and = " and ";
 	}
+	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+	if ($is_collector=="on") { 
+		$hasquery = true;
+		$question .= "$and is a collector ";
+		$wherebit .= "$and agentspecialty.role = 'Collector' ";
+		if (!$joined_to_specialty) { 
+		    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		}
+		$joined_to_specialty = true;
+		$and = " and ";
+	}	
 	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
 	if ($team=="on") { 
 		$hasquery = true;
