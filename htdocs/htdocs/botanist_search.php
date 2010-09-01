@@ -498,9 +498,13 @@ function search() {
 						// omit identical agent records with identical names 
 					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
 					    if ($fullname=="") { $fullname = "$firstname $lastname"; }
-					    $plainname = preg_replace("/[^A-Za-z ]/","",$name);
-					    $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
-					    echo "<input type='checkbox' name='id[]' value='$agentid'> <a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
+					    if ($name != '') { 
+					       $plainname = preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ ]/","",$name);
+					       $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
+					    } else {
+					       $highlightedname = $fullname;	 
+					    }
+					    echo "<input type='checkbox' name='id[]' value='$agentid'><a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
 					    echo "<BR>\n";
 					}
 					$lastpair = "$agentid$fullname";
