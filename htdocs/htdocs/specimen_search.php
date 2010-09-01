@@ -820,7 +820,7 @@ function details() {
 								echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation</td></tr>"; 
 							}
 							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
-							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Hubstrate</td><td class='val'>$substrate</td></tr>"; }
+							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Substrate</td><td class='val'>$substrate</td></tr>"; }
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
 							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
 							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
