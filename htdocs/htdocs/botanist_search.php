@@ -388,6 +388,18 @@ function search() {
 		$wherebit .= "$and (agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
 		$and = " and ";
 	}
+	$remarks = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['remarks']),0,59);
+	if ($remarks!="") { 
+		$hasquery = true;
+		$remarkpad = "%$remarks%";
+		$question .= "$and remarks like:[$remarkpad] ";
+		$types .= "s";
+		$operator = "=";
+		$parameters[$parametercount] = &$remarkpad;
+		$parametercount++;
+		$wherebit .= "$and agent.remarks like ? ";
+		$and = " and ";
+	}
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
 	if ($is_author=="on") { 
 		$hasquery = true;

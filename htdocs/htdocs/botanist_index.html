@@ -90,7 +90,8 @@
      a team record can be located from the record of any of its members.  Be sure to check the team
      box if you are searching for a team. 
      Check off the botanist roles by which to constrain the search, otherwise all botanists
-     in the database will be matched.  
+     in the database will be matched.   Herbaria in which material is known to have been deposited by each botanist   
+     can be searched in Remarks.  Place names and taxon names sporadically occur in remarks.
      </p>
 
 <form class="searchform" action="botanist_search.php" method="get">
@@ -100,6 +101,11 @@
             <td>Name</td>
             <td colspan=2><input type="text" name="name" value="" size="50" maxlength="59"></td>
             <td valign=top><input type="text" name="id" value="" size=10 maxlength=30>ID</td>
+       </tr>
+        <tr>
+            <td>Remarks</td>
+            <td colspan=2><input type="text" name="remarks" value="" size="50" maxlength="59"></td>
+            <td valign=top></td>
        </tr>
        <tr>
            <td></td>
