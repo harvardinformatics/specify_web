@@ -56,6 +56,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="weekly_rate_modification") {
 		$mode = "weekly_rate_modification"; 
 	}
+	if ($_GET['mode']=="person_week_records") {
+		$mode = "person_week_records"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -101,6 +104,15 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 				break;
 			case "weekly_rate_modification":	
 				echo weekly_rate('modified');
+				break;
+			case "person_week_records":
+                                $person = 'Lewis-Gentry';
+                                $year = "2010";
+                                $week = "33";
+			        $person = preg_replace("/[^A-Za-z\-0-9]/","",$_GET['person']);
+			        $year = preg_replace("/[^0-9]/","",$_GET['year']);
+			        $week = preg_replace("/[^0-9]/","",$_GET['week']);
+				echo person_week_records($person,$year,$week);
 				break;
 			case "menu": 	
 			default:
@@ -378,6 +390,35 @@ function collectionobjects_without_barcodes() {
    return $returnvalue;
 }
 
+function person_week_records ($person,$year,$week) { 
+    global $connection;
+    $returnvalue = "";
+    $sql = "select 'modified' as action, c.collectionobjectid, lastname, f.identifier 
+          from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid 
+               left join fragment f on c.collectionobjectid = f.collectionobjectid
+          where lastname = '$person' and year(c.timestampmodified) = $year and week(c.timestampmodified) = $week
+          union
+          select 'created' as action, c.collectionobjectid, lastname, f.identifier
+          from collectionobject c left join agent on c.createdbyagentid = agent.agentid 
+               left join fragment f on c.collectionobjectid = f.collectionobjectid 
+          where lastname = '$person' and year(c.timestampmodified) = $year and week(c.timestampmodified) = $week
+          order by action, collectionobjectid
+    ";
+    if ($debug) { echo "[$sql]<BR>"; } 
+    $statement = $connection->prepare($sql);
+    if ($statement) { 
+         $returnvalue .= "In week $week of $year, the following collection object records were created or modified by $person<BR>";
+         $returnvalue .=  "Lastname Action Barcode [collectionobjectid]<br>";
+         $statement->execute();
+         $statement->bind_result($state, $collectionobjectid, $lastname, $barcode);
+         $statement->store_result();
+         while ($statement->fetch()) {
+            $returnvalue .=  "$lastname $state <a href='specimen_search.php?barcode=$barcode'>$barcode</a> [$collectionobjectid]<br>";
+         }
+    }    
+    return $returnvalue;
+} 
+
 function weekly_rate($type='created') { 
    global $connection;
    $returnvalue = "";
@@ -411,12 +452,13 @@ function weekly_rate($type='created') {
 	    $persontotal = 0;
 	    $oldperson = "";
 		while ($statement->fetch()) {
-	        $fullist.= "<tr><td>$createdby</td><td>$yearcreated</td><td>$weekcreated</td><td><strong>$count</strong></td></tr>";
-	        $persontotal += $count;
+	        $fullist.= "<tr><td>$createdby</td><td>$yearcreated</td><td>$weekcreated</td><td><strong><a href='qc.php?mode=person_week_records&person=$createdby&week=$weekcreated&year=$yearcreated'>$count</a></strong></td></tr>";
 	        if ($oldperson != "" && $oldperson != $createdby) { 
-	             $summary .= "<tr><td>$createdby</td><td><strong>$persontotal</strong></td></tr>";
+	             $summary .= "<tr><td>$oldperson</td><td><strong>$persontotal</strong></td></tr>";
 	             $persontotal = 0;
-	        }
+	        } else { 
+	             $persontotal += $count;
+                }
 	        $oldperson = $createdby;
 		}
 	    $fullist .= "</table>";
