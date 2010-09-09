@@ -396,17 +396,18 @@ function person_week_records ($person,$year,$week) {
     $sql = "select 'modified' as action, c.collectionobjectid, lastname, f.identifier 
           from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid 
                left join fragment f on c.collectionobjectid = f.collectionobjectid
-          where lastname = '$person' and year(c.timestampmodified) = $year and week(c.timestampmodified) = $week
+          where lastname = ? and year(c.timestampmodified) = ? and week(c.timestampmodified) = ?
           union
           select 'created' as action, c.collectionobjectid, lastname, f.identifier
           from collectionobject c left join agent on c.createdbyagentid = agent.agentid 
                left join fragment f on c.collectionobjectid = f.collectionobjectid 
-          where lastname = '$person' and year(c.timestampmodified) = $year and week(c.timestampmodified) = $week
+          where lastname = ? and year(c.timestampmodified) = ? and week(c.timestampmodified) = ?
           order by action, collectionobjectid
     ";
     if ($debug) { echo "[$sql]<BR>"; } 
     $statement = $connection->prepare($sql);
     if ($statement) { 
+         $statement->bind_param("siisii",$person,$year,$week,$person,$year,$week);
          $returnvalue .= "In week $week of $year, the following collection object records were created or modified by $person<BR>";
          $returnvalue .=  "Lastname Action Barcode [collectionobjectid]<br>";
          $statement->execute();
