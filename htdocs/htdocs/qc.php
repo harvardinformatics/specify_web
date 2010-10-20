@@ -86,8 +86,9 @@ echo pageheader('qc');
 // Only display if internal 
 if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 						
-
-	if ($connection) { 
+  
+	if ($connection) {
+		if ($debug) {  echo "[$mode]"; } 
 		
 		switch ($mode) {
 			case "force_unlock":
@@ -442,6 +443,7 @@ function show_table_locks() {
 function force_unlock() {
 	if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 	$unlockpassphrase = $_GET['unlockpassphrase'];
+	$returnvalue = "<strong>Attempting Unlock</strong><BR>";
 	if (correctUnlockPassphrase($unlockpassphrase)) { 
 	      $admconnection = specify_spasa1_adm_connect();
 	      $sql = "update sptasksemaphore set islocked = false, machinename = ''";
@@ -449,13 +451,15 @@ function force_unlock() {
 	      $statement = $admconnection->prepare($sql);
 	      if ($statement) {
 	            $statement->execute();
+	            $changedrowcount = $statement->affected_rows();
+	            $returnvalue .= "Changed $changedrowcount rows in the lock table.<BR>";
 	      }
 	      $admconnection->close();
 	} else {
 		$returnvalue = "<strong>Unlock Failed</strong><BR>"; 
 	}
 	}
-	$returnvalue = show_table_locks();
+	$returnvalue .= show_table_locks();
 	return $returnvalue; 
 }
 
