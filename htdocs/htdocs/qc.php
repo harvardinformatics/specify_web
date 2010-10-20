@@ -40,6 +40,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="show_table_locks") {
 		$mode = "show_table_locks"; 
 	}
+	if ($_GET['mode']=="force_unlock") {
+		$mode = "force_unlock"; 
+	}
 	if ($_GET['mode']=="unlinked_collectionobjects") {
 		$mode = "unlinked_collectionobjects"; 
 	}
@@ -87,7 +90,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 	if ($connection) { 
 		
 		switch ($mode) {
-		
+			case "force_unlock":
+		        echo force_unlock();
+		        break;
 		    case "show_table_locks":
 		        echo show_table_locks();
 		        break;
@@ -431,6 +436,26 @@ function show_table_locks() {
 	   }	
 	}
 	
+	return $returnvalue; 
+}
+
+function force_unlock() {
+	if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+	$unlockpassphrase = $_GET['unlockpassphrase'];
+	if (correctUnlockPassphrase($unlockpassphrase)) { 
+	      $admconnection = specify_spasa1_adm_connect();
+	      $sql = "update sptasksemaphore set islocked = false, machinename = ''";
+	      if ($debug) { echo "[$sql]"; }
+	      $statement = $admconnection->prepare($sql);
+	      if ($statement) {
+	            $statement->execute();
+	      }
+	      $admconnection->close();
+	} else {
+		$returnvalue = "<strong>Unlock Failed</strong><BR>"; 
+	}
+	}
+	$returnvalue = show_table_locks();
 	return $returnvalue; 
 }
 
