@@ -441,6 +441,7 @@ function show_table_locks() {
 }
 
 function force_unlock() {
+        global $debug;
 	if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 	$unlockpassphrase = $_GET['unlockpassphrase'];
 	$returnvalue = "<strong>Attempting Unlock</strong><BR>";
@@ -451,7 +452,7 @@ function force_unlock() {
 	      $statement = $admconnection->prepare($sql);
 	      if ($statement) {
 	            $statement->execute();
-	            $changedrowcount = $statement->affected_rows();
+	            $changedrowcount = $admconnection->affected_rows;
 	            $returnvalue .= "Changed $changedrowcount rows in the lock table.<BR>";
 	      }
 	      $admconnection->close();
