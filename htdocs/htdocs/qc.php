@@ -37,6 +37,9 @@ $errormessage = "";
 $mode = "menu";
  
 if ($_GET['mode']!="")  {
+	if ($_GET['mode']=="show_table_locks") {
+		$mode = "show_table_locks"; 
+	}
 	if ($_GET['mode']=="unlinked_collectionobjects") {
 		$mode = "unlinked_collectionobjects"; 
 	}
@@ -85,6 +88,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 		
 		switch ($mode) {
 		
+		    case "show_table_locks":
+		        echo show_table_locks();
+		        break;
 			case "unlinked_collectionobjects":	
 				echo unlinked_collectionobjects();
 				break;
@@ -178,6 +184,10 @@ function menu() {
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_creation'>Collection object records created per week</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_modification'>Collection object records last modified per week</a></li>";
+   $returnvalue .= "</ul>";
+   $returnvalue .= "<h2>Locks</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=show_table_locks'>Show which tables are locked</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -402,6 +412,26 @@ function collectionobjects_without_barcodes() {
 	    $returnvalue .= "</table>";
 	}
    return $returnvalue;
+}
+
+function show_table_locks() {
+	global $connection;
+	$returnvalue = "";
+	
+	$sql =  "select taskname, lockedtime, islocked=true, machinename from sptasksemaphore";
+	if ($debug) { echo "[$sql]"; }
+	$statement = $connection->prepare($sql);
+	if ($statement) {
+	   $statement->execute();
+	   $statement->bind_result($taskname,$lockedtime,$islocked,$machinename);
+	   $statement->store_result();
+	   while ($statement->fetch()) {
+	   	  if ($islocked==0) { $islocked="not locked"; } else { $islocked="<strong style=' font-color: red;'>Locked</strong>"; }
+	   	  $returnvalue .= "$taskname $islocked $machinename $lockedtime<BR>"; 
+	   }	
+	}
+	
+	return $returnvalue; 
 }
 
 function person_week_records ($person,$year,$week) { 
