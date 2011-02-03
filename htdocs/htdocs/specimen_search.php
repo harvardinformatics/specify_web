@@ -234,7 +234,7 @@ function details() {
 					" collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, " .
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
 					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
-					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency " .
+					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
@@ -245,7 +245,7 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
@@ -818,6 +818,7 @@ function details() {
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>$typeStatus</td></tr>"; }
 							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
 							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$fieldnumber</td></tr>"; } 
+							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Station number</td><td class='val'>$stationfieldnumber</td></tr>"; } 
 							if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>$country</td></tr>"; } 
 							if (trim($state!=""))   { echo "<tr><td class='cap'>State</td><td class='val'>$state</td></tr>"; }
 							echo "<tr><td class='cap'>Geography</td><td class='val'>$geography</td></tr>";
