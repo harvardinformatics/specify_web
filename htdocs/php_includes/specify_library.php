@@ -269,7 +269,9 @@ function nameCountSearch($query, $field) {
 		$statement->store_result();
 		if ($statement->num_rows > 0 ) {
 			while ($statement->fetch()) { 
-				$result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) <BR>";
+			    if ($name!="") { 
+				    $result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) <BR>";
+				}
 			}
 			
 		} else {
@@ -303,7 +305,8 @@ function stats() {
    $returnvalue .= nameCountSearch($query, 'herbarium');
    
    $returnvalue .= "<h2>Numbers of specimens by Type Status.</h2>";
-   $returnvalue .= browse("types"); 
+   $query = "select count(collectionobjectid), typestatusname from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
+   $returnvalue .= nameCountSearch($query, 'typestatus');
    
    return $returnvalue;
 }
