@@ -87,6 +87,9 @@ if ($_GET['browsemode']!="")  {
 	if ($_GET['browsemode']=="countries") {
 		$mode = "browse_countries"; 
 	}
+	if ($_GET['browsemode']=="types") {
+		$mode = "browse_types"; 
+	}
 }
 
 if ($_GET['mode']!="")  {
@@ -120,6 +123,10 @@ if ($connection) {
 		case "browse_countries":       // browse() is defined in specify_library.php
 			echo browse("countries");
 			break;
+			
+		case "browse_types":
+			echo browse("types");   // browse() is defined in specify_library.php
+			break;			
 			
 		case "details":
 			details();

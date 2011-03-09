@@ -301,6 +301,10 @@ function stats() {
    $query = "select count(PreparationId), preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid group by preparationattribute.text3";
    $query = "select count(collectionobjectid), text1 from fragment group by text1";
    $returnvalue .= nameCountSearch($query, 'herbarium');
+   
+   $returnvalue .= "<h2>Numbers of specimens by Type Status.</h2>";
+   $returnvalue .= browse("types"); 
+   
    return $returnvalue;
 }
 
@@ -308,6 +312,10 @@ function browse($target = 'families') {
 	$result = ""; 
 	$field = "";
 	switch ($target) { 
+		case 'types':
+			$sql = 'select count(collectionobjectid), typestatus from web_search group by typestatus ';
+			$field = 'typestatus';
+			break;	
 		case 'countries':
 			$sql = 'select count(collectionobjectid), country from web_search group by country ';
 			$field = 'country';
