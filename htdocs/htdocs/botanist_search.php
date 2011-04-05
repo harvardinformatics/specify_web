@@ -387,23 +387,26 @@ function search() {
 
 	$name = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['name']),0,59);
 	if ($name!="") { 
+	    $soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
 		$hasquery = true;
 		$namepad = "%$name%";
-		$question .= "$and name:[$name] or name like:[$namepad] or name sounds like [$name] ";
-		//$types .= "ssss";
-		$types .= "ss";
+		$question .= "$and name:[$name] or name like:[$namepad]  ";
+		$types .= "s";
 		$operator = "=";
-		//$parameters[$parametercount] = &$name;
-		//$parametercount++;
-		//$parameters[$parametercount] = &$name;
-		//$parametercount++;
 		$parameters[$parametercount] = &$namepad;
 		$parametercount++;
-		$parameters[$parametercount] = &$name;
-		$parametercount++;
+		if ($soundslike=="true") { 
+		    $question .= " or name sounds like [$name] ";
+		    $types .= "s";
+		    $parameters[$parametercount] = &$name;
+		    $parametercount++;
+		} 
 		if (preg_match("/[%_]/",$name))  { $operator = " like "; }
-		//$wherebit .= "$and (agent.lastname $operator ? or soundex(agent.lastname)=soundex(?) or agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
-		$wherebit .= "$and (agentvariant.name like ? or soundex(agentvariant.name)=soundex(?) )";
+		$wherebit .= "$and (agentvariant.name like ? ";
+		if ($soundslike=="true") { 
+		    $wherebit .= " or soundex(agentvariant.name)=soundex(?) ";
+		} 
+		$wherebit .= " )";
 		$and = " and ";
 	}
 	$remarks = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['remarks']),0,59);
@@ -487,6 +490,7 @@ function search() {
 		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agentvariant.name, agent.lastname, agent.firstname, agent.dateofbirth ";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
+		echo "[".phpversion()."]<BR>\n";
 	}
 	if ($hasquery===true) { 
 		$statement = $connection->prepare($query);
@@ -494,8 +498,15 @@ function search() {
 			$array = Array();
 			$array[] = $types;
 			foreach($parameters as $par)
-			$array[] = $par;
-			call_user_func_array(array($statement, 'bind_param'),$array);
+			    $array[] = $par;
+			if (substr(phpversion(),0,4)=="5.3.") { 
+			   // work around for bug in __call, or is it? 
+			   // http://bugs.php.net/bug.php?id=50394
+			   // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
+			   call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
+			} else {   
+			   call_user_func_array(array($statement, 'bind_param'),$array);
+			}
 			$statement->execute();
 			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath);
 			$statement->store_result();
@@ -546,6 +557,9 @@ function search() {
 	} 
 	
 }
+
+
+
 
 mysqli_report(MYSQLI_REPORT_OFF);
 

@@ -23,6 +23,15 @@
 // ******* this file contains only supporting functions. *****
 
 
+// Workaround from http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
+function make_values_referenced($arr){
+    $refs = array();
+    foreach($arr as $key => $value) { 
+        $refs[$key] = &$arr[$key];
+    }
+    return $refs;
+}
+
 function barcode_to_catalog_number($aBarcode) {
   $LOCALLENGTH = 9;    // HUH Barcode is a zero padded string of length 9 
   $returnvalue = $aBarcode;
