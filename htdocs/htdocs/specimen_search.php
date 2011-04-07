@@ -1192,7 +1192,7 @@ function search() {
 			" i.imagesetid, web_search.datecollected " . 
 			" from collectionobject c 
 			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
-			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit ";
+			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country ";
 	} 
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
@@ -1234,7 +1234,7 @@ function search() {
 				echo "<BR><div>\n";
 				$oldfamilylink = "";
 				while ($statement->fetch()) { 
-					$familylink = "<strong><a href='sepecimen_search.php?family=$family'>$family</a></strong>";
+					$familylink = "<strong><a href='specimen_search.php?family=$family'>$family</a></strong>";
 					if ($familylink != $oldfamilylink) {
 						 echo "$familylink<BR>"; 
 					}
