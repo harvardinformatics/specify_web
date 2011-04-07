@@ -1129,7 +1129,7 @@ function search() {
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
-		$collectornumber = substr(preg_replace("/[^1-9\.A-Za-z _%*]/","", $_GET['collectornumber']),0,59);
+		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*]/","", $_GET['collectornumber']),0,59);
 		$collectornumber = str_replace("*","%",$collectornumber);
 		if ($collectornumber!="") { 
 			$hasquery = true;
