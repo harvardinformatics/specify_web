@@ -366,10 +366,11 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
    where agentvariant.agentid is not null and agentvariant.vartype = 4 ;
     
 -- set collectornumber  
--- 50 sec
-update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid  
-    set w.collectornumber =  c.fieldnumber 
-    where c.fieldnumber is not null; 
+-- 2 min
+update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid
+    left join collectingevent e on c.collectingeventid = e.collectingeventid
+    set w.collectornumber =  e.stationfieldnumber 
+    where e.stationfieldnumber is not null; 
     
 -- set herbarium acronym (fragment.text1 is HUH specific where multiple herbaria are managed
 -- as a single specify collection).
