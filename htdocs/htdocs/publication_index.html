@@ -89,22 +89,32 @@
     dependent primarily on the standard print sources for botanical literature.  
     </p>
 
-<p>To search for a publication, enter search keys for author and/or title.
-       Or as a separate search, enter a publication number and select a source, such as TL2, from the list.
-     Only alphanumeric characters and spaces are used in the search. 
-       For example, to search <i>Manual of Botany</i> use a title key such as &quot;<b>manual of bot</b>&quot;.
-       </p>
+<p>
+To search for a publication, enter search keys for author, place of publication, publisher, and/or title.
+Or as a separate search, enter a publication number and select a source, such as TL2, from the list.
+Only alphanumeric characters and spaces are used in the search.  
+Title, publication, and place of publication searches are for exact matches.  Use % for a wild card. 
+For example, to search for <i>Manual of Botany</i> use a title key such as &quot;<b>manual of bot%</b>&quot;, likewise, use place of publication = &quot;<b>%Berlin%</b>&quot; to find places that contain <i>Berlin</i> anywhere in the placename.
+</p>
 
 <br\>       
 
     <form class="searchform" action="publication_search.php" method="GET">
        <input type="hidden" name="start" value="1"> 
        <table align="left" border="0" cellpadding="3" cellspacing="0" summary="">
-            <tr><td class="nu">title/abbrev</td>
+            <tr><td class="nu">Title/abbreviation</td>
                 <td width="10">&nbsp;</td>
                 <td colspan=2><input type="text" name="title" value="" size=30 maxlength=59></td>
             </tr>
-            <tr><td class="nu">author</td>
+            <tr><td class="nu">Place of Publication</td>
+                <td width="10">&nbsp;</td>
+                <td colspan=2><input type="text" name="place" value="" size=30 maxlength=59></td>
+            </tr>
+            <tr><td class="nu">Publisher</td>
+                <td width="10">&nbsp;</td>
+                <td colspan=2><input type="text" name="publisher" value="" size=30 maxlength=59></td>
+            </tr>
+            <tr><td class="nu">Author</td>
 
                 <td>&nbsp;</td>
                 <td colspan=2><input type="text" name="author" value="" size=30 maxlength=59></td>
@@ -112,7 +122,7 @@
             <tr><td class ="sg" align="center" colspan="3">--------- <i>or</i> ---------</td>
                 <td colspan="1"></td> 
             </tr>
-            <tr><td class="identifier">number</td>
+            <tr><td class="identifier">Number</td>
 
                 <td>&nbsp;</td>
                 <td><input type="text" name="identifier" value="" size=15 maxlength=19></td>
@@ -192,9 +202,9 @@ which <i>Prodr.</i> by using the form <i>Prodr. (DC)</i>, <i>Prodr. (Swartz)</i>
 		  		</ul>
 			</div>
 			<h5>&copy; 2010 - <span id="cdate"></span> by the President and Fellows of <a href="http://www.harvard.edu/" target="_blank">Harvard</a> College
-		 	<br /><a href="priv_statement.html">Privacy Statement</a> <span class="footer_indent">Updated: 
+		 	<br /><a href="/priv_statement.html">Privacy Statement</a> <span class="footer_indent">Updated: 
 		 		
-		 		2009 May 21		 		
+		 		2011 Apr 06
 				</span></h5>
 
 		 		

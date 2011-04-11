@@ -251,16 +251,44 @@ function search() {
 	$order = "";
 	$parametercount = 0;
 	$hasauthor = false;
+	$publisher = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['publisher']),0,59);
+	if ($publisher!="") { 
+		$hasquery = true;
+		$question .= "$and publisher:[$publisher] ";
+		$types .= "s";
+		$operator = "=";
+		$parameters[$parametercount] = &$publisher;
+		$parametercount++;
+		if (preg_match("/[%_]/",$publisher))  { $operator = " like "; }
+		$wherebit .= "$and r.publisher $operator ?  ";
+		$and = " and ";
+		$order = " order by r.text1 ";
+	}
+	$place = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['place']),0,59);
+	if ($place!="") { 
+		$hasquery = true;
+		$question .= "$and place of publication:[$place] ";
+		$types .= "s";
+		$operator = "=";
+		$parameters[$parametercount] = &$place;
+		$parametercount++;
+		if (preg_match("/[%_]/",$place))  { $operator = " like "; }
+		$wherebit .= "$and r.placeofpublication $operator ?  ";
+		$and = " and ";
+		$order = " order by r.text1 ";
+	}
 	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['title']),0,59);
 	if ($title!="") { 
 		$hasquery = true;
 		$question .= "$and title:[$title] ";
-		$types .= "s";
+		$types .= "ss";
 		$operator = "=";
 		$parameters[$parametercount] = &$title;
 		$parametercount++;
+		$parameters[$parametercount] = &$title;
+		$parametercount++;
 		if (preg_match("/[%_]/",$title))  { $operator = " like "; }
-		$wherebit .= "$and r.text1 $operator ? ";
+		$wherebit .= "$and ( r.text1 $operator ? or r.title $operator ? ) ";
 		$and = " and ";
 		$order = " order by r.text1 ";
 	}
