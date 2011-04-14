@@ -20,6 +20,10 @@
  * 
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  */
+
+// Uncomment to turn on debugging 
+//$debug = true;
+
 // ******* this file contains only supporting functions. *****
 
 
@@ -103,24 +107,28 @@ function transformDateText($date, $precision) {
  
 function pageheader($mode = "specimen") {
 	$title = "Specimen Search"; 
+	$heading = "Botanical Specimens"; 
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
 	$active['b'] = "";
 	switch ($mode) {
 		case "specimen":
 			$title = "Specimen Search"; 
+	                $heading = "Botanical Specimens"; 
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
 			$active['b'] = "";
 			break;
 		case "agent":
 			$title = "Botanist Search"; 
+	                $heading = "Botanists"; 
 			$active['s'] = " ";
 			$active['p'] = " ";
 			$active['b'] = " class='active' ";
 			break;
 		case "publication":
 			$title = "Publication Search"; 
+	                $heading = "Botanical Publications"; 
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
 			$active['b'] = " ";
@@ -148,18 +156,18 @@ function pageheader($mode = "specimen") {
 		         
 				<div id='embed_nav'>
 		  			<ul>
-						<li><a href='/'>Home</a></li>
+						<li><a href='http://www.huh.harvard.edu/'>Home</a></li>
 						<li>&#124;</li>
-						<li><a href='http://zatoichi.huh.harvard.edu/people/index.php'>Contact</a></li>
+						<li><a href='http://www.huh.harvard.edu/people/index.php'>Contact</a></li>
 						<li>&#124;</li>
-						<li><a href='/news_events/news_events.html'>News &#38; Events</a></li>
+						<li><a href='http://www.huh.harvard.edu/news_events/news_events.html'>News &#38; Events</a></li>
 
 						<li>&#124;</li>
-						<li><a href='/news_events/calendar.html'>Calendar</a></li>
+						<li><a href='http://www.huh.harvard.edu/news_events/calendar.html'>Calendar</a></li>
 						<li>&#124;</li>
-						<li><a href='/sitemap.html'>Sitemap</a></li>
+						<li><a href='http://www.huh.harvard.edu/sitemap.html'>Sitemap</a></li>
 						<li>&#124;</li>
-						<li><a href='/links.html'>Links</a></li>
+						<li><a href='http://www.huh.harvard.edu/links.html'>Links</a></li>
 		  			</ul>
 
 				</div>
@@ -209,7 +217,7 @@ function pageheader($mode = "specimen") {
    <!-- main content begins -->
    <div id='main_text_wide'>
    <div id='title'>
-      <h3>Index of Botanical Specimens</h3>
+      <h3>Index of $heading</h3>
    </div>
 "; 
    return $result;
@@ -237,7 +245,7 @@ function pagefooter() {
 		  		</ul>
 			</div>
 			<h5>&copy; 2001 - <span id='cdate'></span> by the President and Fellows of <a href='http://www.harvard.edu/' target='_blank'>Harvard</a> College
-		 	<br /><a href='priv_statement.html'>Privacy Statement</a> <span class='footer_indent'>Updated: 
+		 	<br /><a href='http://www.huh.harvard.edu/priv_statement.html'>Privacy Statement</a> <span class='footer_indent'>Updated: 
 		 		
 		 		2009 May 21		 		
 				</span></h5>
