@@ -1024,6 +1024,19 @@ function search() {
 			$wherebit .= "$and web_search.host $operator ? ";
 			$and = " and ";
 		}
+		$herbarium = substr(preg_replace("/[^A-Za-z]/","", $_GET['herbarium']),0,100);
+		$herbarium = strtoupper($herbarium);
+		if ($herbarium!="") { 
+			$hasquery = true;
+			$question .= "$and herbarium:[$herbarium] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$herbarium;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$herbarium))  { $operator = " like "; }
+			$wherebit .= "$and web_search.herbaria $operator ? ";
+			$and = " and ";
+		}
 		$provenance = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['provenance']),0,100);
 		$provenance = str_replace("*","%",$provenance);
 		if ($provenance!="") { 
@@ -1208,8 +1221,15 @@ function search() {
 				$array = Array();
 				$array[] = $types;
 				foreach($parameters as $par)
-				$array[] = $par;
-				call_user_func_array(array($statement, 'bind_param'),$array);
+				   $array[] = $par;
+                if (substr(phpversion(),0,4)=="5.3.") {
+                   // work around for bug in __call, or is it? 
+                   // http://bugs.php.net/bug.php?id=50394
+                   // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
+                   call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
+                } else {
+                   call_user_func_array(array($statement, 'bind_param'),$array);
+                }
 			}
 			$statement->execute();
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
