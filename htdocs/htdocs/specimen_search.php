@@ -769,7 +769,6 @@ function details() {
 									if ($debug===true) {  echo "[$lquery]<BR>"; }
 									if ($debug===true) {  echo "fragmentid[$fragmentid]<BR>"; }
 									$statement_loans = $connection->prepare($lquery);
-									$attributes = array();
 									if ($statement_loans) { 
 										$statement_loans->bind_param("i",$fragmentid);
 										$statement_loans->execute();
