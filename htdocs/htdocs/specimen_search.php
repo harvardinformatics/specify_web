@@ -760,9 +760,30 @@ function details() {
 									} else {
 										echo "Error: " . $connection->error;
 									}
+									
+                                                                        if (!preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+                                                                            $lquery = "select loannumber ".
+										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
+										" left join loanpreparation on preparation.preparationid = loanpreparation.preparationid " .
+                                                                                " left join loan on loanpreparation.loanid = loan.loanid where fragment.fragmentid = ?";
+									if ($debug===true) {  echo "[$lquery]<BR>"; }
+									$statement_loans = $connection->prepare($lquery);
+									$attributes = array();
+									if ($statement_loans) { 
+										$statement_loan->bind_param("i",$fragmentid);
+										$statement_loan->execute();
+										$statement_loan->bind_result($loannumber);
+										$statement_loan->store_result();
+										$separator = "";
+										while ($statement_det->fetch()) { 
+												$attributes['Loan Number'] = $loannumber;
+                                                                                }
+                                                                        }
+
+                                                                        } 
 									// Add each attribute key-value pair to the item.
 									$item[] = $attributes;
-									
+
 									// Copy the array of key-value pairs for this fragment(item) as an element in $itemarray
 									$itemarray[] = $item;
 								}
