@@ -239,6 +239,23 @@ update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
    set temp_taxon.genus = p2.name 
    where temp_taxon.rankid = 260 and p2.rankid = 180; 
 
+
+alter table temp_taxon add column species varchar(64);
+-- Fill in species epithet for infraspecific names
+-- About 1 sec total for these.
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   set temp_taxon.species = p1.name 
+   where temp_taxon.rankid = 230 and p1.rankid = 220; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   set temp_taxon.species = p1.name 
+   where temp_taxon.rankid = 240 and p1.rankid = 220; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   set temp_taxon.species = p1.name 
+   where temp_taxon.rankid = 250 and p1.rankid = 220; 
+update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
+   set temp_taxon.species = p1.name 
+   where temp_taxon.rankid = 260 and p1.rankid = 220; 
+
 -- fill in the remainder (use the above queries to catch most cases) 
 -- following takes hours to complete if run on the full set of records in temp_taxa.
 -- 2 hours, 23 min if the query above looking up genera for species is run first.
@@ -247,6 +264,9 @@ update temp_taxon left join taxon p1 on temp_taxon.parentid = p1.taxonid
 -- 1.2 sec on just the few remaining rows 
 update temp_taxon set genus = getHigherTaxonOfRank(180, highestchildnodenumber, nodenumber) 
    where genus is null and temp_taxon.rankid > 260;
+-- 5 sec.
+update temp_taxon set species = getHigherTaxonOfRank(220, highestchildnodenumber, nodenumber) 
+   where species is null and temp_taxon.rankid > 260;
 
 -- now update from temp_taxon into temp_web_search (19 seconds, now that nodes are set up)
 -- 19 sec
@@ -254,6 +274,9 @@ update temp_web_search left join temp_taxon on temp_web_search.taxon_nodenumber 
    set temp_web_search.family = temp_taxon.family, 
        temp_web_search.genus = temp_taxon.genus;
 
+update temp_web_search left join temp_taxon on temp_web_search.taxon_nodenumber = temp_taxon.nodenumber 
+   set temp_web_search.species = temp_taxon.species
+ where temp_taxon.species is not null and temp_taxon.rankid > 220;
 
 -- family and above
 -- 3 sec

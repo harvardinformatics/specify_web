@@ -47,7 +47,7 @@
  
      $result = $connection->query($query);
      if (!$result) {
-     	echo $connection->mysql_error(); 
+     	echo $connection->error; 
      }
      
  
