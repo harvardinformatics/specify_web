@@ -103,8 +103,19 @@ function details() {
 		$id = substr(preg_replace("[^0-9]","",$value),0,20);
 		// skip adgacent duplicates, if any
 		if ($oldid!=$id)  { 
+                        // See edu.ku.brc.specify.datamodel.Agent
+                        // Definitions for agentype:
+                        //  public static final byte                ORG    = 0;
+                        //  public static final byte                PERSON = 1;
+                        //  public static final byte                OTHER  = 2;
+                        //  public static final byte                GROUP  = 3;
+                        // Definitions for datestype: 
+                        //  public static final byte                BIRTH              = 0;
+                        //  public static final byte                FLOURISHED         = 1;
+                        //  public static final byte                COLLECTED          = 2;
+                        //  public static final byte                RECEIVED_SPECIMENS = 3;
 			$query = "select firstname, lastname, remarks, dateofbirth, dateofbirthprecision, " .
-				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, initials as datetype " .
+				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, datestype as datetype, dateofbirthconfidence, dateofdeathconfidence " .
 				" from agent where agent.agentid = ?  ";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
@@ -113,7 +124,7 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($firstname, $lastname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype);
+				$statement->bind_result($firstname, $lastname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype, $dateofbirthconfidence, $dateofdeathconfidence);
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
@@ -126,29 +137,31 @@ function details() {
 					if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   } 
 					if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   } 
 					// Limit date of birth information for people who are living to the year of birth.
-					if ($datetype=="birth") { 
+					if ($datetype=="0") { 
 					     if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
 					}
 					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
 					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
-						if ($datetype=="birth") { 
+                                        $startdatetext = "Start Date";
+                                        $enddatetext = "End Date";
+						if ($datetype=="0") { 
 						   $startdatetext = "Date of birth"; 
 						   $enddatetext = "Date of death"; 
 						}
-						if ($datetype=="fl") { 
+						if ($datetype=="1") { 
 						   $startdatetext = "First date flourished"; 
 						   $enddatetext = "Last date flourished"; 
 						}
-						if ($datetype=="rec") { 
+						if ($datetype=="3") { 
 						   $startdatetext = "First date recieved"; 
 						   $enddatetext = "Last date recieved"; 
 						}
-						if ($datetype=="coll") { 
+						if ($datetype=="2") { 
 						   $startdatetext = "First date collected"; 
 						   $enddatetext = "Last date collected"; 
 						}
-					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>$startdatetext</td><td class='val'>$dateofbirth</td></tr>"; }
-					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>$enddatetext</td><td class='val'>$dateofdeath</td></tr>"; }
+					if (trim($dateofbirth!=""))   { $agent .= "<tr><td class='cap'>$startdatetext</td><td class='val'>$dateofbirth $dateofbirthconfidence</td></tr>"; }
+					if (trim($dateofdeath!=""))   { $agent .=  "<tr><td class='cap'>$enddatetext</td><td class='val'>$dateofdeath $dateofdeathconfidence</td></tr>"; }
 					
 					$name = "$firstname $lastname";
 					$numberofvariants = 0;
