@@ -108,6 +108,7 @@ function transformDateText($date, $precision) {
 function pageheader($mode = "specimen") {
 	$title = "Specimen Search"; 
 	$heading = "Botanical Specimens"; 
+        $link = "specimen_index.html";
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
 	$active['b'] = "";
@@ -115,6 +116,7 @@ function pageheader($mode = "specimen") {
 		case "specimen":
 			$title = "Specimen Search"; 
 	                $heading = "Botanical Specimens"; 
+                        $link = "specimen_index.html";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
 			$active['b'] = "";
@@ -122,6 +124,7 @@ function pageheader($mode = "specimen") {
 		case "agent":
 			$title = "Botanist Search"; 
 	                $heading = "Botanists"; 
+                        $link = "botanist_index.html";
 			$active['s'] = " ";
 			$active['p'] = " ";
 			$active['b'] = " class='active' ";
@@ -129,6 +132,7 @@ function pageheader($mode = "specimen") {
 		case "publication":
 			$title = "Publication Search"; 
 	                $heading = "Botanical Publications"; 
+                        $link = "publication_index.html";
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
 			$active['b'] = " ";
@@ -217,7 +221,7 @@ function pageheader($mode = "specimen") {
    <!-- main content begins -->
    <div id='main_text_wide'>
    <div id='title'>
-      <h3>Index of $heading</h3>
+      <h3><a href='$link'>Index of $heading</a></h3>
    </div>
 "; 
    return $result;
@@ -228,6 +232,10 @@ function pagefooter() {
    </div>
 </div>
 	<!-- main content ends -->
+
+<p>
+Disclaimer: This is a new (2011) interface over recently migrated data.  Both the interface and the data are under review.  Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.
+</p>
 
 <!-- footer include begins -->		
 	<div id='footer'>
