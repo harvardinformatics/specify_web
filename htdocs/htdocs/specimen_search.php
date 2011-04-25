@@ -571,6 +571,7 @@ function details() {
 											if ($debug===true) {  echo "TaxonID=[$taxonid]<BR>"; }
 											$nodes[] = $nodenumber;  // Store the taxon's node number to look up higher taxonomy later.
 											if ($determinationid != "") {
+									                        $determination = array(); // clear values from previous determinations.
 												if ($debug===true) { 
 												    $determination['detnumber'] = $determinationcounter;
 												}
