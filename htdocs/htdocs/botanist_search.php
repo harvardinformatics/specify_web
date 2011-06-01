@@ -211,7 +211,7 @@ function details() {
 						$query = "select geography.name, agentgeography.role " .
 							" from agentgeography left join geography on agentgeography.geographyid = geography.geographyid " .
 							" where agentid = ? " .
-							" order by agentgeography.role ";
+							" order by agentgeography.role, geography.name ";
 						if ($debug) { echo "[$query]<BR>"; } 
 						$statement_geo = $connection->prepare($query);
 						if ($statement_geo) {
@@ -219,9 +219,28 @@ function details() {
 							$statement_geo->execute();
 							$statement_geo->bind_result($geography,$role);
 							$statement_geo->store_result();
+                                                        $authorgeographies = "";
+                                                        $authorgeographiesseparator = "";
+                                                        $collgeographies = "";
+                                                        $collgeographiesseparator = "";
 							while ($statement_geo->fetch()) {
-								$agent .= "<tr><td class='cap'>Geography $role</td><td class='val'>$geography</td></tr>";
+                                                                if ($role=="Author") { 
+                                                                   $authorgeographies .= "$authorgeographiesseparator$geography";
+                                                                   $authorgeographiesseparator = ",&nbsp; ";
+                                                                } else if ($role=="Collector") { 
+                                                                   $collgeographies .= "$collgeographiesseparator$geography";
+                                                                   $collgeographiesseparator = ",&nbsp; ";
+                                                                } else { 
+
+								   $agent .= "<tr><td class='cap'>Geography $role</td><td class='val'>$geography</td></tr>";
+                                                                }
 							}
+                                                        if ($authorgeographies!="") { 
+						            $agent .= "<tr><td class='cap'>Geography Author</td><td class='val'>$authorgeographies</td></tr>"; 
+                                                        }
+                                                        if ($collgeographies!="") { 
+								   $agent .= "<tr><td class='cap'>Geography Collector</td><td class='val'>$collgeographies</td></tr>";
+                                                        }
 						}
 						$query = " select specialtyname, role, ordernumber from agentspecialty where agentid = ? order by role, ordernumber";
 						if ($debug) { echo "[$query]<BR>"; } 
@@ -295,6 +314,8 @@ function details() {
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
 								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$collectorname'>Search for specimens collected by $collectorname</a></td></tr>";
+                                                                $collist = "";
+                                                                $collistseparator = "";
 								while ($statement_geo->fetch()) {
 									// for each year
 									// obtain the list of collection objects collected by this collector in this year
@@ -329,8 +350,11 @@ function details() {
 									$statement_co->close();
 									// for each year, provide the count of the number of collections objects held with a link to those collection objects.
 									if ($year=="") { $year = "[no date]"; }
-									$agent .= "<tr><td class='cap'>Collections in</td><td class='val'><a $link>$year ($count)</a></td></tr>";
+									//$agent .= "<tr><td class='cap'>Collections in</td><td class='val'><a $link>$year ($count)</a></td></tr>";
+                                                                        $collist .= "$collistseparator<a $link>$year ($count)</a>";
+                                                                        $collistseparator = ",&nbsp; ";
 								} 
+							        $agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$collist</td></tr>";
 							}
 						}
 						// If internal, check for out of range collecting events: 
