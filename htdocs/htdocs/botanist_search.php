@@ -115,7 +115,7 @@ function details() {
                         //  public static final byte                COLLECTED          = 2;
                         //  public static final byte                RECEIVED_SPECIMENS = 3;
 			$query = "select firstname, lastname, remarks, dateofbirth, dateofbirthprecision, " .
-				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, datestype as datetype, dateofbirthconfidence, dateofdeathconfidence " .
+				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, datestype as datetype, dateofbirthconfidence, dateofdeathconfidence, guid " .
 				" from agent where agent.agentid = ?  ";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
@@ -124,7 +124,7 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($firstname, $lastname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype, $dateofbirthconfidence, $dateofdeathconfidence);
+				$statement->bind_result($firstname, $lastname, $remarks,$dateofbirth, $dateofbirthprecision, $dateofdeath, $dateofdeathprecision, $url,  $agentid, $agenttype, $datetype, $dateofbirthconfidence, $dateofdeathconfidence, $botanistid);
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
@@ -167,6 +167,7 @@ function details() {
 					$numberofvariants = 0;
 					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($url!=""))   { $agent .=  "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
+					if (trim($botanistid!=""))   { $agent .=  "<tr><td class='cap'>ASA Botanist ID</td><td class='val'>$botanistid</td></tr>"; }
 					$query = "select name, vartype from agentvariant where agentid = ? order by vartype ";
 					if ($debug) { echo "[$query]<BR>"; } 
 					$statement_var = $connection->prepare($query);
