@@ -23,6 +23,10 @@ create index idx_agent_specialty_role on agentspecialty(role);
 create index idx_agent_specialty_name on agentspecialty(specialtyname);
 create index idx_taxontreedefitem_name on taxontreedefitem(name);
 
+-- index on picklistitem to allow lookup of names from values.
+create index picklistitemvalue on picklistitem(value);
+
+
 -- Suporting functions that can be used by web interface to specify
 -- Innefficient to use in searches of data sets, but effective for data
 -- retrieval for details of individual collection object records.
@@ -82,7 +86,117 @@ BEGIN
 END | 
 delimiter ;
 
+drop function if exists specify.concatPrepTypes;
+
+delimiter |
+create function specify.concatPrepTypes(aCollObjID INT)
+returns text
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+    declare prep varchar(32);
+    declare sep varchar(2) default '';
+	declare t_result text default '' ;
+	declare told_result text default '' ;
+    declare done int default 0;
+    declare getpreps cursor for
+    select preptype.name from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid left join preparation preparation on fragment.preparationid = preparation.preparationid left join preptype on preparation.preptypeid = preptype.preptypeid where collectionobject.collectionobjectid = aCollObjID order by preptype.name;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    open getpreps;
+    readloop: LOOP 
+      fetch getpreps into prep;
+      if done then
+        LEAVE readloop;
+      end if;
+      set told_result = t_result;
+      set t_result = concat(told_result,sep,prep);
+      set sep = ',';
+    end LOOP;
+	return t_result;
+END | 
+delimiter ;
+
+drop function if exists specify.concatHigherGeography;
+
+delimiter |
+create function specify.concatHigherGeography(aNodeNumber INT, aHighestChildNodeNumber INT)
+returns text
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+    declare geo varchar(64);
+    declare sep varchar(2) default '';
+	declare t_result text default '' ;
+	declare told_result text default '' ;
+    declare done int default 0;
+    declare getgeos cursor for
+    select g.name from geography g where g.highestchildnodenumber >= aNodeNumber and g.nodenumber<= aHighestChildNodeNumber and g.name <> 'Earth' order by g.rankid;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    open getgeos;
+    readloop: LOOP 
+      fetch getgeos into geo;
+      if done then
+        LEAVE readloop;
+      end if;
+      set told_result = t_result;
+      set t_result = concat(told_result,sep,geo);
+      set sep = '; ';
+    end LOOP;
+	return t_result;
+END | 
+delimiter ;
+
+drop function if exists specify.concatAuthors;
+
+delimiter |
+create function specify.concatAuthors(aReferenceWorkID INT)
+returns text
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+    declare auth varchar(64);
+    declare sep varchar(2) default '';
+    declare terminator varchar(2) default '';
+	declare t_result text default '';
+	declare told_result text default '' ;
+    declare done int default 0;
+    declare getauths cursor for
+    select name from author left join agentvariant on author.agentid = agentvariant.agentid where vartype = 2 and referenceworkid = aReferenceWorkID order by ordernumber asc;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    open getauths;
+    readloop: LOOP 
+      fetch getauths into auth;
+      if done then
+        set told_result = t_result;
+        set t_result = concat(told_result,terminator);
+        LEAVE readloop;
+      end if;
+      set told_result = t_result;
+      set t_result = concat(told_result,sep,auth);
+      set sep = ', ';
+      set terminator = '.';
+    end LOOP;
+	return t_result;
+END | 
+delimiter ;
+
+drop function if exists specify.getCurrentDetermination;
+
+delimiter |
+create function specify.getCurrentDetermination(aFragmentId INT)
+returns bigint
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+	declare t_result bigint ;
+	select determinationid into t_result from determination where fragmentid = aFragmentId order by typestatusname desc, iscurrent desc, determineddate limit 1;
+	return t_result;
+END | 
+delimiter ;
+
 grant execute on procedure specify.getTextDate to 'specify_web_user'@'kiki.huh.harvard.edu';
 grant execute on procedure specify.getGeographyOfRank to 'specify_web_user'@'kiki.huh.harvard.edu';
 grant execute on procedure specify.getHigherTaxonOfRank to 'specify_web_user'@'kiki.huh.harvard.edu';
 grant execute on procedure specify.getAgentName to 'specify_web_user'@'kiki.huh.harvard.edu';
+grant execute on procedure specify.concatPrepTypes to 'specify_web_user'@'kiki.huh.harvard.edu';
+grant execute on procedure specify.getCurrentDetermination to 'specify_web_user'@'kiki.huh.harvard.edu';
