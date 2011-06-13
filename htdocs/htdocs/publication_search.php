@@ -235,6 +235,7 @@ function details() {
 			}
 			$statement->close();
 		}
+                echo "<hr />";
 		$oldid = $id;
 	}
 }

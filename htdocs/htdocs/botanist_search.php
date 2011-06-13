@@ -186,16 +186,16 @@ function details() {
 							       $typestring = "Variant name";
 							       break;
 							    case 1: 
-							       $typestring = "Vernacular name";
+							       $typestring = "Vernacular&nbsp;name";
 							       break;
 							    case 2: 
 							       $typestring = "Author name";
 							       break;
 							    case 3: 
-							       $typestring = "B & P Author Abbrev.";
+							       $typestring = "B&nbsp;&amp;&nbsp;Author&nbsp;Abbrev.";
 							       break;
 							    case 4: 
-							       $typestring = "Standard/Label Name";
+							       $typestring = "Standard/Label&nbsp;Name";
 							       $collectorname = $name;
 							       break;
 							    case 5: 
@@ -389,8 +389,24 @@ function details() {
 					                    }
 							        }
 							    }
-						    }
+						    } 
 						}
+                                                    $query = "select agentid,agentvariant.name from groupperson left join agentvariant on groupid = agentid  where memberid = ? and vartype =4";
+						    if ($debug) { echo "[$query]<BR>"; } 
+						    $statement_qc = $connection->prepare($query);
+						    if ($statement_qc) {
+							    $statement_qc->bind_param("i",$agentid);
+							    $statement_qc->execute();
+							    $statement_qc->bind_result($groupagentid,$groupagentname);
+							    $statement_qc->store_result();
+                                                            $teams = "";
+							    if ($statement_qc->num_rows()>0) { 
+							        while ($statement_qc->fetch()) {
+							            $teams .= "<a href='botanist_search.php?mode=details&id=$groupagentid'>$groupagentname</a>&nbsp; ";
+                                                                }
+							        $agent .= "<tr><td class='cap'>Teams:</td><td class='val'>$teams</td></tr>";
+                                                            } 
+                                                     }
 					}
 					
 				}
@@ -403,6 +419,7 @@ function details() {
 				echo "<table>";
 				echo "$agent";
 				echo "</table>";
+				echo "<hr />";
 				$statement->close();
 			}
 			$oldid = $id;
@@ -479,7 +496,17 @@ function search() {
 		$joined_to_specialty = true;
 		$and = " and ";
 	}	
+	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
+	if ($individual=="on") { 
+		$hasquery = true;
+		$question .= "$and is an individual ";
+		$wherebit .= "$and agent.agenttype <> 3 ";
+		$and = " and ";
+	}
 	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+	if ($individual=="on") {  
+            $team = "";   // individual and team are mutually exclusive.
+        }
 	if ($team=="on") { 
 		$hasquery = true;
 		$question .= "$and is a team/group ";
