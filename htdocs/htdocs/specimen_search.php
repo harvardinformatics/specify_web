@@ -513,7 +513,7 @@ function details() {
 									$itemcuration = array();
 									$itemcuration['Harvard University Herbaria Barcode'] = $CatalogNumber;
 									$itemcuration['Herbarium'] = $acronym;
-									if ($provenance != "") { $itemcuration['Provenance'].= "$provenance"; } 
+									if ($provenance != "") { $itemcuration['Previous ownership'].= "$provenance"; } 
 									$item[] = $itemcuration;
 									// get any references linked to the fragment.
 									$query = "select r.title, r.text2 as volumes, r.referenceworkid " .
