@@ -506,6 +506,12 @@ text-decoration: none;
 color: #89201b;
 }
 
+#quicksearchtable { 
+ border-width: 1px; 
+ border-style: solid; 
+ border-color: gray; 
+}
+
 /* footer styles begin */
 	#footer {
 	color: white; 

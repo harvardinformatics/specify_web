@@ -90,7 +90,7 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 <h1>Databases</h1>
 <form action="specimen_search.php" method="GET">
    <input type="hidden" name="start" value="1">
-      <table align="center" cellspacing="6">
+      <table id="quicksearchtable" align="center" cellspacing="6" >
         <tr>
            <td>Specimen quick-search</td>
 	   <td colspan="2"><input type="text" name="quick" value="" size="30" maxlength="59"></td>
@@ -107,22 +107,22 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
    <table align="center" cellspacing="6">
 			<tr>
  				  <td>Genus</td>
-    			<td colspan="2">%<input type="text" name="gen" value="" size="30" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="gen" value="" size="30" maxlength="59"></td>
 				  <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
-    			<td colspan="2">%<input type="text" name="family" value="" size="30" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="family" value="" size="30" maxlength="59"></td>
     		</tr>
 			<tr>			
 				  <td>Specific epithet</td>
-    			<td colspan="2">%<input type="text" name="sp" value="" size="30" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="sp" value="" size="30" maxlength="59"></td>
 				  <td>Infraspecific epithet</td>
-    			<td colspan="2">%<input type="text" name="infra" value="" size="30" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="infra" value="" size="30" maxlength="59"></td>
 				  <td></td>
 		    </tr>
 			<tr>
  				<td>Author</td>
-    			<td colspan="2">%<input type="text" name="author" value="" size="30" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="author" value="" size="30" maxlength="59"></td>
 				  <td>Year published</td>
-    			<td colspan="2">%<input type="text" name="year" value="" size="4" maxlength="59"></td>
+    			<td colspan="2"><input type="text" name="year" value="" size="4" maxlength="59"></td>
     		</tr>
 			<tr>
  			  <td> </td>
@@ -150,9 +150,9 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 					</select></td></tr>
 			<tr>
 				  <td>Collector</td>
-    			<td colspan="2">%<input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
+    			<td colspan="2"><input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
 					<td>Collector no.</td>
-    			<td colspan="2">%<input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
+    			<td colspan="2"><input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
     		</tr>
     		<tr>
     			<td><a href="specimen_search.php?browsemode=countries">Country</a></td>
@@ -179,25 +179,25 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 
                     </select></td>
     			<td>Year Collected</td>
-    			<td collspan="2">%<input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
+    			<td collspan="2"><input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
     		</tr>	
 			<tr>
 					<td>Location</td>
-	  			<td colspan="2">&nbsp;&nbsp;&nbsp;<input type="text" name="loc" value="" size="30" maxlength="59" /></td>
+	  			<td colspan="2">%<input type="text" name="loc" value="" size="30" maxlength="59" />%</td>
 					<td>Substrate</td>
-    			<td colspan="2">%<input type="text" name="substrate" value="" size="20" maxlength="100" /></td>
+    			<td colspan="2"><input type="text" name="substrate" value="" size="20" maxlength="100" /></td>
 			<tr>
 			<tr>
 					<td>Habitat</td>
-    			<td colspan="2">%<input type="text" name="habitat" value="" size="20" maxlength="100" /></td>
+    			<td colspan="2"><input type="text" name="habitat" value="" size="20" maxlength="100" /></td>
 					<td>Host</td>
-    			<td colspan="2">%<input type="text" name="host" value="" size="20" maxlength="100" /></td>
+    			<td colspan="2"><input type="text" name="host" value="" size="20" maxlength="100" /></td>
     		</tr>
 			<tr>
 				    <td>Images</td>
     			<td colspan="2"><input type="checkbox" name="hasimage" value="on" />with images only </td>
 					<td>Previous ownership</td>
-    			<td colspan="2"><input type="text" name="provenance" value="" size="20" maxlength="100" /></td>
+    			<td colspan="2">%<input type="text" name="provenance" value="" size="20" maxlength="100" />%</td>
     		</tr>
 			<tr>
 					<td></td>
@@ -212,17 +212,28 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 	</table>
 </form>
  
-<p>Fields marked % do an exact match search unless * or % is added as a wildcard.  Other fields do wildcard searches.
+<p>Fields marked with a percentage sign [%] perform wildcard searches automatically. Other fields do an exact match search unless wildcards * or % are added.  Searches are case and collation insenstive.  Searching on collector 'c. j. muller' will find specimens collected by 'C. J. Müller'.</p>
+<p>Wildcards can be entered anywhere within a name. Entering a wildcard before a name indicates uncertainty about the beginning of the name. Entering a wildcard after the name indicates uncertainty about its ending. Wildcards within a name can be used when e.g. the correct spelling is unknown.  The % and * are equivalent wildcards that match any number of characters.  The underscore can be used as a wildcard to match any one character.  Some search terms (e.g. collector, habitat, substrate, host) will return ssuggestions for similar searches if no matching results are found.</p>
+<p>
 	For plant names, enter search keys in any combination to qualify the name:
 	family/higher taxon, genus, specific epithet, and infraspecific epithet.  Results are inclusive, 
     so it is possible to search for all specimens in a genus, for example.    
-	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	</p><p>
-	For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
+	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	</p>
+<p>For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
 	 Enter a collector's name in any form.
 	 For location, enter any part of a possible locality string.
-	 The Specimen quick-search will do a free text search and return up to the 100 most relevant results for the terms you provide.
-	 If a barcode number is entered, all other search parameters will be ignored.  Barcode searches are exact match only, but don't need leading zeroes.</p>
-<p>In search results, square brackets [ ] indicate entries made by the cataloger that do not necessarily reflect data present on the specimen labels.  </p>
+</p>
+<p>The Specimen quick-search will do a free text search and return up to the 100 most relevant results for the terms you provide.
+</p>
+<p>If a barcode number is entered, all other search parameters will be ignored.  Barcode searches are exact match only, but don't need leading zeroes.</p>
+<p>In search results, square brackets [ ] indicate entries made by the cataloger that do not necessarily reflect data present on the specimen labels.</p>
+<p>Some examples of wildcards in searches:</p>
+<ul>
+<li><em>%Muller</em> matches 'J. Born<strong>müller</strong>'; 'C. H. <strong>Muller</strong>'; 'C. J. <strong>Müller</strong>'; and 'I. M. Johnston & C. H. <strong>Muller</strong>', but not 'C. H. Muller & J. M. Tucker'.</li>
+<li><em>C. H. Muller%</em> matches '<strong>C. H. Muller</strong>'; '<strong>C. H. Muller</strong> & J. M. Tucker'; '<strong>C. H. Muller</strong> & L. C. Hinckley' and '<strong>C. H. Muller</strong> & M. T. Muller', but not 'I. M. Johnston & C. H. Muller'.</li>
+<li><em>%Muller%</em> matches 'C. H. <strong>Muller</strong>'; 'C. H. <strong>Muller</strong> & J. M. Tucker'; 'C. H. <strong>Muller</strong> & L. C. Hinckley' and 'I. M. Johnston & C. H. <strong>Muller</strong>'.</li>
+<li><em>C%M<strong>_</strong>ller</em> matches both C. E. M<strong>i</strong>ller and C. H. M<strong>u</strong>ller</li>
+</ul>
 
 
 <?php
