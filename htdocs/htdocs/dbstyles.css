@@ -378,6 +378,10 @@
 	padding-top: 10px;	
 	text-align: center;
 }
+#title a { 
+	color: #336633;
+    text-decoration:none;
+} 
 #desc {
 	border-top: 1px black solid;
 	border-bottom: 1px black solid;
