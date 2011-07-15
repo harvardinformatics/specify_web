@@ -1113,7 +1113,7 @@ function search() {
 			$wherebit .= "$and web_search.country $operator ? ";
 			$and = " and ";
 		}
-		$species = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['sp']),0,59);
+		$species = substr(preg_replace("/[^A-Za-z\- _%*]/","", $_GET['sp']),0,59);
 		$species = str_replace("*","%",$species);
 		if ($species!="") { 
 			$hasquery = true;
@@ -1126,7 +1126,7 @@ function search() {
 			$wherebit .= "$and web_search.species $operator ? ";
 			$and = " and ";
 		}
-		$infraspecific = substr(preg_replace("/[^A-Za-z _%*]/","", $_GET['infra']),0,59);
+		$infraspecific = substr(preg_replace("/[^A-Za-z\- _%*]/","", $_GET['infra']),0,59);
 		$infraspecific = str_replace("*","%",$infraspecific);
 		if ($infraspecific!="") { 
 			$hasquery = true;
