@@ -543,6 +543,7 @@ create table if not exists temp_dwc_search (
   collectioncode varchar(5),
   collectionid varchar(50),
   catalognumber varchar(32) not null unique,
+  catalognumbernumeric int,
   dc_type varchar(30) default 'PhysicalObject',
   basisofrecord varchar(30) default 'PreservedSpecimen',
   collectornumber varchar(50),
@@ -584,6 +585,9 @@ create table if not exists temp_dwc_search (
   scientificname varchar(255),
   scientificnameauthorship varchar(128),
   family varchar(255),
+  informationwitheld varchar(255),
+  datageneralizations varchar(255),
+  othercatalognumbers text,
 
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
@@ -600,7 +604,7 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
 -- 15 sec.
-insert ignore into temp_dwc_search (collectioncode, catalognumber, temp_identifier, temp_prepmethod) select distinct text1, concat(text1,'-huhbarcode-', identifier), identifier, prepmethod from fragment where identifier is not null; 
+insert ignore into temp_dwc_search (collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod) select distinct text1, concat(text1,'-huhbarcode-', identifier), identifier, identifier, prepmethod from fragment where identifier is not null; 
 
 create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 
@@ -726,6 +730,7 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.decimallongitude = locality.longitude1, temp_dwc_search.decimallatitude = locality.latitude1, temp_dwc_search.geodeticdatum = locality.datum where locality.localityid is not null;
 
 -- Per darwincore google code recomendations, use EPSG codes for datum.
+-- This doesn't sound right, as EPSG codes specify the entire coordinate reference system, not just the datum.
 update temp_dwc_search set geodeticdatum = 'EPSG:4326' where geodeticdatum = 'WGS84';
 update temp_dwc_search set geodeticdatum = 'EPSG:4269' where geodeticdatum = 'NAD83';
 update temp_dwc_search set geodeticdatum = 'EPSG:4267' where geodeticdatum = 'NAD27';
@@ -799,6 +804,38 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
        left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
        set temp_dwc_search.family = temp_taxon.family
        where taxon.taxonid is not null;
+
+-- Run setCitesChildren(); to make sure that all children of cites genera/families are also marked as cites listed, then queries can run 
+-- on the children without having to look up the parents.
+-- information witheld
+-- 31 sec
+update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
+       left join taxon on determination.taxonid = taxon.taxonid 
+       set locality = '[Redacted]', informationwitheld = 'Locality redacted.  Cites Listed Taxon.'
+       where taxon.citesstatus != 'None' and locality is not null;
+--  update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
+--       set locality = '[Redacted]', informationwitheld = 'Locality redacted.  Cites Listed Taxon.'
+--       where hasCitesParent(determination.taxonid) and locality is not null;
+
+-- data generalizations
+-- <1 sec.
+update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
+       left join taxon on determination.taxonid = taxon.taxonid 
+       set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongidude*10)/10, 
+       datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  Cites Listed Taxon.'
+       where taxon.citesstatus != 'None' and decimallatitude is not null and decimallongitude is not null;
+--  update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
+--       set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongidude*10)/10, 
+--       datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  Cites Listed Taxon.'
+--       where hasCitesParent(determination.taxonid) and decimallatitude is not null and decimallongitude is not null;
+
+-- othercatalognumbers  only providing accession number if present.  
+-- Do other identifiers go here as well, or does their project based nature put them elsewhere? 
+-- 5 sec
+update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier 
+   set temp_dwc_search.othercatalognumbers = concat(fragment.text1,'-accession-',fragment.accessionnumber)
+   where fragment.accessionnumber is not null;
+
 
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables

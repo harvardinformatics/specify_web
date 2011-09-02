@@ -17,14 +17,14 @@
 
 -- Add indexes to specify tables: 
 -- add index to taxon(rankid) to find particular ranks
-create index idx_taxon_rankid on taxon(rankid);
+-- create index idx_taxon_rankid on taxon(rankid);
 -- other indexes 
-create index idx_agent_specialty_role on agentspecialty(role);
-create index idx_agent_specialty_name on agentspecialty(specialtyname);
-create index idx_taxontreedefitem_name on taxontreedefitem(name);
+-- create index idx_agent_specialty_role on agentspecialty(role);
+-- create index idx_agent_specialty_name on agentspecialty(specialtyname);
+-- create index idx_taxontreedefitem_name on taxontreedefitem(name);
 
 -- index on picklistitem to allow lookup of names from values.
-create index picklistitemvalue on picklistitem(value);
+-- create index picklistitemvalue on picklistitem(value);
 
 
 -- Suporting functions that can be used by web interface to specify
@@ -190,6 +190,65 @@ CONTAINS SQL
 BEGIN
 	declare t_result bigint ;
 	select determinationid into t_result from determination where fragmentid = aFragmentId order by typestatusname desc, iscurrent desc, determineddate limit 1;
+	return t_result;
+END | 
+delimiter ;
+
+drop function if exists specify.hasCitesParent;
+
+delimiter |
+create function specify.hasCitesParent(aTaxonID INT)
+returns int
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+    declare cites varchar(64);
+	declare t_result int default 0 ;
+    declare done int default 0;
+    declare getcites cursor for
+    select t.citesstatus from taxon t where t.highestchildnodenumber >= (select nodenumber from taxon where taxonid = aTaxonID) and t.nodenumber<= (select highestchildnodenumber from taxon where taxonid = aTaxonID);
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    open getcites;
+    readloop: LOOP 
+      fetch getcites into cites;
+      if done then
+        LEAVE readloop;
+      end if;
+      if cites <> 'None' then
+         set t_result = 1;
+        LEAVE readloop;
+      end if;
+    end LOOP;
+	return t_result;
+END | 
+delimiter ;
+
+drop function if exists specify.setCitesChildren;
+
+-- needs create index taxoncites on taxon(citesstatus);
+
+delimiter |
+create function specify.setCitesChildren()
+returns int
+DETERMINISTIC 
+CONTAINS SQL
+BEGIN
+    declare status varchar(64);
+    declare node int default 0;
+    declare hcnode int default 0;
+	declare t_result int default 0 ;
+    declare done int default 0;
+    declare getcites cursor for
+    select t.nodenumber, t.highestchildnodenumber, citesstatus from taxon t where citesstatus is not null and citesstatus <> 'None' and t.nodenumber < t.highestchildnodenumber;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    open getcites;
+    readloop: LOOP 
+      fetch getcites into node, hcnode, status;
+      if done then
+        LEAVE readloop;
+      end if;
+      update taxon set citesstatus = status where citesstatus = 'None' and nodenumber > node and highestchildnodenumber < hcnode;
+    end LOOP;
 	return t_result;
 END | 
 delimiter ;
