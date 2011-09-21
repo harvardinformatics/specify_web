@@ -162,7 +162,8 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 
   @include_once("connection_library.php");
   //$query = "select name from geography where rankid = 200 order by name "; 
-  $query = "select country, count(*) from web_search where country is not null group by country order by country "; 
+  //$query = "select country, count(*) from web_search where country is not null group by country order by country "; 
+  $query = "select country, count(*) from dwc_search where country is not null group by country order by country "; 
   @$connection = specify_connect();
   if ($connection) {
 		@$statement = $connection->prepare($query);
