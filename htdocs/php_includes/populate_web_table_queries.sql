@@ -355,14 +355,13 @@ alter table temp_geography add column subcountryislands varchar(64);
 
 -- populate the country field
 -- 3 min 29 sec.
-update temp_web_search, temp_geography set country = temp_geography.name 
+update temp_web_search, temp_geography set temp_web_search.country = temp_geography.name 
   where geo_highestchild <= highestchildnodenumber 
     and geo_nodenumber >= nodenumber  
     and rankid = 200 
-    and country is null;
+    and temp_web_search.country is null;
     
-         Paul-
-> -- 4 min 15 sec.    
+-- 4 min 15 sec.    
 update temp_geography set state = getGeographyOfRank(300,highestchildnodenumber,nodenumber);
 -- 4 min 11 sec.
 update temp_geography set county = getGeographyOfRank(400,highestchildnodenumber,nodenumber);
@@ -793,7 +792,7 @@ update temp_dwc_search t left join determinationcitation dc on t.temp_determinat
 -- 58 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid
-       set temp_dwc_search.scientificname = concat(taxon.fullname,ifnull(taxon.author,'')),
+       set temp_dwc_search.scientificname = trim(concat(taxon.fullname,' ',ifnull(taxon.author,''))),
            temp_dwc_search.scientificnameauthorship = taxon.author
        where taxon.taxonid is not null;
 
@@ -821,7 +820,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 -- <1 sec.
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid 
-       set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongidude*10)/10, 
+       set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongitude*10)/10, 
        datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  Cites Listed Taxon.'
        where taxon.citesstatus != 'None' and decimallatitude is not null and decimallongitude is not null;
 --  update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
@@ -836,11 +835,12 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
    set temp_dwc_search.othercatalognumbers = concat(fragment.text1,'-accession-',fragment.accessionnumber)
    where fragment.accessionnumber is not null;
 
-
+-- Add indexes to dwc_search
+create index dwc_country on dwc_search(country);
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
-create table if not exist dwc_search (id int); 
+create table if not exists dwc_search (id int); 
 rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search;
 
 -- Clean up.  Remove the previous copies of the tables. 
