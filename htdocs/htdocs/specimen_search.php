@@ -544,7 +544,7 @@ function details() {
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
-										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid " .
+										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision " .
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -560,7 +560,7 @@ function details() {
 										$statement_det->execute();
 										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, 
 										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
-										              $determineragent, $text2, $determinationid );
+										              $determineragent, $text2, $determinationid, $determinedDatePrecision );
 										$statement_det->store_result();
 										$separator = "";
 										$typeStatus = "";
@@ -618,6 +618,7 @@ function details() {
 													}
 												}
 												if (trim($determinedDate)!="") { 
+													$determinedDate = transformDateText($determinedDate, $determinedDatePrecision);
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
 													$determination['Date Determined'] = "$determinedDate";
 												}
