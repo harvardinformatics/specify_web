@@ -1311,7 +1311,8 @@ function search() {
 					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid) " .
 						" from collector left join agent on collector.agentid = agent.agentid " .
 						" left join agentvariant on agent.agentid = agentvariant.agentid " .
-						" where (agentvariant.name like ? or soundex(agentvariant.name) = soundex(?)) " .
+                                                " where agentvariant.agentid in " .
+                                                "   (select agentid from agentvariant where (agentvariant.name like ? or soundex(agentvariant.name) = soundex(?))) " .
 						" and agentvariant.vartype =  4 " .
 						" group by agentvariant.name, agent.agentid order by agentvariant.name, count(collector.collectingeventid) ";
 					$wildcollector = "%$collector%";
