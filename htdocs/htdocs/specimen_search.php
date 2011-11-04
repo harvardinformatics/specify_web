@@ -317,7 +317,7 @@ function details() {
 								" from IMAGE_SET_collectionobject c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
 								" left join REPOSITORY r on o.repository_id = r.id " .
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
-								" where c.collectionobjectid = ? and o.active_flag = 1 " .
+								" where c.collectionobjectid = ? " .
 								" order by object_type_id desc ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
