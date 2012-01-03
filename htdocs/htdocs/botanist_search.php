@@ -140,6 +140,15 @@ function details() {
 					if ($datetype=="0") { 
 					     if ($dateofdeath=="") { $dateofbirthprecision = 3;   } 
 					}
+
+                    // temporary workaround for dates not being editable below year.
+                    if (substr($dateofbirth,4,10)=="-01-01") { 
+                       $dateofbirthprecision = 3;
+                    }
+                    if (substr($dateofdeath,4,10)=="-01-01") { 
+                       $dateofdeathprecision = 3;
+                    }
+
 					$dateofbirth = transformDateText($dateofbirth,$dateofbirthprecision);
 					$dateofdeath = transformDateText($dateofdeath,$dateofdeathprecision);
                                         $startdatetext = "Start Date";
