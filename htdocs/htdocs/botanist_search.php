@@ -559,7 +559,7 @@ function search() {
 		$question = "No search criteria provided.";
 	}
 	$query = "select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, year(agent.dateofbirth), year(agent.dateofdeath) " . 
+		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, year(agent.dateofbirth), year(agent.dateofdeath), datestype " . 
 		" from agent " .  
 		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agentvariant.name, agent.lastname, agent.firstname, agent.dateofbirth ";
 	if ($debug===true  && $hasquery===true) {
@@ -582,7 +582,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
 			echo "<div>\n";
 			echo $statement->num_rows . " matches to query ";
@@ -607,7 +607,11 @@ function search() {
 					    } else {
 					       $highlightedname = $fullname;	 
 					    }
-					    echo "<input type='checkbox' name='id[]' value='$agentid'><a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($yearofbirth - $yearofdeath) $team";
+                                            $datemod = "";
+                                            if ($datestype==1) { $datemod = "fl. "; } 
+                                            if ($datestype==2) { $datemod = "col. "; } 
+                                            if ($datestype==3) { $datemod = "rec. "; } 
+					    echo "<input type='checkbox' name='id[]' value='$agentid'><a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
 					    echo "<BR>\n";
 					}
 					$lastpair = "$agentid$fullname";
