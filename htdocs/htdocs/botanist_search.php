@@ -448,6 +448,7 @@ function search() {
 	$and = "";
 	$types = "";
 	$parametercount = 0;
+	$showid = substr(preg_replace("/[^a-z]/","", $_GET['showid']),0,4);
 
 	$name = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['name']),0,59);
 	if ($name!="") { 
@@ -611,7 +612,9 @@ function search() {
                                             if ($datestype==1) { $datemod = "fl. "; } 
                                             if ($datestype==2) { $datemod = "col. "; } 
                                             if ($datestype==3) { $datemod = "rec. "; } 
-					    echo "<input type='checkbox' name='id[]' value='$agentid'><a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
+                                            $showidvalue = "";
+                                            if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; } 
+					    echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
 					    echo "<BR>\n";
 					}
 					$lastpair = "$agentid$fullname";
