@@ -544,7 +544,7 @@ function details() {
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
-										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision " .
+										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision, specify.getHigherTaxonOfRank(140,taxon.highestchildnodenumber,taxon.nodenumber) as family " .
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -560,7 +560,7 @@ function details() {
 										$statement_det->execute();
 										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, 
 										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
-										              $determineragent, $text2, $determinationid, $determinedDatePrecision );
+										              $determineragent, $text2, $determinationid, $determinedDatePrecision, $family );
 										$statement_det->store_result();
 										$separator = "";
 										$typeStatus = "";
@@ -575,6 +575,7 @@ function details() {
 												if ($debug===true) { 
 												    $determination['detnumber'] = $determinationcounter;
 												}
+												$determination['Family'] = $family;
 												// retrieve determination/annotation details and store in an array  
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
