@@ -49,6 +49,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="unlinked_preparations") {
 		$mode = "unlinked_preparations"; 
 	}
+	if ($_GET['mode']=="unlinked_items") {
+		$mode = "unlinked_items"; 
+	}
 	if ($_GET['mode']=="collectionobjects_without_barcodes") {
 		$mode = "collectionobjects_without_barcodes"; 
 	}
@@ -99,6 +102,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 		        break;
 			case "unlinked_collectionobjects":	
 				echo unlinked_collectionobjects();
+				break;
+			case "unlinked_items":	
+				echo unlinked_items();
 				break;
 			case "unlinked_preparations":	
 				echo unlinked_preparations();
@@ -172,6 +178,7 @@ function menu() {
    $returnvalue .= "<div>";
    $returnvalue .= "<h2>Find anomalous values for Collection Objects</h2>";
    $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=unlinked_items'>Items without collection objects (likely to cause loans to fail to print)</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_preparations'>Preparations without Items</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=collectionobjects_without_barcodes'>Collection objects without barcodes</a></li>";
@@ -316,6 +323,37 @@ function unlinked_collectionobjects() {
    return $returnvalue;
 } 
  
+function unlinked_items() {
+        global $connection;
+   $returnvalue = "";
+   $query = " select fragment.identifier, preparation.identifier, loan.loannumber, " .
+            "        fragment.timestampcreated, agent.lastname " . 
+            " from fragment left join preparation on fragment.preparationid = preparation.preparationid "  .
+            "     left join loanpreparation on preparation.preparationid = loanpreparation.preparationid ". 
+            "     left join loan on loanpreparation.loanid = loan.loanid ". 
+   	    "     left join agent on fragment.createdbyagentid = agent.agentid " .
+            "  where fragment.collectionobjectid is null " . 
+            "  order by loan.loannumber desc, fragment.identifier asc ";
+        if ($debug) { echo "[$query]<BR>"; }
+    $returnvalue .= "<h2>Cases where an Item is not linked to a CollectionObject.  All of these are errors and need to be corrected.  This is a likely cause of loan paperwork failing to print, so loan numbers are included when preparations are involved in loans.</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $statement->execute();
+                $statement->bind_result($fragbarcode,$prepbarcode,$loannumber,$datecreated,$createdby);
+                $statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " orphan collection objects.</h2>";
+            $returnvalue .= "<table>";
+            $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Barcode</th><th>Loan Number</th></tr>";
+                while ($statement->fetch()) {
+                $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td><a href='specimen_search.php?mode=details&barcode=$fragbarcode'>$fragbarcode $prepbarcode</a></td><td>$loannumber</td></tr>";
+                }
+            $returnvalue .= "</table>";
+        }
+   return $returnvalue;
+}
+
+
+
 function unlinked_preparations() { 
 	global $connection;
    $returnvalue = "";
