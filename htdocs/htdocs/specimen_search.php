@@ -382,7 +382,11 @@ function details() {
 								$oldname = "";  // skip adjacent identical names if present in tree path.
 								while ($statement_geo->fetch()) { 
 									if ($geoName!='Earth' && $geoName!=$oldname) { 
-									   $geography .= $separator.$geoName;
+                                                                           if ($geoRank == "150") { 
+									       $geography .= $separator.$geoName." (Region)";
+                                                                           } else { 
+									       $geography .= $separator.$geoName;
+                                                                           }
 									   $separator = ": ";
 									}
 									if ($geoRank == "200") { $country = $geoName; } 
