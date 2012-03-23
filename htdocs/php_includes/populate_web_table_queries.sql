@@ -1,6 +1,9 @@
 -- Queries to build and populate specify 6 botany denormalized
 -- tables for searching the database over the web.
 
+-- Requires grant execute after firing against database.
+-- grant execute on procedure specify.populate_web_tables to 'specify_web_adm'@'kiki.huh.harvard.edu';
+
 -- Time benchmarks are on a laptop with a dual core 2GHz intel processor and 3GB ram.
 -- The following index is needed for any non-trivial taxonomic tree:
 -- create index idx_taxon_rankid on taxon(rankid); 
