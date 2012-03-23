@@ -587,6 +587,7 @@ create table if not exists temp_dwc_search (
   informationwitheld varchar(255),
   datageneralizations varchar(255),
   othercatalognumbers text,
+  timestamplastupdated datetime,
 
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
@@ -603,7 +604,7 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
 -- 15 sec.
-insert ignore into temp_dwc_search (collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod) select distinct text1, concat(text1,'-huhbarcode-', identifier), identifier, identifier, prepmethod from fragment where identifier is not null; 
+insert ignore into temp_dwc_search (collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, timestamplastupdated) select distinct text1, concat('barcode-', identifier), identifier, identifier, prepmethod, ifnull(timestampmodified,timestampcreated) from fragment where identifier is not null; 
 
 create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 
@@ -695,7 +696,6 @@ set
    d.island = g.subcountryislands, 
    d.highergeography = concat(
    ifnull(concat(g.continent,';'),''),
-   ifnull(concat(g.region,';'),''),
    ifnull(concat(g.archipelago,';'),''),
    ifnull(concat(g.country,';'),''),
    ifnull(concat(g.land,';'),''),
@@ -835,8 +835,8 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
    set temp_dwc_search.othercatalognumbers = concat(fragment.text1,'-accession-',fragment.accessionnumber)
    where fragment.accessionnumber is not null;
 
--- Add indexes to dwc_search
-create index dwc_country on dwc_search(country);
+-- Add indexes to dwc_search (but on temp_ not table, as there isn't an if not exists yet in MySQL
+create index dwc_country on temp_dwc_search(country);
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
