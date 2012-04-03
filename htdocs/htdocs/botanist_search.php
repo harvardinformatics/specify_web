@@ -201,7 +201,7 @@ function details() {
 							       $typestring = "Author name";
 							       break;
 							    case 3: 
-							       $typestring = "B&nbsp;&amp;&nbsp;Author&nbsp;Abbrev.";
+							       $typestring = "B&nbsp;&amp;&nbsp;P&nbsp;Author&nbsp;Abbrev.";
 							       break;
 							    case 4: 
 							       $typestring = "Standard/Label&nbsp;Name";
