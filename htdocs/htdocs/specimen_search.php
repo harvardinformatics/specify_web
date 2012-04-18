@@ -241,7 +241,8 @@ function details() {
 					" collectingevent.startdate, collectingevent.enddate, locality.maxelevation, locality.minelevation, " .
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
 					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
-					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber " .
+					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber, " .
+                                        " locality.verbatimelevation " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
@@ -252,7 +253,7 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
@@ -804,6 +805,12 @@ function details() {
 							// ********  Begin display information section *********** 
 							// Manipulate data if needed
 							if ($debug===true) {  echo "CollectionObjectID:[$CollectionObjectID]<BR>"; }
+							if (trim($maxElevation)!="") {
+                                                           $maxElevation = round($maxElevation);
+                                                        }  
+							if (trim($minElevation)!="") {
+                                                           $minElevation = round($minElevation);
+                                                        }  
 							if (trim($maxElevation)!="" && $maxElevation!=$minElevation) { 
 								$elevation = "$minElevation - $maxElevation";
 							} else { 
@@ -873,8 +880,13 @@ function details() {
 							if (trim($dateCollected!="")) { echo "<tr><td class='cap'>Date Collected</td><td class='val'>$dateCollected</td></tr>"; }
 							if (trim($elevation!="")) {  
 								if ($redactlocality === true ) { $elevation = "[Redacted]"; }
-								echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation</td></tr>"; 
+								echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation m</td></tr>"; 
 							}
+							if (trim($verbatimelevation!="")) {  
+								if ($redactlocality === true ) { $verbatimelevation = "[Redacted]"; }
+								echo "<tr><td class='cap'>Verbatim Elevation</td><td class='val'>$verbatimelevation</td></tr>"; 
+							}
+							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
 							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
 							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Substrate</td><td class='val'>$substrate</td></tr>"; }
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
