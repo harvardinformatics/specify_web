@@ -52,6 +52,9 @@ if (preg_replace("[^0-9]","",$_GET['botanistid'])!="") {
 if (preg_replace("[^0-9]","",$_GET['id'])!="") { 
 	$mode = "details"; 
 }
+if (preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid'])!="") { 
+	$mode = "details"; 
+}
 
 echo pageheader('agent'); 
 
@@ -94,7 +97,27 @@ function details() {
 	} else { 
 		$ids[0] = $id;
 	}
-	$botanistid = preg_replace("[^0-9]","",$_GET['botanistid']);
+    $uuid = preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid'])!="");
+    if ($uuid != "") { 
+        $query = "select primarykey, state from guids where tablename = 'agent' and uuid = ? ";
+        if ($debug) { echo "[$uuid]"; }
+        $statement = $connection->prepare($query);
+        $agent = "";
+        if ($statement) {
+           $statement->bind_param("s",$uuid);
+           $statement->execute();
+           $statement->bind_result($primarykey, $state);
+           $statement->store_result();
+           while ($statement->fetch()) {
+               $botanistid = $primarykey;
+               if ($state!='') { 
+                  echo "$uuid HUH Botanist $state";
+               } 
+           } 
+        }
+    } else { 
+	    $botanistid = preg_replace("[^0-9]","",$_GET['botanistid']);
+    }
 	if ($botanistid != "") {
 		$ids[] = $botanistid;
 	}
