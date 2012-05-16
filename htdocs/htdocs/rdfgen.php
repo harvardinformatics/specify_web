@@ -10,8 +10,9 @@
 
 <?php 
 
-// resolves to "http://kiki.huh.harvard.edu/databases/rdfgen.php?uuid=$uuid";
-$baseuri = 'http://purl.oclc.org/net/edu.harvard.huh/guid/";
+// Resolves to "http://kiki.huh.harvard.edu/databases/rdfgen.php?uuid=$uuid";
+// Maintaned at purl.oclc.org
+$baseuri = 'http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/";
 
 // See edu.ku.brc.specify.datamodel.Agent
 // Definitions for agentype:
