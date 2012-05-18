@@ -7,14 +7,14 @@
 
 
 
-$debug=TRUE;
+$debug=FALSE;
 
-$basedirectories[0] = "/private/var/automount/nfs_reshares/share_root-1/";
+$basedirectories[0] = "/mount/hideki/private/var/automount/nfs_reshares/share_root-1/";
 
 include_once('connection_library.php');
 include_once('specify_library.php');
 
-$connection = specify_connect();
+$connection = specify_spasa1_adm_connect();
 $errormessage = "";
 
 $mode = "rebuild";
@@ -27,6 +27,7 @@ $SUFFIXPATTERN = "(_[a-z]){0,1}"; // note, contains () affects array index in $m
 if ($connection) {
 
 for ($x=0;$x<count($basedirectories);$x++) { 
+   echo "Checking: " . $basedirectories[$x] . "\n";
    checkDirectory($basedirectories[$x], $basedirectories[$x]);
 }
 
@@ -36,6 +37,7 @@ function checkDirectory($base, $path)  {
 global $debug;
  
    if ($debug) { echo "PATH: $path\n"; } 
+   echo "PATH: $path\n";
 
    @$files = scandir($path);
    for ($i=0; $i<count($files); $i++) { 
@@ -83,6 +85,7 @@ global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EX
                echo $connection->error;
            } // end statement fetch
         } // end if statement
+        echo $connection->error;
    } // end match filename
 
    if ($debug) { echo "\n"; } 
