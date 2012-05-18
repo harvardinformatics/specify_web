@@ -590,8 +590,8 @@ create table if not exists temp_dwc_search (
   informationwitheld varchar(255),
   datageneralizations varchar(255),
   othercatalognumbers text,
+  fragmentguid char(43),
   timestamplastupdated datetime,
-
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
   temp_startdate date,
@@ -606,8 +606,8 @@ delete from temp_dwc_search;
 
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
--- 15 sec.
-insert ignore into temp_dwc_search (collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, timestamplastupdated) select distinct text1, concat('barcode-', identifier), identifier, identifier, prepmethod, ifnull(timestampmodified,timestampcreated) from fragment where identifier is not null; 
+-- 40 sec.
+insert ignore into temp_dwc_search (collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated) select distinct text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
 create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 
