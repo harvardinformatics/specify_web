@@ -5,10 +5,21 @@
 // defined by: 
 // create table IMAGE_LOCAL_FILE (id bigint not null primary key auto_increment, base text,  path text, filename varchar(900), extension varchar(4), barcode varchar(10), mimetype varchar(255), fragmentid bigint);
 
+// NOTE:
+// New rows are added to IMAGE_LOCAL_FILE for each image found.  To update the
+// list of image files, first fire the query: 
+// 
+// delete * from IMAGE_LOCAL_FILE;
+//
+// then re-run image_check.php.
 
-
+// Set to true for more output.
 $debug=FALSE;
 
+// Array of base directories to be checked.
+// Each of these will be stored as IMAGE_LOCAL_FILE.base
+// Each file found within will have the path from this base
+// stored in IMAGE_LOCAL_FILE.path
 $basedirectories[0] = "/mount/hideki/private/var/automount/nfs_reshares/share_root-1/";
 
 include_once('connection_library.php');
@@ -33,6 +44,12 @@ for ($x=0;$x<count($basedirectories);$x++) {
 
 }
 
+/** 
+ * Check a directory for image files. 
+ *
+ * @param base Base directory for path.
+ * @param path Path below base
+ */
 function checkDirectory($base, $path)  {
 global $debug;
  
@@ -52,6 +69,14 @@ global $debug;
 
 } 
 
+/** 
+ * Check to see if a file matches the pattern for image files, and 
+ * if so, store a record of it in the database.
+ * 
+ * @param base Base directory for path.
+ * @param path Path below base
+ * @param filename name of file to check against filenaming pattern.
+ */
 function checkFile($base, $path,$filename) { 
 global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EXTENSIONPATTERN;
 
