@@ -314,6 +314,32 @@ function annualreport($year) {
    $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(text2='FH','FC','GC'), text3 from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2 order by borrow.text2, borrow.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material returned in fiscal year $syear-$year","Borrows");
 
+    $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(borrow.text2='FH','FC','GC'), if(gethighertaxonofrank(140,highestchildnodenumber,nodenumber) is null, fullname, gethighertaxonofrank(140,highestchildnodenumber,nodenumber)) from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid left join taxon on borrowmaterial.taxonid = taxon.taxonid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2, taxon.taxonid order by borrow.text2, borrow.text1, text3";
+
+   $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material by family returned in fiscal year $syear-$year","Borrows");
+
+  
+   $query = "select country, abbreviation, count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower' group by country, abbreviation, fragment.text1, text3, loan.text2 order by country, abbreviation, loan.text2, loan.text1, text3;";
+
+   $returnvalue .= transactionitemlist($query,"Loans out by country and herbarium in fiscal year $syear-$year","Loans");
+
+   $query = "select country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
+
+   if ($debug) { echo "[$query]<BR>"; }
+   $returnvalue .= "<h2>Data Quality issues: Loans where the borrower accronym or country was blank.</h2>";
+   $statement = $connection->prepare($query);
+   if ($statement) {
+       $statement->execute();
+       $statement->bind_result($country,$toherbarium,$loannumber);
+       $statement->store_result();
+       $returnvalue .= "<table>";
+       $returnvalue .= "<tr><th>Country</th><th>Recipient</th><th>Loan Number</th></tr>";
+       while ($statement->fetch()) {
+           $returnvalue .= "<tr><td>$country</td><td>$toherbarium</td><td>$loannumber</td></tr>";
+       }
+       $returnvalue .= "</table>";
+   }
+
 
    return $returnvalue;
 }
@@ -381,6 +407,32 @@ function transactionitemtotals($query,$title,$type="Loans") {
      return $returnvalue;
 }
 
+function transactionitemlist($query,$title,$type="Loans") { 
+   global $connection,$debug;
+   $returnvalue = "";
+
+   if ($debug) { echo "[$query]<BR>"; }
+      $returnvalue .= "<h2>$title</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $statement->execute();
+                $statement->bind_result($country,$toherbarium,$loancount,$itemcount,$nonspecimencount,$typecount,$barcodecount,$herbarium,$unit,$purposeofloan);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $returnvalue .= "<tr><th>Country</th><th>Recipient</th><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcoded Items</th><th>Recipient Role</th></tr>";
+                while ($statement->fetch()) {
+                    if ($unit=='FC') { 
+                        $unit = "Farlow Collections"; 
+                    } 
+                    if ($unit=='GC') { 
+                        $unit = "General Collections"; 
+                    }
+                    $returnvalue .= "<tr><td>$country</td><td>$toherbarium</td><td>$unit</td><td>$herbarium</td><td>$loancount</td><td>$itemcount</td><td>$nonspecimencount</td><td>$typecount</td><td>$barcodecount</td><td>$purposeofloan</td></tr>";
+                }
+                $returnvalue .= "</table>";
+        }
+     return $returnvalue;
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
  
