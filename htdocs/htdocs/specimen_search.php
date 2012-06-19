@@ -575,7 +575,7 @@ function details() {
 									// **** Specify6-Botany Specific *****
 									// Determinations are associated with items (fragments).
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
-									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
+									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent=1 as iscurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
 										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision, specify.getHigherTaxonOfRank(140,taxon.highestchildnodenumber,taxon.nodenumber) as family, " .
 										" determination.yesno3=1 as isfiledunder, determination.yesno1=1 as islabel, determination.yesno2=1 as isfragment " .
@@ -615,7 +615,8 @@ function details() {
 												if ($isfragment==1) { $fragment = ' [is a fragment]'; } else { $fragment = ""; } 
 												if ($isfiledunder==1) { $filedunder = ' [is filed under name]'; } else { $filedunder = "[$isfiledunder]"; } 
 												if ($islabel==1) { $label = ' [is label name]'; } else { $label = ""; } 
-												$determinationRemarks .= "$fragment$filedunder$label";
+												if ($isCurrent==1) { $current = ' [is Current name]'; } else { $current = ""; } 
+												$determinationRemarks .= "$fragment$filedunder$label$current";
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
 												    $taxonname = "$qualifier <em>$fullName</em> $author";
