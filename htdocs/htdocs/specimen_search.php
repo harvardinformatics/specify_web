@@ -346,6 +346,34 @@ function details() {
 								echo "Error: " . $connection->error;
 							}
 							$statement_img->close();
+
+
+                                                        if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+							// HUH images known as local files are in IMAGE_LOCAL_FILES table
+                                                        // only show locally
+							$images = array();
+							$firstimage = array();
+							$query = "select path, filename " .
+								" from IMAGE_LOCAL_FILE i left join fragment f on i.fragmentid =f.fragmentid " .
+								" where f.collectionobjectid = ? ";
+							if ($debug===true) {  echo "[$query]<BR>"; }
+							$statement_img = $connection->prepare($query);
+							if ($statement_img) { 
+								$statement_img->bind_param("i",$id);
+								$statement_img->execute();
+								$statement_img->bind_result($imagepath,$imagefilename);
+								$statement_img->store_result();
+								$fullurl = "";
+								while ($statement_img->fetch()) { 
+								       $images[] = "File at: $imagepath/$imagefilename";
+								}
+							} else { 
+								echo "Error: " . $connection->error;
+							}
+							$statement_img->close();
+							} 
+
+
 							// **** End HUH Specific Block *****************
 							// *********************************************
 							
@@ -549,7 +577,8 @@ function details() {
 									//$query = "select fullname, typeStatusName, determinedDate, isCurrent, determination.remarks, taxon.nodenumber from determination left join taxon on determination.taxonid = taxon.taxonid where determination.collectionobjectid = ? order by typeStatusName desc, isCurrent, determinedDate"; 
 									$query = "select fullname, typeStatusName, confidence, qualifier, determinedDate, isCurrent, " .
 										" determination.remarks, taxon.nodenumber, taxon.author, determination.text1 as verifier, citesstatus, taxon.taxonid, " .
-										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision, specify.getHigherTaxonOfRank(140,taxon.highestchildnodenumber,taxon.nodenumber) as family " .
+										" getAgentName(agent.agentid), determination.text2 as annotationtext, determination.determinationid, determinedDatePrecision, specify.getHigherTaxonOfRank(140,taxon.highestchildnodenumber,taxon.nodenumber) as family, " .
+										" determination.yesno3=1 as isfiledunder, determination.yesno1=1 as islabel, determination.yesno2=1 as isfragment " .
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
@@ -565,7 +594,7 @@ function details() {
 										$statement_det->execute();
 										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent, 
 										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
-										              $determineragent, $text2, $determinationid, $determinedDatePrecision, $family );
+										              $determineragent, $text2, $determinationid, $determinedDatePrecision, $family, $isfiledunder, $islabel, $isfragment );
 										$statement_det->store_result();
 										$separator = "";
 										$typeStatus = "";
@@ -582,6 +611,11 @@ function details() {
 												}
 												$determination['Family'] = $family;
 												// retrieve determination/annotation details and store in an array  
+
+												if ($isfragment==1) { $fragment = ' [is a fragment]'; } else { $fragment = ""; } 
+												if ($isfiledunder==1) { $filedunder = ' [is filed under name]'; } else { $filedunder = "[$isfiledunder]"; } 
+												if ($islabel==1) { $label = ' [is label name]'; } else { $label = ""; } 
+												$determinationRemarks .= "$fragment$filedunder$label";
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
 												    $taxonname = "$qualifier <em>$fullName</em> $author";
