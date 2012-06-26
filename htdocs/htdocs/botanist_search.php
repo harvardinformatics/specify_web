@@ -91,13 +91,14 @@ echo pagefooter();
 
 function details() { 
 	global $connection, $errormessage, $debug;
+
 	$id = $_GET['id'];
 	if (is_array($id)) { 
 		$ids = $id;
 	} else { 
 		$ids[0] = $id;
 	}
-    $uuid = preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid'])!="");
+    $uuid = preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid']);
     if ($uuid != "") { 
         $query = "select primarykey, state from guids where tablename = 'agent' and uuid = ? ";
         if ($debug) { echo "[$uuid]"; }
@@ -137,8 +138,23 @@ function details() {
                         //  public static final byte                FLOURISHED         = 1;
                         //  public static final byte                COLLECTED          = 2;
                         //  public static final byte                RECEIVED_SPECIMENS = 3;
+			$query = "select guids.uuid " .
+				" from agent left join guids on agent.agentid = guids.primarykey " . 
+                                " where guids.tablename = 'agent' and agent.agentid = ?  ";
+			if ($debug) { echo "[$query]<BR>"; } 
+			$statement = $connection->prepare($query);
+			$uuid = "";
+			if ($statement) {
+				$statement->bind_param("i",$id);
+				$statement->execute();
+				$statement->bind_result($uuidfetch);
+				$statement->store_result();
+				while ($statement->fetch()) {
+                                   $uuid = $uuidfetch;
+                                }
+                        }
 			$query = "select firstname, lastname, remarks, dateofbirth, dateofbirthprecision, " .
-				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, datestype as datetype, dateofbirthconfidence, dateofdeathconfidence, guid " .
+				" dateofdeath, dateofdeathprecision, url, agentid, agenttype, datestype as datetype, dateofbirthconfidence, dateofdeathconfidence, agent.guid " .
 				" from agent where agent.agentid = ?  ";
 			if ($debug) { echo "[$query]<BR>"; } 
 			if ($debug) { echo "[$id]"; } 
@@ -200,6 +216,7 @@ function details() {
 					if (trim($remarks!=""))   { $agent .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($url!=""))   { $agent .=  "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
 					if (trim($botanistid!=""))   { $agent .=  "<tr><td class='cap'>ASA Botanist ID</td><td class='val'>$botanistid</td></tr>"; }
+					if (trim($uuid!=""&& ($agenttype==1 || $agenttype==3)))   { $agent .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid'>http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid</a></td></tr>"; }
 					$query = "select name, vartype from agentvariant where agentid = ? order by vartype ";
 					if ($debug) { echo "[$query]<BR>"; } 
 					$statement_var = $connection->prepare($query);
