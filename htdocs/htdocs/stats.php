@@ -55,6 +55,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="annualreport") {
 		$mode = "annualreport"; 
 	}
+	if ($_GET['mode']=="annualreport_details") {
+		$mode = "annualreport_details"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -73,7 +76,12 @@ if ($isinternal===TRUE) {
 		        echo herbarium_type_count();
 		        break;
 		    case "annualreport":
-		        echo annualreport($year);
+                        $year = preg_replace("[^0-9]","",$_GET['year']);
+		        echo annualreport($year,FALSE);
+		        break;
+		    case "annualreport_details":
+                        $year = preg_replace("[^0-9]","",$_GET['year']);
+		        echo annualreport($year,TRUE);
 		        break;
 		    case "family_type_count_summary":
 		        echo family_type_count_summary();
@@ -116,7 +124,8 @@ function menu() {
    $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Reports</h2>";
    $returnvalue .= "<ul>";
-   $returnvalue .= "<li><a href='stats.php?mode=annualreport&year='>Annual Report Statistics</li>";
+   $returnvalue .= "<li><a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</li>";
+   $returnvalue .= "<li><a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -213,7 +222,7 @@ function family_type_count_summary() {
    return $returnvalue;
 }
 
-function annualreport($year) { 
+function annualreport($year,$showdetails=FALSE) { 
    global $connection,$debug;
   
    $debug = TRUE;
@@ -224,6 +233,15 @@ function annualreport($year) {
    $syear = intval($year) - 1;
    $datestart = "$syear-05-31";
    $dateend = "$year-06-01";
+
+   if ($showdetails) { 
+      $returnvalue .= "<a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</a><br>";
+   } else { 
+      $returnvalue .= "<a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</a><br>";
+   }
+
+   // ************  Accessions   ********** 
+
    $query = "select count(accession.accessionid), accession.text1, 
        sum(itemcount), sum(typecount), sum(nonspecimencount), 
        sum(returncount), sum(distributecount), sum(discardcount) 
@@ -233,9 +251,10 @@ function annualreport($year) {
    group by accession.text1;
  ";
    if ($debug) { echo "[$query]<BR>"; } 
-      $returnvalue .= "<h2>Accessions in fiscal year $syear-$year</h2>";
-	$statement = $connection->prepare($query);
-	if ($statement) {
+
+   $returnvalue .= "<h2>Accessions in fiscal year $syear-$year</h2>";
+   $statement = $connection->prepare($query);
+   if ($statement) {
 		$statement->execute();
 		$statement->bind_result($accessions,$herbarium,$itemcount,$typecount,$nonspecimencount,$returncount,$distributecount,$discardcount);
 		$statement->store_result();
@@ -255,7 +274,46 @@ function annualreport($year) {
                 }
 	        $returnvalue .= "<tr><td><strong>Totals</strong></td><td>$taccessions</td><td>$titemcount</td><td>$ttypecount</td><td>$tnonspecimencount</td><td>$treturncount</td><td>$tdistributecount</td><td>$tdiscardcount</td></tr>";
 	        $returnvalue .= "</table>";
-	}
+   }
+
+   $query = "select count(accession.accessionid), accession.text1, 
+       sum(itemcount), sum(typecount), sum(nonspecimencount), 
+       sum(returncount), sum(distributecount), sum(discardcount),
+       accession.type
+   from accession left join accessionpreparation 
+      on accession.accessionid = accessionpreparation.accessionid 
+   where dateaccessioned > '$datestart' and dateaccessioned < '$dateend' 
+   group by accession.type, accession.text1;
+ ";
+   if ($debug) { echo "[$query]<BR>"; } 
+
+   $returnvalue .= "<h2>Accessions in fiscal year $syear-$year by type</h2>";
+   $statement = $connection->prepare($query);
+   if ($statement) {
+                $statement->execute();
+                $statement->bind_result($accessions,$herbarium,$itemcount,$typecount,$nonspecimencount,$returncount,$distributecount,$discardcount,$accessiontype);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $taccessions=0;$titemcount=0;$ttypecount=0;$tnonspecimencount=0;
+                $treturncount=0;$tdistributecount=0;$tdiscardcount=0;
+                $returnvalue .= "<tr><th>Type</th><th>Herbarium</th><th>Accessions</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Returned</th><th>Distributed</th><th>Discarded</th></tr>";
+                while ($statement->fetch()) {
+                    $returnvalue .= "<tr><td>$accessiontype</td><td>$herbarium</td><td>$accessions</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td>$returncount</td><td>$distributecount</td><td>$discardcount</td></tr>";
+                    $taccessions+=$accessions;
+                    $titemcount+=$itemcount;
+                    $ttypecount+=$typecount;
+                    $tnonspecimencount+=$nonspecimencount;
+                    $treturncount+=$returncount;
+                    $tdistributecount+=$distributecount;
+                    $tdiscardcount+=$discardcount;
+                }
+                $returnvalue .= "<tr><td><strong>Totals</strong></td><td>$taccessions</td><td>$titemcount</td><td>$ttypecount</td><td>$tnonspecimencount</td><td>$treturncount</td><td>$tdistributecount</td><td>$tdiscardcount</td></tr>";
+                $returnvalue .= "</table>";
+   }
+
+
+   // ************  Loans   ********** 
+
    $query = "select count(*), text2, purposeofloan, text3 from loan 
     where loandate > '$datestart' and loandate < '$dateend' 
     group by text2, purposeofloan, text3;";
@@ -295,9 +353,15 @@ function annualreport($year) {
                 $returnvalue .= "</table>";
         }
 
-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   // ************  Loan detailed breakdowns   ********** 
 
+   if ($showdetails) { 
+
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year");
+
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(fragment.identifier), '', loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join fragment on loanpreparation.preparationid = fragment.preparationid left join preparation on loanpreparation.preparationid = preparation.preparationid left join taxon t on preparation.taxonid = t.taxonid left join determination on fragment.fragmentid = determination.determinationid left join taxon t1 on determination.taxonid = t1.taxonid where loandate > '2011-05-31' and loandate < '2012-06-01' group by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) order by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber))));";
+   $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year by family/taxon","Loans","Taxon");
 
    $query = "select count(distinct loan.loanid), sum(rp.itemcount), sum(rp.nonspecimencount),sum(rp.typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join loanreturnpreparation rp on loanpreparation.loanpreparationid = rp.loanpreparationid  left join fragment on loanpreparation.preparationid = fragment.preparationid where returneddate > '$datestart' and returneddate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material on loan returned in fiscal year $syear-$year (loans may still be open)");
@@ -308,20 +372,86 @@ function annualreport($year) {
    $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate <= '$datestart' and isclosed = 0 group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of outstanding material in open Loans opened before fiscal year $syear-$year");
 
+   for ($x=0;$x<2;$x++) { 
+      if ($x==0) { $direction = 'Sent'; } else { $direction = 'Returned (closed)'; } 
+      if ($x==0) { $date = 'loandate'; } else { $date = 'dateclosed'; } 
+
+   $query = "select case country when 'USA' then country else 'International' end as isUSA, 'Any', count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where $date > '$datestart' and $date < '$dateend' and role = 'Borrower' group by case country when 'USA' then country else 'International' end, fragment.text1, text3, loan.text2 order by case country when 'USA' then country else 'International' end, loan.text2, loan.text1, text3;";
+
+   $returnvalue .= transactionitemlist($query,"Loans $direction by US/International in fiscal year $syear-$year","Loans");
+  
+   $query = "select country, abbreviation, count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where $date > '$datestart' and $date < '$dateend' and role = 'Borrower' group by country, abbreviation, fragment.text1, text3, loan.text2 order by country, abbreviation, loan.text2, loan.text1, text3;";
+
+   $returnvalue .= transactionitemlist($query,"Loans $direction by country and herbarium in fiscal year $syear-$year","Loans");
+
+   $query = "select case country when 'USA' then country else 'International' end as isUSA, case yesno3 when 1 then 'Visitor' else 'Not visitor' end as isvisitor, count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where $date > '$datestart' and $date < '$dateend' and role = 'Borrower' group by case country when 'USA' then country else 'International' end, case yesno3 when 1 then 'Visitor' else 'Not visitor' end, fragment.text1, text3, loan.text2 order by case country when 'USA' then country else 'International' end, case yesno3 when 1 then 'Visitor' else 'Not visitor' end,  loan.text2, loan.text1, text3;";
+
+   $returnvalue .= transactionitemlist($query,"Loans $direction by country and Visitor status in fiscal year $syear-$year","Loans");
+
+   }  // repeat for opened/closed
+
+   }  // show details 
+
+   // ************   Borrows   ********** 
+
    $query = "select count(distinct borrow.borrowid), sum(itemcount), sum(nonspecimencount),sum(typecount), 'n/a', borrow.text2, if(text2='FH','FC','GC'), text3 from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid where receiveddate > '$datestart' and receiveddate < '$dateend' group by text3, borrow.text2 order by borrow.text2, borrow.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material Borrowed in fiscal year $syear-$year","Borrows");
 
    $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(text2='FH','FC','GC'), text3 from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2 order by borrow.text2, borrow.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material returned in fiscal year $syear-$year","Borrows");
 
+   if ($showdetails) { 
+
     $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(borrow.text2='FH','FC','GC'), if(gethighertaxonofrank(140,highestchildnodenumber,nodenumber) is null, fullname, gethighertaxonofrank(140,highestchildnodenumber,nodenumber)) from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid left join taxon on borrowmaterial.taxonid = taxon.taxonid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2, taxon.taxonid order by borrow.text2, borrow.text1, text3";
 
-   $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material by family returned in fiscal year $syear-$year","Borrows");
+   $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material by family/taxon returned in fiscal year $syear-$year","Borrows","Taxon");
 
-  
-   $query = "select country, abbreviation, count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower' group by country, abbreviation, fragment.text1, text3, loan.text2 order by country, abbreviation, loan.text2, loan.text1, text3;";
+   } // show details 
 
-   $returnvalue .= transactionitemlist($query,"Loans out by country and herbarium in fiscal year $syear-$year","Loans");
+   // ************  Exchanges (out) ********** 
+
+   $query = "select exchangedate, text2, descriptionofmaterial, quantityexchanged, abbreviation from exchangeout
+    left join agent on exchangeout.senttoorganizationid = agent.agentid
+    where exchangedate > '$datestart' and exchangedate < '$dateend' 
+    order by text2, abbreviation
+    ;";
+   if ($debug) { echo "[$query]<BR>"; }
+      $returnvalue .= "<h2>Exchanges Out sent in fiscal year $syear-$year</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $statement->execute();
+                $statement->bind_result($date,$unit,$description,$quantity,$tounit);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $returnvalue .= "<tr><th>From</th><th>To</th><th>Quantity</th><th>Description</th></tr>";
+                while ($statement->fetch()) {
+                    $returnvalue .= "<tr><td>$unit</td><td>$tounit</td><td>$quantity</td><td>$description</td></tr>";
+                }
+                $returnvalue .= "</table>";
+        }
+
+   // ************  Gifts (out) ********** 
+
+   $query = "select count(distinct gift.giftid), sum(itemcount), sum(nonspecimencount),sum(typecount), purposeofgift, gift.text2 from gift left join giftpreparation on gift.giftid = giftpreparation.giftid where giftdate > '2011-05-31' and giftdate < '2012-06-01' group by gift.text2, purposeofgift order by gift.text2, purposeofgift";
+   if ($debug) { echo "[$query]<BR>"; }
+      $returnvalue .= "<h2>Gifts Out sent in fiscal year $syear-$year</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $statement->execute();
+                $statement->bind_result($giftcount,$itemcount,$noncount,$typecount,$purpose,$unit);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $returnvalue .= "<tr><th>From</th><th>Purpose</th><th>Number of Gifts</th><th>Item&nbsp;Count</th><th>Nonspecimen&nbsp;Count</th><th>Type&nbsp;Count</th></tr>";
+                while ($statement->fetch()) {
+                    $returnvalue .= "<tr><td>$unit</td><td>$purpose</td><td>$giftcount</td><td>$itemcount</td><td>$noncount</td><td>$typecount</td></tr>";
+                }
+                $returnvalue .= "</table>";
+        }
+
+
+
+
+   // ************  QC Checks   ********** 
 
    $query = "select country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
 
@@ -333,9 +463,9 @@ function annualreport($year) {
        $statement->bind_result($country,$toherbarium,$loannumber);
        $statement->store_result();
        $returnvalue .= "<table>";
-       $returnvalue .= "<tr><th>Country</th><th>Recipient</th><th>Loan Number</th></tr>";
+       $returnvalue .= "<tr><th>Loan Number</th><th>Country</th><th>Borrower(Herbarium)</th></tr>";
        while ($statement->fetch()) {
-           $returnvalue .= "<tr><td>$country</td><td>$toherbarium</td><td>$loannumber</td></tr>";
+           $returnvalue .= "<tr><td>$loannumber</td><td>$country</td><td>$toherbarium</td></tr>";
        }
        $returnvalue .= "</table>";
    }
@@ -344,7 +474,7 @@ function annualreport($year) {
    return $returnvalue;
 }
 
-function transactionitemtotals($query,$title,$type="Loans") { 
+function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient Role") { 
    global $connection,$debug;
    $returnvalue = "";
 
@@ -371,7 +501,7 @@ function transactionitemtotals($query,$title,$type="Loans") {
                 $statement->bind_result($loancount,$itemcount,$nonspecimencount,$typecount,$barcodecount,$herbarium,$unit,$purposeofloan);
                 $statement->store_result();
                 $returnvalue .= "<table>";
-                $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcoded Items</th><th>Recipient Role</th></tr>";
+                $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcoded Items</th><th>$groupcoll</th></tr>";
                 while ($statement->fetch()) {
                     if ($unit=='FC') { 
                         $floancount+=$loancount;
@@ -400,7 +530,7 @@ function transactionitemtotals($query,$title,$type="Loans") {
                 $returnvalue .= "<tr><td><strong>FH Totals</strong></td><td></td><td>$floancount</td><td>$fitemcount</td><td>$fnonspecimencount</td><td>$ftypecount</td><td>$fbarcodecount</td><td><strong>FH Total=$total</td></tr>";
                 $total = $gitemcount+$gnonspecimencount+$gbarcodecount;
                 $returnvalue .= "<tr><td><strong>GC Totals</strong></td><td></td><td>$gloancount</td><td>$gitemcount</td><td>$gnonspecimencount</td><td>$gtypecount</td><td>$gbarcodecount</td><td><strong>GC Total=$total</td></tr>";
-                $total = $titemcount+$tnonspecimencount+$barcodecount;
+                $total = $titemcount+$tnonspecimencount+$tbarcodecount;
                 $returnvalue .= "<tr><td><strong>Totals</strong></td><td></td><td>$tloancount</td><td>$titemcount</td><td>$tnonspecimencount</td><td>$ttypecount</td><td>$tbarcodecount</td><td><strong>Total=$total</td></tr>";
                 $returnvalue .= "</table>";
         }
