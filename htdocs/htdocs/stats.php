@@ -38,7 +38,7 @@ $mode = "menu";
  
 $isinternal = FALSE;
 
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1' || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
    $isinternal = TRUE;
 }
 
@@ -126,6 +126,10 @@ function menu() {
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</li>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</li>";
+   for ($year=intval(date("Y"));$year>1958;$year--) { 
+      $nextyear = $year-1;
+      $returnvalue .= "<li><a href='stats.php?mode=annualreport&year=$year'>$nextyear-$year Annual Report Statistics (summary)</li>";
+   }
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -225,19 +229,17 @@ function family_type_count_summary() {
 function annualreport($year,$showdetails=FALSE) { 
    global $connection,$debug;
   
-   $debug = TRUE;
-
    $returnvalue = "";
-   $year = substr(preg_replace("[^0-9]","",$value),0,4);
+   $year = substr(preg_replace("[^0-9]","",$year),0,4);
    if ($year=='') { $year = date('Y'); } 
    $syear = intval($year) - 1;
    $datestart = "$syear-05-31";
    $dateend = "$year-06-01";
 
    if ($showdetails) { 
-      $returnvalue .= "<a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</a><br>";
+      $returnvalue .= "Change to: <a href='stats.php?mode=annualreport&year=$year'>Annual Report Statistics (summary)</a><br>";
    } else { 
-      $returnvalue .= "<a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</a><br>";
+      $returnvalue .= "Change to: <a href='stats.php?mode=annualreport_details&year=$year'>Annual Report Statistics, with details (slow)</a><br>";
    }
 
    // ************  Accessions   ********** 
@@ -360,7 +362,7 @@ function annualreport($year,$showdetails=FALSE) {
    $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year");
 
-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(fragment.identifier), '', loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join fragment on loanpreparation.preparationid = fragment.preparationid left join preparation on loanpreparation.preparationid = preparation.preparationid left join taxon t on preparation.taxonid = t.taxonid left join determination on fragment.fragmentid = determination.determinationid left join taxon t1 on determination.taxonid = t1.taxonid where loandate > '2011-05-31' and loandate < '2012-06-01' group by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) order by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber))));";
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(fragment.identifier), '', loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join fragment on loanpreparation.preparationid = fragment.preparationid left join preparation on loanpreparation.preparationid = preparation.preparationid left join taxon t on preparation.taxonid = t.taxonid left join determination on fragment.fragmentid = determination.fragmentid left join taxon t1 on determination.taxonid = t1.taxonid where loandate > '2011-05-31' and loandate < '2012-06-01' group by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) order by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber))));";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year by family/taxon","Loans","Taxon");
 
    $query = "select count(distinct loan.loanid), sum(rp.itemcount), sum(rp.nonspecimencount),sum(rp.typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join loanreturnpreparation rp on loanpreparation.loanpreparationid = rp.loanpreparationid  left join fragment on loanpreparation.preparationid = fragment.preparationid where returneddate > '$datestart' and returneddate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";

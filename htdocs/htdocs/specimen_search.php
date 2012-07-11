@@ -875,7 +875,7 @@ function details() {
 								}
 							}
 							
-							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR'])) {
+							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
 								$redactlocality = false; 
 							}
 							
