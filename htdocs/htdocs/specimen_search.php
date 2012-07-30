@@ -67,6 +67,7 @@
 include_once('connection_library.php');
 include_once('specify_library.php');
 
+
 // value for $debug is set in specify_library.php
 if ($debug) { 
     // See PHP documentation. 
@@ -351,8 +352,6 @@ function details() {
                                                         if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
                                                         // only show locally
-							$images = array();
-							$firstimage = array();
 							$query = "select path, filename " .
 								" from IMAGE_LOCAL_FILE i left join fragment f on i.fragmentid =f.fragmentid " .
 								" where f.collectionobjectid = ? ";
