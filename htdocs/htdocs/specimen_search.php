@@ -1204,7 +1204,7 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*\.\,]/","", $_GET['cltr']),0,59);
+		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,]/","", urldecode($_GET['cltr'])),0,59);
 		$collector = str_replace("*","%",$collector);
 		if ($collector!="") { 
 			$hasquery = true;
@@ -1397,7 +1397,7 @@ function search() {
 							while ($statement->fetch()) {
 								$highlightedcollector = preg_replace("/$searchcollector/","<strong>$plaincollector</strong>",$collector);
 								if ($count>1) { $s = "s"; } else { $s = ""; }
-								echo "$highlightedcollector [<a href='specimen_search.php?mode=search&cltr=$collector'>$count record$s</a>]<br>";
+								echo "$highlightedcollector [<a href='specimen_search.php?mode=search&cltr=".urlencode($collector)."'>$count record$s</a>]<br>";
 							}
 							echo "<BR>";
 						}
