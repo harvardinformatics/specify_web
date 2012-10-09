@@ -67,7 +67,6 @@
 include_once('connection_library.php');
 include_once('specify_library.php');
 
-
 // value for $debug is set in specify_library.php
 if ($debug) { 
     // See PHP documentation. 
@@ -548,7 +547,9 @@ function details() {
 									if ($provenance != "") { $itemcuration['Previous ownership'].= "$provenance"; } 
 									$item[] = $itemcuration;
 									// get any references linked to the fragment.
-									$query = "select r.title, r.text2 as volumes, r.referenceworkid " .
+ // excicatti example
+ //select r.text1, c.text1, c.text2, referenceworktype, r.remarks from fragment f left join fragmentcitation c on f.fragmentid = c.fragmentid left join referencework r on c.referenceworkid = r.referenceworkid where identifier = '00377019';
+									$query = "select r.title, r.text2 as volumes, r.referenceworkid, r.text1, c.text1, c.text2, r.referenceworktype " .
 										" from referencework r left join fragmentcitation c on r.referenceworkid = c.referenceworkid " .
 										" where c.fragmentid = ? ";
 									if ($debug===true) {  echo "[$query]<BR>"; }
@@ -557,13 +558,18 @@ function details() {
 									if ($statement_ref) { 
 										$statement_ref->bind_param("i",$fragmentid);
 										$statement_ref->execute();
-										$statement_ref->bind_result($title, $volumes,$referenceworkid);
+										$statement_ref->bind_result($title, $volumes,$referenceworkid,$extitle,$text1,$text2,$referenceworktype);
 										$statement_ref->store_result();
 										$separator = "";
 										while ($statement_ref->fetch()) { 
-											if (trim($title)!="") { 
+											if (trim($title.$extitle)!="") { 
 												//$fragmentcitations.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
-												$fragmentcitations['Item Reference'] = $title;
+												if ($referenceworktype=="6") {
+
+													$fragmentcitations['Excicata'] = trim("$title $extitle $volumes $text1 $text2");
+												} else {
+													$fragmentcitations['Item Reference'] = trim("$title $extitle $volumes $text1 $text2");
+												}
 											}
 										}
 									} else {
@@ -1001,10 +1007,14 @@ function search() {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
-		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected " .
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected, c.collectornumber, c.collector " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
 			" where match (searchable) against (?) limit 100";
+		$ctquery = "select count(distinct c.barcode) " .
+			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
+			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
+			" where match (searchable) against (?) limit 100 ";
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
@@ -1277,46 +1287,66 @@ function search() {
 		// Note: Changes to select field list need to be synchronized with query on web_quicksearch above, and bind_result below. 
 		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
-			" i.imagesetid, web_search.datecollected " . 
+			" i.imagesetid, web_search.datecollected, web_search.collectornumber, web_search.collector " . 
 			" from collectionobject c 
 			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country ";
+		$ctquery = "select count(distinct web_search.barcode)" .
+			" from collectionobject c 
+			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
+			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit  ";
 	} 
 	if ($debug===true  && $hasquery===true) {
-		echo "[$query]<BR>\n";
+		echo "[$query][$ctquery]<BR>\n";
 	}
 	
 	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) { 
 		$statement = $connection->prepare($query);
+		$ctstatement = $connection->prepare($ctquery);
 		if ($statement) { 
 			if ($quick!="") { 
 				$statement->bind_param("s",$quick);
+				$ctstatement->bind_param("s",$quick);
 			} else { 
 				$array = Array();
 				$array[] = $types;
 				foreach($parameters as $par)
 				   $array[] = $par;
-                if (substr(phpversion(),0,4)=="5.3.") {
-                   // work around for bug in __call, or is it? 
-                   // http://bugs.php.net/bug.php?id=50394
-                   // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
-                   call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
-                } else {
-                   call_user_func_array(array($statement, 'bind_param'),$array);
-                }
+				$ctarray = Array();
+				$ctarray[] = $types;
+				foreach($parameters as $ctpar)
+				   $ctarray[] = $ctpar;
+                		if (substr(phpversion(),0,4)=="5.3.") {
+		                	// work around for bug in __call, or is it? 
+                   			// http://bugs.php.net/bug.php?id=50394
+                   			// http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
+                   			call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
+                   			call_user_func_array(array($ctstatement, 'bind_param'),make_values_referenced($ctarray));
+                		} else {
+                   			call_user_func_array(array($statement, 'bind_param'),$array);
+                   			call_user_func_array(array($ctstatement, 'bind_param'),$ctarray);
+                		}
 			}
+                        $ctstatement->execute();
+                        $ctstatement->bind_result($sp_count);
+                        $ctstatement->store_result();
+                        $specimen_count = "";
+                        while ($ctstatement->fetch()) { 
+                           $specimen_count = " finding $sp_count distinct specimens ";
+                        } 
+                        $ctstatement->close();
 			$statement->execute();
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
 		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
-			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected);
+			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector);
 			$statement->store_result();
 			
 			echo "<div>\n";
 			$count = $statement->num_rows;
 			if ($count==1) { $s = ""; } else { $s = "es"; }
-			echo "$count match$s to query ";
+			echo "$count match$s to query $specimen_count <BR>";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
@@ -1337,6 +1367,9 @@ function search() {
 					if (strlen($locality) > 12) { 
 						$locality = substr($locality,0,11) . "...";
 					}
+					if (strlen($collector) > 12) { 
+						$collector = substr($collector,0,11) . "...";
+					}
 					if (strlen($imagesetid)>0) { 
 						$imageicon = "<img src='images/leaf.gif'>";
 					} else {
@@ -1345,7 +1378,7 @@ function search() {
 					$FullName = " <em>$genus $species $infraspecific</em> $author";
 					$geography = "$country: $state $locality ";
 					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
-					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $datecollected $imageicon";
+					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $collector $collectornumber $datecollected $imageicon";
 					echo "<BR>\n";
 				}
 				echo "</div>\n";
@@ -1391,7 +1424,9 @@ function search() {
 						$statement->bind_result($collector, $count);
 						$statement->store_result();
 						if ($statement->num_rows > 0 ) {
-							echo "<h2>No matching results.</h2>";   // move the error message before this query
+                                                        if ($errormessage!="") { 
+							    echo "<h2>$errormessage</h2>";  
+                                                        }
 							echo "<h3>Possibly matching collectors</h3>";
 							$errormessage = "";   // clear the error message so it doesn't show at the end.'
 							while ($statement->fetch()) {
