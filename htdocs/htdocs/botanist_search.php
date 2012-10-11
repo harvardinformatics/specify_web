@@ -440,6 +440,7 @@ function details() {
 							    }
 						    } 
 						}
+                                                    // Display teams of which this agent is a member
                                                     $query = "select agentid,agentvariant.name from groupperson left join agentvariant on groupid = agentid  where memberid = ? and vartype =4";
 						    if ($debug) { echo "[$query]<BR>"; } 
 						    $statement_qc = $connection->prepare($query);
@@ -453,8 +454,43 @@ function details() {
 							        while ($statement_qc->fetch()) {
 							            $teams .= "<a href='botanist_search.php?mode=details&id=$groupagentid'>$groupagentname</a>&nbsp; ";
                                                                 }
-							        $agent .= "<tr><td class='cap'>Teams:</td><td class='val'>$teams</td></tr>";
+							        $agent .= "<tr><td class='cap'>Collector Teams:</td><td class='val'>$teams</td></tr>";
                                                             } 
+                                                     }
+                                                    $query = "select agentid,agentvariant.name from groupperson left join agentvariant on groupid = agentid  where memberid = ? and vartype =2";
+						    if ($debug) { echo "[$query]<BR>"; } 
+						    $statement_qc = $connection->prepare($query);
+						    if ($statement_qc) {
+							    $statement_qc->bind_param("i",$agentid);
+							    $statement_qc->execute();
+							    $statement_qc->bind_result($groupagentid,$groupagentname);
+							    $statement_qc->store_result();
+                                                            $teams = "";
+							    if ($statement_qc->num_rows()>0) { 
+							        while ($statement_qc->fetch()) {
+							            $teams .= "<a href='botanist_search.php?mode=details&id=$groupagentid'>$groupagentname</a>&nbsp; ";
+                                                                }
+							        $agent .= "<tr><td class='cap'>Author Teams:</td><td class='val'>$teams</td></tr>";
+                                                            } 
+                                                     }
+                                                     // display members of teams 
+                                                     if ($agenttype=='3') { 
+                                                    $query = "select agentid,agentvariant.name from groupperson left join agentvariant on memberid = agentid  where groupid = ? and vartype =?";
+						    if ($debug) { echo "[$query]<BR>"; } 
+						    $statement_qc = $connection->prepare($query);
+						    if ($statement_qc) {
+							    $statement_qc->bind_param("ii",$agentid,$type);
+							    $statement_qc->execute();
+							    $statement_qc->bind_result($groupagentid,$groupagentname);
+							    $statement_qc->store_result();
+                                                            $teams = "";
+							    if ($statement_qc->num_rows()>0) { 
+							        while ($statement_qc->fetch()) {
+							            $teams .= "<a href='botanist_search.php?mode=details&id=$groupagentid'>$groupagentname</a>&nbsp; ";
+                                                                }
+							        $agent .= "<tr><td class='cap'>Team Members:</td><td class='val'>$teams</td></tr>";
+                                                            } 
+                                                     }
                                                      }
 					}
 					
