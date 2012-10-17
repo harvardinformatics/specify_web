@@ -417,7 +417,8 @@ update temp_web_search w left join fragment f on w.collectionobjectid = f.collec
 -- 57 sec.
 update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid 
     left join collectingevent ce on c.collectingeventid = ce.collectingeventid 
-    set w.datecollected = getTextDate(ce.startdate, ce.startdateprecision)  
+    set w.datecollected = getTextDate(ce.startdate, ce.startdateprecision),
+    w.yearcollected = year(ce.startdate)  
     where ce.startdate is not null;
 
 -- set collector
@@ -458,7 +459,8 @@ update temp_web_search w left join fragment f on w.collectionobjectid = f.collec
   
 -- set year collected from date collected.
 -- 4 sec.
-update temp_web_search set yearcollected = year(datecollected);
+-- Replaced above, year doesn't handle arbitrary precision ISO dates.
+-- update temp_web_search set yearcollected = year(datecollected);
 
 -- set year published (using year of publication of taxon, not of fragment or of determination)
 -- 50 sec.
@@ -599,7 +601,10 @@ create table if not exists temp_dwc_search (
   temp_startdateprecision int,
   temp_enddateprecision int,
   temp_geographyid int,
-  temp_determinationid bigint
+  temp_determinationid bigint,
+  unredacted_locality text,
+  unredacted_decimallatitude decimal(12,10),
+  unredacted_decimallongitude decimal(13,10)
 ) ENGINE MyISAM CHARACTER SET utf8;
 
 delete from temp_dwc_search;
@@ -722,14 +727,14 @@ update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.ge
 set d.island = g.name where d.temp_geographyid is not null and g.rankid = 450 and d.island is null;
 
 -- Locality
-update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.locality = locality.localityname where locality.localityid is not null;
+update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.locality = locality.localityname, temp_dwc_search.unredacted_locality = locality.localityname where locality.localityid is not null;
 -- Verbatim locality, not available in HUH data.
 
 -- elevation. 
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.verbatimelevation = locality.verbatimelevation, temp_dwc_search.minimumelevationmeters = locality.minelevation, temp_dwc_search.maximumelevationmeters = locality.maxelevation where locality.localityid is not null;
 
 -- georeference
-update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.decimallongitude = locality.longitude1, temp_dwc_search.decimallatitude = locality.latitude1, temp_dwc_search.geodeticdatum = locality.datum where locality.localityid is not null;
+update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.decimallongitude = locality.longitude1, temp_dwc_search.decimallatitude = locality.latitude1, temp_dwc_search.geodeticdatum = locality.datum, temp_dwc_search.unredacted_decimallongitude = locality.longitude1, temp_dwc_search.unredacted_decimallatitude = locality.latitude1 where locality.localityid is not null;
 
 -- Per darwincore google code recomendations, use EPSG codes for datum.
 -- This doesn't sound right, as EPSG codes specify the entire coordinate reference system, not just the datum.
@@ -813,7 +818,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 -- 31 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid 
-       set locality = '[Redacted]', informationwitheld = 'Locality redacted.  Cites Listed Taxon.'
+       set locality = '[Redacted]', informationwitheld = 'Locality redacted.  CITES Listed Taxon.'
        where taxon.citesstatus != 'None' and locality is not null;
 --  update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
 --       set locality = '[Redacted]', informationwitheld = 'Locality redacted.  Cites Listed Taxon.'
@@ -824,7 +829,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid 
        set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongitude*10)/10, 
-       datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  Cites Listed Taxon.'
+       datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  CITES Listed Taxon.'
        where taxon.citesstatus != 'None' and decimallatitude is not null and decimallongitude is not null;
 --  update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
 --       set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongidude*10)/10, 
