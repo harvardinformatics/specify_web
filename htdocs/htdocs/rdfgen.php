@@ -1,15 +1,9 @@
 <?php 
 
-echo '<?xml version="1.0"?>
-<!DOCTYPE rdf:RDF [<!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">]>
-<rdf:RDF
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-  xmlns:foaf="http://xmlns.com/foaf/0.1/"
-  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
-  xmlns:bio="http://purl.org/vocab/bio/0.1/"
-  >
-';
+header('Content-type: application/rdf+xml');
+
+/*   <?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>
+*/
 
 // Resolves to "http://kiki.huh.harvard.edu/databases/rdfgen.php?uuid=$uuid";
 // Maintaned at purl.oclc.org
@@ -43,12 +37,28 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
    // Prevents web call to generate entire rdf/xml dump, alows this
    // dump only from command line call.
 
+
+   echo '<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+  <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+]>
+';
+
    if ($request_uuid!='') { 
+      echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
       echo "<!-- request: $request_uuid -->\n";
       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, state from guids left join agent on agent.agentid = guids.primarykey where tablename = 'agent' and (agenttype > 0 or agenttype is null) and uuid = ? order by agenttype asc ";
    } else { 
        $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey where tablename = 'agent' and agenttype > 0 order by agenttype asc ";
    }
+   echo '<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:bio="http://purl.org/vocab/bio/0.1/"
+  >
+';
    
    if ($debug) { 
        echo "<! query: $sql >\n";
@@ -87,7 +97,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
              } 
              $row .= "   <foaf:topic_interest xml:lang=\"en-US\">Botany</foaf:topic_interest>\n";
              if ($url!='') { 
-               $url = rawurlencode($url);
+               //$url = rawurlencode($url);
                $row .= "   <foaf:isPrimaryTopicOf rdf:resource=\"$url\" />\n";
              }
              $sqln = "select distinct name from agentvariant where agentid = ? order by vartype desc ";
@@ -150,7 +160,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
              // skip agent type 0 - organization
              // skip agent type 2 - other
              if ($agenttype ==3) { 
-                $row = "<foaf:Person rdf:about=\"$baseiuri$uuid\" >
+                $row = "<foaf:Group rdf:about=\"$baseuri$uuid\" >
           <foaf:isPrimaryTopicOf rdf:resource=\"http://kiki.huh.harvard.edu/databases/botanist_search.php?id=$primarykey\" />\n";
                 $row .= "    <foaf:topic_interest>Botany</foaf:topic_interest>\n"; 
                 $remarks = trim($remarks);
@@ -160,7 +170,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
                     $row .= "    <skos:note>$remarks</skos:note>\n"; 
                 }
                 if ($url!='') {
-                  $url = rawurlencode($url);
+                  //$url = rawurlencode($url);
                   $row .= "   <foaf:isPrimaryTopicOf rdf:resource=\"$url\" />\n";
                 }
                 $sqln = "select distinct name from agentvariant where agentid = ? order by vartype desc ";
@@ -190,16 +200,16 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
                       $row .= "   <foaf:member rdf:resource=\"$baseuri$memberuuid\" />\n";
                    }
                 }
-                $row .= "</foaf:Person>\n";
+                $row .= "</foaf:Group>\n";
              }
          } 
          echo $row;
       }
    } // end if else 
+   echo '</rdf:RDF>';
 
 } // end is cli or has uuid parameter
 
-echo '</rdf:RDF>';
 
 ?>
 

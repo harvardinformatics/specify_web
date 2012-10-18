@@ -59,6 +59,11 @@ if ($_GET['mode']!="")  {
 	}
 
 } 
+if ($_POST['mode']!="")  {
+	if ($_POST['mode']=="specimens_dwc") {
+		$mode = "specimens_dwc"; 
+	}
+}
 	
 
   
@@ -66,6 +71,9 @@ if ($_GET['mode']!="")  {
 		if ($debug) {  echo "[$mode]"; } 
 		
 		switch ($mode) {
+		    case "specimens_dwc":
+		        echo specimens_dwc();
+		        break;
 		    case "california_dwc":
 		        echo california_dwc();
 		        break;
@@ -141,18 +149,18 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; } 
    $file = fopen($tempfilename,"w");
 
-   $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where stateprovince = 'California' and collectioncode <> 'FH' ";
+   $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers, timestamplastupdated from dwc_search where stateprovince = 'California' and collectioncode <> 'FH' ";
 
    if ($debug) { echo "[$query]<BR>"; } 
-        $linearray = array ("institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
+        $linearray = array ("institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers","datelastupdated" ) ;
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
-		$statement->bind_result($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
+		$statement->bind_result($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers, $datelastupdated);
 		$statement->store_result();
 		while ($statement->fetch()) {
-	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
+	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated") ;
                     fputcsv($file,$linearray);
                 } 
 	}
@@ -482,6 +490,72 @@ if ( !function_exists('sys_get_temp_dir')) {
 
 }
 
+function specimens_dwc() { 
+	global $connection,$debug;
+    
+// From comments in php docs
+if ( !function_exists('sys_get_temp_dir')) {
+  function sys_get_temp_dir() {
+      if( $temp=getenv('TMP') )        return $temp;
+      if( $temp=getenv('TEMP') )        return $temp;
+      if( $temp=getenv('TMPDIR') )    return $temp;
+      $temp=tempnam(__FILE__,'');
+      if (file_exists($temp)) {
+          unlink($temp);
+          return dirname($temp);
+      }
+      return null;
+  }
+}
+
+   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; } 
+   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
+   if ($debug) { echo "[$tempfilename]<BR>"; } 
+   $file = fopen($tempfilename,"w");
+   $collectionobjectids = "";
+
+	$id = preg_replace("[^0-9,]","",$_POST['id']);
+	if ($id!="") { 
+		if (is_array($id)) { 
+			$ids = $id;
+		} else { 
+			$ids[0] = $id;
+		}
+	}
+   $comma = "";
+   for ($i=0;$i<count($ids);$i++) { 
+      $collectionobjectids .= "$comma$id";
+      $comma = ",";
+   }
+
+
+   $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers, timestamplastupdated from dwc_search where collectionobjectid in ($collectionobjectids) ";
+
+   if ($debug) { echo "[$query]<BR>"; } 
+        $linearray = array ("institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers","datelastupdated" ) ;
+        fputcsv($file,$linearray);
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers, $datelastupdated);
+		$statement->store_result();
+		while ($statement->fetch()) {
+	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated") ;
+                    fputcsv($file,$linearray);
+                } 
+	}
+        fclose($file);
+
+        // write header and send file to browser
+        header("Content-Type: application/csv; charset=utf-8");
+        header("Content-Disposition: attachment;Filename=HUH_specimenreport.csv");
+        header("Cache-Control: no-cache, must-revalidate"); 
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
+        readfile($tempfilename);
+        // remove temp file
+        unlink($tempfilename);
+
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
  

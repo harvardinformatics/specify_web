@@ -565,8 +565,10 @@ function details() {
 											if (trim($title.$extitle)!="") { 
 												//$fragmentcitations.= "<tr class='item_row'><td class='cap'>Reference</td><td class='val'>$title</td></tr>";
 												if ($referenceworktype=="6") {
+													if ($text1 !="") { $text1 = "Fascicle $text1"; } 
+													if ($text2 !="") { $text2 = "Number $text2"; } 
 
-													$fragmentcitations['Excicata'] = trim("$title $extitle $volumes $text1 $text2");
+													$fragmentcitations['Excicata'] = trim("<em>$title $extitle</em> $volumes $text1 $text2");
 												} else {
 													$fragmentcitations['Item Reference'] = trim("$title $extitle $volumes $text1 $text2");
 												}
@@ -1358,6 +1360,8 @@ function search() {
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "<BR><div>\n";
 				$oldfamilylink = "";
+                                $comma = "";
+                                $CollectionObjectIDs = "";
 				while ($statement->fetch()) { 
 					$familylink = "<strong><a href='specimen_search.php?family=$family'>$family</a></strong>";
 					if ($familylink != $oldfamilylink) {
@@ -1379,11 +1383,20 @@ function search() {
 					$geography = "$country: $state $locality ";
 					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
 					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $collector $collectornumber $datecollected $imageicon";
+                                        // Obtain a list of collectionobjectids to pass to dumps to obtain spreadsheet.
+					$CollectionObjectIDs.= "$comma$CollectionObjectID";
+                                        $comma = ",";
 					echo "<BR>\n";
 				}
 				echo "</div>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "</form>\n";
+				$dumpform = "<form  action='dumps.php' method='post'>\n";
+				$dumpform .=  "<input type='hidden' name='mode' value='specimens_dwc'>\n";
+				$dumpform.= "<input type='hidden' name='id' value='$CollectionObjectIDs'>";
+				$dumpform .= "<input type='submit' name='display' value='Download records' />\n";
+				$dumpform.= "</form>\n";
+                                echo $dumpform;
 				
 			} else {
 				$errormessage .= "No matching results. ";

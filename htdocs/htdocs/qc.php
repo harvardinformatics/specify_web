@@ -538,20 +538,22 @@ function weekly_rate($type='created') {
    if ($type=='modified') { 
    	  $type='last modified';
    	  $effort = "does not capture";
-   $query = "select count(c.collectionobjectid), lastname, year(c.timestampmodified), week(c.timestampmodified) " .
+   $query = "select count(f.fragmentid), lastname, year(c.timestampmodified), week(c.timestampmodified) " .
    		" from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid " .
+   		" left join fragment f on c.collectionobjectid = f.collectionobjectid " .
    		" group by lastname, year(c.timestampmodified), week(c.timestampmodified)" .
    		" order by lastname, year(c.timestampmodified), week(c.timestampmodified) ";
    } else { 
    	  $type='created';
    	  $effort = "significantly underestimates";
-   $query = "select count(c.collectionobjectid), lastname, year(c.timestampcreated), week(c.timestampcreated) " .
+   $query = "select count(f.fragmentid), lastname, year(c.timestampcreated), week(c.timestampcreated) " .
    		" from collectionobject c left join agent on c.createdbyagentid = agent.agentid " .
+   		" left join fragment f on c.collectionobjectid = f.collectionobjectid " .
    		" group by lastname, year(c.timestampcreated), week(c.timestampcreated)" .
    		" order by lastname, year(c.timestampcreated), week(c.timestampcreated) ";
    }
 	if ($debug) { echo "[$query]<BR>"; } 
-    $returnvalue .= "<h2>New Collection Object Records $type per person per week.</h2>";
+    $returnvalue .= "<h2>New Barcoded Item Records $type per person per week.</h2>";
     $returnvalue .= "<h2>Note: This report $effort data quality and data enhancement efforts.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
@@ -561,7 +563,7 @@ function weekly_rate($type='created') {
 	    $fullist .= "<table>";
 	    $fullist .= "<tr><th>Record $type By</th><th>Year</th><th>Week</th><th>Number $type in Week</th></tr>";
 	    $summary .= "<table>";
-	    $summary .= "<tr><th>Record $type By</th><th>Total Collection Object Records $type</th></tr>";
+	    $summary .= "<tr><th>Record $type By</th><th>Total Barcoded Item Records $type</th></tr>";
 	    $persontotal = 0;
 	    $oldperson = "";
 		while ($statement->fetch()) {
