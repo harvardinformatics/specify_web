@@ -593,7 +593,7 @@ create table if not exists temp_dwc_search (
   informationwitheld varchar(255),
   datageneralizations varchar(255),
   othercatalognumbers text,
-  fragmentguid char(43),
+  fragmentguid char(100),
   timestamplastupdated datetime,
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
@@ -613,21 +613,27 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
-insert ignore into temp_dwc_search (collectionojectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
+-- make the fragment guid resolvable
+update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
+
+-- Index on the catalog number to speed later operations.
 create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 
 -- 00220822 has prepmethod = 'Protolog' ???
 update temp_dwc_search set dc_type = 'StillImage' where temp_prepmethod = 'Photograph' or temp_prepmethod = 'Drawing';
--- set collectionid to the biocol lsid for each herbarium.
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:15406' where collectioncode = 'A';
--- ?? Biocol reports GH as Harvard University Herbaria, not Gray Herbarium, needs fixing?  ??
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:15631' where collectioncode = 'GH';
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:15408' where collectioncode = 'AMES';
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:15407' where collectioncode = 'ECON';
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:13199' where collectioncode = 'FH';
+-- set collectionid to the biocol lsid for each herbarium
+-- (using the non-resolvable lsid per AppleCore guidance)
+-- Prepend http://biocol.org/ to make resolvable: 
+-- e.g. http://biocol.org/urn:lsid:biocol.org:col:15631
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15406' where collectioncode = 'A';
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15631' where collectioncode = 'GH';
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15408' where collectioncode = 'AMES';
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15407' where collectioncode = 'ECON';
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:13199' where collectioncode = 'FH';
 -- ?? Is NEBC under the institution Harvard University?  ??
-update temp_dwc_search set collectionid = 'http://biocol.org/urn:lsid:biocol.org:col:15868' where collectioncode = 'NEBC';
+update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15868' where collectioncode = 'NEBC';
 
 -- collectornumber
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.collectornumber = collectingevent.stationfieldnumber where collectingevent.stationfieldnumber is not null;
