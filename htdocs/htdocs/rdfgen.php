@@ -1,6 +1,12 @@
 <?php 
 
-header('Content-type: application/rdf+xml');
+if (strpos($_SERVER['HTTP_ACCEPT'],"application/rdf+xml")!==false || strpos($_SERVER['HTTP_USER_AGENT'],'Firefox')!==false) {
+    // If firefox, or specifically requested, provide correct content type for response.
+    header('Content-type: application/rdf+xml');
+} else { 
+    // Tell chrome/IE/Opera, other browsers that response is html
+    header('Content-type: text/html');
+}
 
 /*   <?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>
 */
@@ -44,9 +50,79 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
 ]>
 ';
 
+   $target = "agent";
+
+   if ($request_uuid!='') { 
+     // what sort of object is this a guid for? 
+     // botanist?, occurance?, publication? 
+     $sql = "select tablename from guids where uuid = ? ";
+     $statement = $connection->prepare($sql);
+     if ($statement) {
+       $statement->bind_param('s',$request_uuid);
+       $statement->execute();
+       $statement->bind_result($tablename);
+       $statement->store_result();
+       while ($statement->fetch()) {
+         $target = $tablename;
+       }
+     }
+   }
+
+     switch ($target) { 
+
+      case "fragment": 
+	   if ($request_uuid!='') { 
+	      echo '<?xml-stylesheet type="text/xsl" href="specimenstyle.xsl"?>'."\n";
+	      echo "<!-- request: $request_uuid -->\n";
+	      if ($debug) { 
+	         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
+   	         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
+              }
+              $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier) from guids left join  fragment on guids.primarykey =  fragment.fragmentid  where uuid = ? '; 
+	      echo '<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dwc="http://rs.tdwg.org/dwc/terms/"
+  >
+';
+	      if ($debug) { 
+	          echo "<! query: $sql >\n";
+   	      }
+   $statement = $connection->prepare($sql);
+   if ($statement) {
+      if ($request_uuid!='') { 
+        $statement->bind_param('s',$request_uuid);
+      }
+      $statement->execute();
+      $statement->bind_result($collectionCode, $catalogNumber );
+      $statement->store_result();
+      while ($statement->fetch()) {
+         $row = "";
+         $occuri = "$baseuri$uuid";
+         $row = "<dwc:Occurrence rdf:about=\"$occuri\" >\n";
+             if ($collectionCode!='') { $collectionCode = "   <dwc:collectionCode>$collectionCode</dwc:collectionCode>\n"; } 
+             if ($catalogNumber!='') { $catalogNumber = "   <dwc:catalogNumber>$catalogNumber</dwc:catalogNumber>\n"; } 
+         $row .= "$collectionCode$catalogNumber</dwc:Occurrence>\n";
+         echo $row;
+	   } // end while  
+      } // end if statement 
+   echo '</rdf:RDF>';
+      } // end if request_uri
+         break;
+
+      case "publication":
+         break;
+
+      case "agent":
+      default;
+
    if ($request_uuid!='') { 
       echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
       echo "<!-- request: $request_uuid -->\n";
+      if ($debug) { 
+         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
+         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
+      } 
       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, state from guids left join agent on agent.agentid = guids.primarykey where tablename = 'agent' and (agenttype > 0 or agenttype is null) and uuid = ? order by agenttype asc ";
    } else { 
        $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey where tablename = 'agent' and agenttype > 0 order by agenttype asc ";
@@ -207,6 +283,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
       }
    } // end if else 
    echo '</rdf:RDF>';
+
+   }
 
 } // end is cli or has uuid parameter
 
