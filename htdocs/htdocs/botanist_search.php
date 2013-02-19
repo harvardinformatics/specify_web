@@ -258,6 +258,51 @@ function details() {
 						// if a collector name wasn't found, set from any found name.
 						if ($collectorname == "") { $collectorname = $name; }
 					    $agent =  "<tr><td class='cap'>Name</td><td class='val'>$name</td></tr>" . $agent ;
+
+                                                        $images = array();
+                                                        $firstimage = array();
+                                                        $query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size " .
+                                                                " from IMAGE_SET_agent c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
+                                                                " left join REPOSITORY r on o.repository_id = r.id " .
+                                                                " left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
+                                                                " where c.agentid = ? " .
+                                                                " order by object_type_id desc ";
+                                                        if ($debug===true) {  echo "[$query]<BR>"; }
+                                                        $statement_img = $connection->prepare($query);
+                                                        if ($statement_img) {
+                                                                $statement_img->bind_param("i",$agentid);
+                                                                $statement_img->execute();
+                                                                $statement_img->bind_result($url,$height,$width,$imagename,$filesize);
+                                                                $statement_img->store_result();
+                                                                $fullurl = "";
+                                                                while ($statement_img->fetch()) {
+                                                                        if ($imagename == "Thumbnail") {
+                                                                                //$firstimage .= "<tr><td class='cap'></td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
+                                                                                $firstimage[] = "<a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a>";
+                                                                        } elseif ($imagename=='PDS') { 
+                                                                                $images[] .= "Images: <a href='$url'>$imagename</a> [Page Turned Object]";
+                                                                        } else {
+                                                                                if ($imagename == "Full") {
+                                                                                        $fullurl = $url;
+                                                                                }
+                                                                                $size = floor($filesize / 1024);
+                                                                                $size = $size . " kb";
+                                                                                //$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
+                                                                                $images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                echo "Error: " . $connection->error;
+                                                        }
+                                                        $statement_img->close();
+
+                                                        foreach ($images as $value) {
+                                                              if (trim(value!=""))   { 
+					                           $agent =  $agent . "<tr><td class='cap'>Image</td><td class='val'>$value</td></tr>";
+							      }
+                                                        }
+
+
 						$query = "select geography.name, agentgeography.role " .
 							" from agentgeography left join geography on agentgeography.geographyid = geography.geographyid " .
 							" where agentid = ? " .

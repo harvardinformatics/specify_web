@@ -192,6 +192,23 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
                    $count++;
                 }
              }
+             $query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size " .
+                      " from IMAGE_SET_agent c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
+                      " left join REPOSITORY r on o.repository_id = r.id " .
+                      " left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
+                      " where c.agentid = ? " .
+                      " order by object_type_id desc ";
+             $statement_img = $connection->prepare($query);
+             if ($statement_img) {
+             	$statement_img->bind_param("i",$primarykey);
+                $statement_img->execute();
+                $statement_img->bind_result($url,$height,$width,$imagename,$filesize);
+                $statement_img->store_result();
+                while ($statement_img->fetch()) {
+               		$row .= "   <foaf:isPrimaryTopicOf rdf:resource=\"$url\" />\n";
+                }
+             } 
+
              $row .= "</foaf:Person>\n";
              if ($datestype==0) { 
                 if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   }
