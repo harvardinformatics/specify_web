@@ -264,25 +264,25 @@ function details() {
 							
 							// Determine if this is a simple collection object (one collectionobject, one fragment, one preparation) or not. 
 							$objectcomplexity = array();
-							$query = "select count(*) from collectionobject c " .
-									" left join fragment f on c.collectionobjectid = f.collectionobjectid " .
-									" left join preparation p on f.preparationid = p.preparationid " .
-									" left join fragment f2 on p.preparationid = f2.preparationid " .
-									" where c.collectionobjectid = ? ";
+                                                        $query = "select count(distinct f.fragmentid), count(distinct p.preparationid) from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid where c.collectionobjectid = ? ";
 							if ($debug) { echo "[$query]<BR>"; } 
 							$statement_cmp = $connection->prepare($query);
 							if ($statement_cmp) {
 								$statement_cmp->bind_param("i",$id);
 								$statement_cmp->execute();
-								$statement_cmp->bind_result($objectfragmentprepfragmentrows);
+								$statement_cmp->bind_result($fragmentcount,$preparationcount );
 								$statement_cmp->store_result();
 								while ($statement_cmp->fetch()) { 
-									if ($objectfragmentprepfragmentrows==1) { 
+									if ($fragmentcount==1 && $preparationcount==1) { 
 										//$objectcomplexity = "<tr><td class='cap'>Simple Object</td><td class='val'>This is a simple collection object (one sheet-item-preparation)</td></tr>";
 										$objectcomplexity['Simple Object'] = "This is a simple collection object (one sheet-item-preparation)";
 									} else { 
 										//$objectcomplexity = "<tr><td class='cap'>Complex Object</td><td class='val'>This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))</td></tr>";
-										$objectcomplexity['Complex Object'] = "This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))";
+                                                                                $fs = "";
+                                                                                $ps = "";
+                                                                                if ($fragmentcount>1) { $fs="s"; } 
+                                                                                if ($preparationcount>1) { $ps="s"; } 
+										$objectcomplexity['Complex Object'] = "This is a complex collection object ($fragmentcount item$fs with $preparationcount preparation$ps)";
 									}
 								}
 							}	    
