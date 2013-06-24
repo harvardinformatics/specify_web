@@ -37,7 +37,8 @@ $errormessage = "";
 $mode = "menu";
 
 $genus = "Carex"; 
-$genus = "China"; 
+$country = "China"; 
+$barcode = "00267379";
 $since = null;
 
 if ($_GET['mode']!="")  {
@@ -60,6 +61,10 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="genus_dwc") {
 		$mode = "genus_dwc"; 
 		$genus = preg_replace("/[^A-Za-z]/","",$_GET['genus']);  
+	}
+	if ($_GET['mode']=="barcode_dwc") {
+		$mode = "barcode_dwc"; 
+		$barcode = preg_replace("/[^0-9]/","",$_GET['barcode']);  
 	}
 
         // Limit the search to records last updated more recently than the 
@@ -99,6 +104,9 @@ if ($_POST['mode']!="")  {
 		    case "genus_dwc":
 		        echo genus_dwc($genus);
 		        break;
+		    case "barcode_dwc":
+		        echo barcode_dwc($barcode);
+		        break;
 		    case "country_geo_dwc":
 		        echo country_geo_dwc($country);
 		        break;
@@ -133,6 +141,7 @@ function menu() {
    $returnvalue .= "<li><a href='dumps.php?mode=rock_feng_dwc'>DarwinCore records for China collected by Rock or Feng, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=country_geo_dwc&country=China'>DarwinCore records for China with georeferences, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=genus_dwc&genus=Carex'>Darwin core records for Carex, (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -504,6 +513,60 @@ if ( !function_exists('sys_get_temp_dir')) {
 
 }
 
+function barcode_dwc($barcode) { 
+	global $connection,$debug;
+    
+// From comments in php docs
+if ( !function_exists('sys_get_temp_dir')) {
+  function sys_get_temp_dir() {
+      if( $temp=getenv('TMP') )        return $temp;
+      if( $temp=getenv('TEMP') )        return $temp;
+      if( $temp=getenv('TMPDIR') )    return $temp;
+      $temp=tempnam(__FILE__,'');
+      if (file_exists($temp)) {
+          unlink($temp);
+          return dirname($temp);
+      }
+      return null;
+  }
+}
+
+   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; } 
+   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
+   if ($debug) { echo "[$tempfilename]<BR>"; } 
+   $file = fopen($tempfilename,"w");
+
+   $query = "select fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where catalognumber like ? ";
+
+   if ($debug) { echo "[$query]<BR>"; } 
+        $linearray = array ("occurrenceID","institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
+        fputcsv($file,$linearray);
+	$statement = $connection->prepare($query);
+        $barcode = '%'.$barcode;
+        if ($debug) { echo "[$genus]<BR>"; } 
+        $statement->bind_param('s',$barcode);
+	if ($statement) {
+		$statement->execute();
+                if ($debug) { echo "[$genus]<BR>"; } 
+		$statement->bind_result($fragmentguid,$institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
+		$statement->store_result();
+		while ($statement->fetch()) {
+	            $linearray = array("$fragmentguid","$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
+                    fputcsv($file,$linearray);
+                } 
+	}
+        fclose($file);
+
+        // write header and send file to browser
+        header("Content-Type: application/csv; charset=utf-8 ");
+        header("Content-Disposition: attachment;Filename=HUH_dwc_barcode.csv");
+        header("Cache-Control: no-cache, must-revalidate"); 
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
+        readfile($tempfilename);
+        // remove temp file
+        unlink($tempfilename);
+
+}
 function fungilichens() { 
 global $connection,$debug, $since;
     
