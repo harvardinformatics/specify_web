@@ -1164,7 +1164,7 @@ function search() {
 			$wherebit .= "$and web_search.habitat $operator ? ";
 			$and = " and ";
 		}		
-		$country = substr(preg_replace("/[^A-Za-z _%*\(\)\.]/","", $_GET['country']),0,59);
+		$country = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['country']),0,59);
 		$country = str_replace("*","%",$country);
 		if ($country!="") { 
 			$hasquery = true;
@@ -1216,7 +1216,7 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,]/","", urldecode($_GET['cltr'])),0,59);
+		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,\]\[]/","", urldecode($_GET['cltr'])),0,59);
 		$collector = str_replace("*","%",$collector);
 		if ($collector!="") { 
 			$hasquery = true;
