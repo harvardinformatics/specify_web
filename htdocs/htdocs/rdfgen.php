@@ -149,7 +149,11 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
       $statement->store_result();
       while ($statement->fetch()) {
          $row = "";
-         if ($agenttype == 1) { 
+         if ($agenttype == 1 || $agenttype == 2) { 
+             $foaftype = "Person";
+             if ($agenttype==2) { 
+                 $foaftype = "Agent";
+             }
              if ($email!='') { $email = "   <foaf:mbox_sha1sum>" . hash("sha1",$email) . "</foaf:mbox_sha1sum>\n"; } 
              if ($firstname!='') {
                  $firstname = str_replace("&","&amp;",$firstname);
@@ -163,7 +167,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
              } 
              //$personuri = "http://guids.huh.harvard.edu/resource/$uuid";
              $personuri = "$baseuri$uuid";
-             $row = "<foaf:Person rdf:about=\"$personuri\" >
+             $row = "<foaf:$foaftype rdf:about=\"$personuri\" >
    $firstname$lastname$email   <foaf:isPrimaryTopicOf rdf:resource=\"http://kiki.huh.harvard.edu/databases/botanist_search.php?id=$primarykey\" />\n";
              $remarks = trim($remarks);
              if ($remarks!='') { 
@@ -209,7 +213,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
                 }
              } 
 
-             $row .= "</foaf:Person>\n";
+             $row .= "</foaf:$foaftype>\n";
              if ($datestype==0) { 
                 if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   }
                 if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   }
