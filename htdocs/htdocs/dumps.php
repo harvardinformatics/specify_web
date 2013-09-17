@@ -148,7 +148,7 @@ function menu() {
    $returnvalue .= "<li><a href='dumps.php?mode=country_geo_dwc&country=China'>DarwinCore records for China with georeferences, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=genus_dwc&genus=Carex'>Darwin core records for Carex, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
-   $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of Ames coll. & AMES orchid specimens (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of AMES and other orchid specimens (csv file)</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -689,19 +689,19 @@ if ( !function_exists('sys_get_temp_dir')) {
       $since = "";
    }
 
-   $query = "select  scientificname, scientificnameauthorship, collector, collectornumber, collectioncode, othercatalognumbers, catalognumber from 
-dwc_search where ( dwc_search.collectioncode = 'AMES' or collector like '%O. Ames%' ) $since order by collectioncode desc, catalognumber";
+   $query = "select  scientificname, scientificnameauthorship, collector, collectornumber, collectioncode, othercatalognumbers, catalognumber, typestatus from 
+dwc_search where ( dwc_search.collectioncode = 'AMES' or family = 'Orchidaceae' ) $since order by collectioncode, catalognumber";
 
    if ($debug) { echo "[$query]<BR>"; } 
-        $linearray = array ("scientificname","authorship","collector","collectornumber","herbarium","othernumbers","catalognumber");
+        $linearray = array ("scientificname","authorship","collector","collectornumber","herbarium","othernumbers","barcode","typestatus");
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
-		$statement->bind_result($scientificname, $scientificnameauthorship, $collector, $collectornumber, $collectioncode, $othercatalognumbers, $barcode);
+		$statement->bind_result($scientificname, $scientificnameauthorship, $collector, $collectornumber, $collectioncode, $othercatalognumbers, $barcode, $typestatus);
 		$statement->store_result();
 		while ($statement->fetch()) {
-	            $linearray = array( " $scientificname"," $scientificnameauthorship"," $collector"," $collectornumber"," $collectioncode"," $othercatalognumbers"," $barcode") ;
+	            $linearray = array( "$scientificname","$scientificnameauthorship","$collector","$collectornumber","$collectioncode","$othercatalognumbers","$barcode","$typestatus") ;
                     fputcsv($file,$linearray);
                 } 
 	}
