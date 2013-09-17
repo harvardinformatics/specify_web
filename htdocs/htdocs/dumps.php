@@ -45,6 +45,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="california_dwc") {
 		$mode = "california_dwc"; 
 	}
+	if ($_GET['mode']=="ames_orchid_list") {
+		$mode = "ames_orchid_list"; 
+	}
 	if ($_GET['mode']=="fungilichens") {
 		$mode = "fungilichens"; 
 	}
@@ -91,6 +94,9 @@ if ($_POST['mode']!="")  {
 		        break;
 		    case "california_dwc":
 		        echo california_dwc();
+		        break;
+		    case "ames_orchid_list":
+		        echo ames_orchid_list();
 		        break;
 		    case "fungilichens":
 		        echo fungilichens();
@@ -142,6 +148,7 @@ function menu() {
    $returnvalue .= "<li><a href='dumps.php?mode=country_geo_dwc&country=China'>DarwinCore records for China with georeferences, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=genus_dwc&genus=Carex'>Darwin core records for Carex, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of Ames coll. & AMES orchid specimens (csv file)</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -638,6 +645,80 @@ if ( !function_exists('sys_get_temp_dir')) {
 
 
 }
+
+function ames_orchid_list() { 
+global $connection,$debug, $since;
+    
+// From comments in php docs
+if ( !function_exists('sys_get_temp_dir')) {
+  function sys_get_temp_dir() {
+      if( $temp=getenv('TMP') )        return $temp;
+      if( $temp=getenv('TEMP') )        return $temp;
+      if( $temp=getenv('TMPDIR') )    return $temp;
+      $temp=tempnam(__FILE__,'');
+      if (file_exists($temp)) {
+          unlink($temp);
+          return dirname($temp);
+      }
+      return null;
+  }
+}
+
+   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; } 
+   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
+   if ($debug) { echo "[$tempfilename]<BR>"; } 
+   $file = fopen($tempfilename,"w");
+   $collectionobjectids = "";
+
+	$id = preg_replace("[^0-9,]","",$_POST['id']);
+	if ($id!="") { 
+		if (is_array($id)) { 
+			$ids = $id;
+		} else { 
+			$ids[0] = $id;
+		}
+	}
+   $comma = "";
+   for ($i=0;$i<count($ids);$i++) { 
+      $collectionobjectids .= "$comma$id";
+      $comma = ",";
+   }
+   if ($since!=null && strlen($since)>0 and strlen($since)<11) { 
+      $since = " and timestamplastupdated > '$since' ";
+   } else { 
+      $since = "";
+   }
+
+   $query = "select  scientificname, scientificnameauthorship, collector, collectornumber, collectioncode, othercatalognumbers, catalognumber from 
+dwc_search where ( dwc_search.collectioncode = 'AMES' or collector like '%O. Ames%' ) $since order by collectioncode desc, catalognumber";
+
+   if ($debug) { echo "[$query]<BR>"; } 
+        $linearray = array ("scientificname","authorship","collector","collectornumber","herbarium","othernumbers","catalognumber");
+        fputcsv($file,$linearray);
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($scientificname, $scientificnameauthorship, $collector, $collectornumber, $collectioncode, $othercatalognumbers, $barcode);
+		$statement->store_result();
+		while ($statement->fetch()) {
+	            $linearray = array( " $scientificname"," $scientificnameauthorship"," $collector"," $collectornumber"," $collectioncode"," $othercatalognumbers"," $barcode") ;
+                    fputcsv($file,$linearray);
+                } 
+	}
+        fclose($file);
+if (!$debug) { 
+        // write header and send file to browser
+        header("Content-Type: application/csv; charset=utf-8");
+        header("Content-Disposition: attachment;Filename=HUH_AMES_report.csv");
+        header("Cache-Control: no-cache, must-revalidate"); 
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
+}
+        readfile($tempfilename);
+        // remove temp file
+        unlink($tempfilename);
+
+} 
+
 
 function specimens_dwc() { 
 	global $connection,$debug;
