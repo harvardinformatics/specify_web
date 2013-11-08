@@ -242,10 +242,11 @@ function details() {
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
 					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
 					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber, " .
-                                        " locality.verbatimelevation " .
+                                        " locality.verbatimelevation, container.name as container " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
+				        "    left join container on collectionobject.containerid = container.containerid " .
 					" where $wherebit";
 				if ($debug) { echo "[$query][$id]<BR>"; } 
 				$statement = $connection->prepare($query);
@@ -253,7 +254,7 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation, $container);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
@@ -568,7 +569,7 @@ function details() {
 													if ($text1 !="") { $text1 = "Fascicle $text1"; } 
 													if ($text2 !="") { $text2 = "Number $text2"; } 
 
-													$fragmentcitations['Excicata'] = trim("<em>$title $extitle</em> $volumes $text1 $text2");
+													$fragmentcitations['Exsiccata'] = trim("<em>$title $extitle</em> $volumes $text1 $text2");
 												} else {
 													$fragmentcitations['Item Reference'] = trim("$title $extitle $volumes $text1 $text2");
 												}
@@ -759,6 +760,7 @@ function details() {
 									
 									// **** Specify6-Botany Specific [Fragment] *****
 									// Retrieve the fragment and preparation information about this fragment.
+
 									$query = "select fragment.sex, fragment.phenology, preptype.name, fragment.identifier, preparation.identifier, " .
 										" fragment.remarks, preparation.remarks, fragment.prepmethod, fragment.description, " .
 										" fragment.text1 as herbarium, fragment.accessionnumber " .
@@ -810,7 +812,7 @@ function details() {
 									} else {
 										echo "Error: " . $connection->error;
 									}
-									
+
                                                                         if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
                                                                             $lquery = "select loannumber ".
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
@@ -929,7 +931,7 @@ function details() {
 								echo "<tr><td class='cap'>Verbatim Elevation</td><td class='val'>$verbatimelevation</td></tr>"; 
 							}
 							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
-							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
+							if (trim($container!=""))   { echo "<tr><td class='cap'>Container</td><td class='val'>$container</td></tr>"; }
 							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Substrate</td><td class='val'>$substrate</td></tr>"; }
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
 							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }

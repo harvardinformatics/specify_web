@@ -33,11 +33,12 @@ include_once('connection_library.php');
 include_once('specify_library.php');
 
 $connection = specify_connect();
-$debug = FALSE;
+$debug = TRUE;
 
 @$request_uuid = preg_replace('[^a-zA-Z0-9\-]','',$_GET['uuid']);
+@$request_query = preg_replace('[a-z]','',$_GET['query']);
 
-if (php_sapi_name()==="cli" || $request_uuid!='') { 
+if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) { 
    // only run if either request is made from command line interface
    // or a uuid was provided.
    // Prevents web call to generate entire rdf/xml dump, alows this
@@ -66,35 +67,50 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
          $target = $tablename;
        }
      }
+   } else { 
+      @$request_name = $_GET['name'];
+      @$request_barcode = preg_replace('[^0-9]','',$_GET['barcode']);
+      if ($request_query == 'agent') { $target = "agent"; } 
+      if ($request_query == 'collectionobject') { $target = "fragment"; } 
    }
 
      switch ($target) { 
 
       case "fragment": 
-	   if ($request_uuid!='') { 
+	   if ($request_uuid!='' || $request_barcode!='') { 
 	      echo '<?xml-stylesheet type="text/xsl" href="specimenstyle.xsl"?>'."\n";
 	      echo "<!-- request: $request_uuid -->\n";
 	      if ($debug) { 
 	         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
    	         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
               }
-              $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier) from guids left join  fragment on guids.primarykey =  fragment.fragmentid  where uuid = ? '; 
+              if ($request_barcode!='') { 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
+
+              } else { 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
+              }
 	      echo '<rdf:RDF
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
   xmlns:dwc="http://rs.tdwg.org/dwc/terms/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
   >
 ';
 	      if ($debug) { 
-	          echo "<! query: $sql >\n";
+	          echo "<!-- query: $sql -->\n";
    	      }
    $statement = $connection->prepare($sql);
    if ($statement) {
       if ($request_uuid!='') { 
         $statement->bind_param('s',$request_uuid);
+      } else { 
+         if ($request_barcode!='') { 
+            $statement->bind_param('s',$request_barcode);
+         }
       }
       $statement->execute();
-      $statement->bind_result($collectionCode, $catalogNumber );
+      $statement->bind_result($collectionCode, $catalogNumber, $collectionobjectid, $continent, $country, $stateProvince, $locality, $scientificname, $authorship, $modified );
       $statement->store_result();
       while ($statement->fetch()) {
          $row = "";
@@ -102,7 +118,13 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
          $row = "<dwc:Occurrence rdf:about=\"$occuri\" >\n";
              if ($collectionCode!='') { $collectionCode = "   <dwc:collectionCode>$collectionCode</dwc:collectionCode>\n"; } 
              if ($catalogNumber!='') { $catalogNumber = "   <dwc:catalogNumber>$catalogNumber</dwc:catalogNumber>\n"; } 
-         $row .= "$collectionCode$catalogNumber</dwc:Occurrence>\n";
+             if ($country!='') { $country = "   <dwc:country>$country</dwc:country>\n"; } 
+             if ($stateProvince!='') { $stateProvince = "   <dwc:stateProvince>$stateProvince</dwc:stateProvince>\n"; } 
+             if ($locality!='') { $locality = "   <dwc:locality>$locality</dwc:locality>\n"; } 
+             if ($scientificname!='') { $scientificname = "   <dwc:scientificName>$scientificname</dwc:scientificName>\n"; } 
+             if ($authorship!='') { $authorship = "   <dwc:scientificNameAuthorship>$authorship</dwc:scientificNameAuthorship>\n"; } 
+             if ($modified!='') { $modified = "   <dcterms:modified>$modified</dcterms:modified>\n"; } 
+         $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified</dwc:Occurrence>\n";
          echo $row;
 	   } // end while  
       } // end if statement 
@@ -125,7 +147,12 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
       } 
       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, state from guids left join agent on agent.agentid = guids.primarykey where tablename = 'agent' and (agenttype > 0 or agenttype is null) and uuid = ? order by agenttype asc ";
    } else { 
-       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey where tablename = 'agent' and agenttype > 0 order by agenttype asc ";
+       if ($request_name!='') { 
+           echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
+           $sql = "select distinct uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey left join agentvariant on agent.agentid = agentvariant.agentid where tablename = 'agent' and agenttype > 0 and agentvariant.name = ? order by agenttype asc ";
+       } else { 
+           $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey where tablename = 'agent' and agenttype > 0 order by agenttype asc ";
+       }
    }
    echo '<rdf:RDF
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -137,12 +164,16 @@ if (php_sapi_name()==="cli" || $request_uuid!='') {
 ';
    
    if ($debug) { 
-       echo "<! query: $sql >\n";
+       echo "<!-- query: $sql -->\n";
    }
    $statement = $connection->prepare($sql);
    if ($statement) {
       if ($request_uuid!='') { 
         $statement->bind_param('s',$request_uuid);
+      } else { 
+          if ($request_name!='') { 
+             $statement->bind_param('s',$request_name);
+          }
       }
       $statement->execute();
       $statement->bind_result($uuid, $primarykey, $agenttype, $firstname, $lastname, $email, $remarks, $url, $dateofbirth, $dateofbirthconfidence, $dateofbirthprecision, $dateofdeath, $dateofdeathconfidence, $dateofdeathprecision, $datestype, $state);

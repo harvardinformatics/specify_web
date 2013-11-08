@@ -43,6 +43,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="stats") {
 		$mode = "stats"; 
 	}
+	if ($_GET['mode']=="exsiccatae") {
+		$mode = "exsiccatae"; 
+	}
 }
 
 if (preg_replace("[^0-9]","",$_GET['barcode'])!="") { 
@@ -74,6 +77,10 @@ if ($connection) {
 		case "search":
 			search();	   
 			break;
+
+                case "exsiccatae":
+                        browse_exsiccatae();
+                        break;
 			
 		default:
 			$errormessage = "Undefined search mode"; 
@@ -92,7 +99,6 @@ if ($errormessage!="") {
 echo pagefooter();
 
 // ******* main code block ends here, supporting functions follow. *****
-
 
 function details() { 
 	global $connection, $errormessage, $debug;
@@ -123,7 +129,7 @@ function details() {
 		// (from there being more than one current determination/typification for a specimen, or
 		// from there being two specimens on one sheet).  
 		if ($oldid!=$id)  { 
-			echo "[$id]";
+			if ($debug==true) { echo "[$id]"; } 
 			$wherebit = " referencework.referenceworkid = ? ";
 			$query = "select text2 as year, text1 as worktitle, title as abbreviation, placeofpublication, publisher, referenceworktype, volume, pages, url, remarks, ContainedRFParentID from referencework where $wherebit";
 			if ($debug) { echo "[$query]<BR>"; } 
@@ -140,7 +146,7 @@ function details() {
 					// referenceworktype = 5 an import generated citation in a work.
 					// referenceworktype = 6 Excicatii.
 					if ( $referenceworktype=="0") { $referenceworktype = ""; }  
-					if ( $referenceworktype=="6")  { $referenceworktype = "Excicata"; }  
+					if ( $referenceworktype=="6")  { $referenceworktype = "Exsiccata"; }  
 					$query = " select agentvariant.name, agentvariant.agentid from referencework r left join author a on r.referenceworkid = a.referenceworkid left join agentvariant on a.agentid = agentvariant.agentid where r.referenceworkid = ? and vartype = 4 ";
 					if ($debug) { echo "[$query]<BR>"; } 
 					$statement_hg = $connection->prepare($query);
@@ -171,6 +177,29 @@ function details() {
 					} else { 
 						echo "Error: " . $connection->error;
 					}
+ 
+                                        $specimens = "";
+					if ( $referenceworktype=="Exsiccata")  { 
+					$query = " select f.collectionobjectid, fc.text1, fc.text2, f.text1, f.identifier, t.fullname, t.author from referencework r left join fragmentcitation fc on r.referenceworkid = fc.referenceworkid left join fragment f on fc.fragmentid = f.fragmentid left join determination d on f.fragmentid = d.fragmentid left join taxon t on d.taxonid = t.taxonid where r.referenceworkid = ? and (d.iscurrent=true or d.iscurrent is null) ";
+					if ($debug) { echo "[$query]<BR>"; } 
+					$statement_fc = $connection->prepare($query);
+					if ($statement_fc) {
+						$statement_fc->bind_param("i",$id);
+						$statement_fc->execute();
+						$statement_fc->bind_result($collobjid, $fascicle,$fnumber,$herbarium, $barcode,$taxon,$authorship);
+						$statement_fc->store_result();
+						$separator = "";
+						while ($statement_fc->fetch()) {
+                                                    if ($collobjid!=null) { 
+                                                        if ($fascicle != "") { $fascicle = "Fasicle $fascicle"; } 
+                                                        if ($fnumber!= "") { $fnumber = "Number $fnumber"; } 
+							$specimens .= "$separator$fascicle $fnumber <em>$taxon</em> $authorship <a href=specimen_search.php?mode=details&id=$collobjid>$herbarium $barcode</a>"; 
+							$separator = "<BR>";
+                                                    }
+						}
+					}	    
+
+                                        }  
 					
 					echo "<tr><td class='cap'>Title</td><td class='val'>$title</td></tr>";
 					if (trim($abbreviation!=""))   { echo "<tr><td class='cap'>Abbreviation</td><td class='val'>$abbreviation</td></tr>"; }
@@ -185,6 +214,7 @@ function details() {
 					if (trim($identifiers!=""))   { echo "$identifiers"; }
 					if (trim($remarks!="")) { echo "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; } 
 					if (trim($ContainedRFParentID!=""))   { echo "<tr><td class='cap'>ContainedRFParentID</td><td class='val'>$ContainedRFParentID</td></tr>"; }
+					if (trim($specimens!=""))   { echo "<tr><td class='cap'>Specimens</td><td class='val'>$specimens</td></tr>"; }
 					echo "<BR>\n";
 				}
 				echo "</table>";
@@ -462,6 +492,28 @@ function search() {
 	} 
 	
 }
+
+function browse_exsiccatae() { 
+   global $connection, $errormessage, $debug;
+
+   echo "<h3>Exsiccatae known to the Harvard University Herbaria</h3>";
+   $sql = "select r.text1, r.title, r.referenceworkid, count(fc.fragmentid) from referencework r left join fragmentcitation fc on r.referenceworkid = fc.referenceworkid where referenceworktype = 6 group by r.text1, r.title, r.referenceworkid";
+   if ($debug) { echo "[$sql]<BR>"; } 
+   $statement = $connection->prepare($sql);
+   if ($statement) {
+       $statement->execute();
+       $statement->bind_result($full,$title,$id,$count);
+       $statement->store_result();
+       while ($statement->fetch()) {
+           if ($title=="") { $title=$full; }
+           if ($count>0) { $count = "($count)"; } else { $count = ""; } 
+           echo "<a href='/databases/publication_search.php?mode=details&id=$id'>$title</a> $count<br>";
+       }
+   } else { 
+       $errormessage = $connection->error;
+   }
+   $statement->close();
+} 
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
