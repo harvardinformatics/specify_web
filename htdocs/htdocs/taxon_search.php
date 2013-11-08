@@ -153,7 +153,8 @@ function details() {
 					if (trim($status!=""))   { $taxonresult .=  "<tr><td class='cap'>NomenclaturalStatus</td><td class='val'>$status</td></tr>"; }
 					if (trim($parentname!=""))   { $taxonresult .=  "<tr><td class='cap'>Placed in</td><td class='val'><a href='taxon_search.php?mode=details&id=$parentid'><em>$parentname</em> $parentauthor</a></td></tr>"; }
 
-                    $query = "select fullname, author, taxonid from taxon where parentid = ? ";
+                    // Find child taxa
+                    $query = "select fullname, author, taxonid from taxon where parentid = ? order by name ";
                     if ($debug) { echo "[$query]<BR>"; }
                     $statement_c = $connection->prepare($query);
                     if ($statement_c) {
@@ -173,7 +174,7 @@ function details() {
 
 					if (trim($remarks!=""))   { $taxonresult .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($guid!=""))   { $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guid'>$guid</a></td></tr>"; }
-					if (trim($taxonid!=""))   { $taxonresult .=  "<tr><td class='cap'>ASA Botanist ID</td><td class='val'>$taxonid</td></tr>"; }
+                    // List citations
 					$query = "select rw.text1 as title, rw.title as abbrev, tc.text2 as date, tc.text1 as volnumpage, rw.referenceworkid from taxoncitation tc left join referencework rw on tc.referenceworkid = rw.referenceworkid where taxonid = ? ";
 					if ($debug) { echo "[$query]<BR>"; } 
 					$statement_var = $connection->prepare($query);
@@ -199,9 +200,9 @@ function details() {
 							$statement_geo->bind_result($count, $year);
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
-                                $records = $statement_geo->num_rows();
-								$taxonresult .= "<tr><td class='cap'>Holdings</td><td class='val'>$records Specimens held in the Harvard University Herbaria identified as $fullname $author</td></tr>";
+                                $records = 0;
 								while ($statement_geo->fetch()) {
+                                    $records += $count;
 									// for each year
 									// obtain the list of collection objects with this taxon in det for year
 									if ($year=="") {
@@ -236,7 +237,9 @@ function details() {
                                     $collist .= "$collistseparator<a $link>$year ($count)</a>";
                                     $collistseparator = ",&nbsp; ";
 								} 
-							        $taxonresult .= "<tr><td class='cap'>Identification made in</td><td class='val'>$collist</td></tr>";
+                                if ($records==1) { $s = ""; } else { $s="s"; }
+								$taxonresult .= "<tr><td class='cap'>Holdings</td><td class='val'>$records Specimen$s held in the Harvard University Herbaria identified as $fullname $author</td></tr>";
+							    $taxonresult .= "<tr><td class='cap'>Identification made in</td><td class='val'>$collist</td></tr>";
 							}
 						}
 					}
