@@ -395,7 +395,16 @@ function search() {
 			foreach($parameters as $par) {
 			    $array[] = $par;
 			}
-			call_user_func_array(array($statement, 'bind_param'),$array);
+			//call_user_func_array(array($statement, 'bind_param'),$array);
+            if (substr(phpversion(),0,4)=="5.3.") {
+               // work around for bug in __call, or is it? 
+               // http://bugs.php.net/bug.php?id=50394
+               // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
+               call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
+            } else {
+               call_user_func_array(array($statement, 'bind_param'),$array);
+            }
+
 			$statement->execute();
 			if ($hasauthor) { 
 				$statement->bind_result($referenceid,$title,$authorlast, $authorfirst);
