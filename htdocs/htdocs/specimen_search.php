@@ -627,7 +627,7 @@ function details() {
 												$determinationRemarks .= "$fragment$filedunder$label$current";
 												if (trim($typeStatusName)=="") { 
 													$det = "Determination"; 
-												    $taxonname = "$qualifier <em>$fullName</em> $author";
+												    $taxonname = "$qualifier <a href='taxon_search.php?mode=details&id=$taxonid'><em>$fullName</em> $author<a>";
 												    $determination["Determination"] = $taxonname;
 												    $determination["Type Status"] = "";
 												} else {
