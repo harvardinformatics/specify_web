@@ -242,7 +242,7 @@ function details() {
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
 					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
 					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber, " .
-                                        " locality.verbatimelevation, container.name as container " .
+                                        " locality.verbatimelevation, container.name as container, locality.remarks as localityremarks " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
@@ -254,7 +254,7 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation, $container);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation, $container,$localityremarks);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
@@ -920,6 +920,10 @@ function details() {
 							if (trim($georeference!=""))  { 
 								if ($redactlocality === true ) { $georeference = "[Redacted]"; }
 								echo "<tr><td class='cap'>Georeference</td><td class='val'>$georeference</td></tr>"; 
+							}
+							if (trim($localityremarks!=""))  { 
+								if ($redactlocality === true ) { $localityremarks = "[Redacted]"; }
+								echo "<tr><td class='cap'>Locality Remarks</td><td class='val'>$localityremarks</td></tr>"; 
 							}
 							if (trim($dateCollected!="")) { echo "<tr><td class='cap'>Date Collected</td><td class='val'>$dateCollected</td></tr>"; }
 							if (trim($elevation!="")) {  
