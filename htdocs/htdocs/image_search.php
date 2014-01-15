@@ -37,16 +37,18 @@ $errormessage = "";
 
 $mode = "search";
 
+$passon = "image";
 if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="search") {
 		$mode = "search"; 
 	}
 	if ($_GET['mode']=="details") {
 		$mode = "details"; 
+        $passon = "imagedetails";
 	}
 } 
 
-echo pageheader('image'); 
+echo pageheader($passon); 
 if ($connection) {
     if ($debug===TRUE) {  echo "[$mode]"; } 
 		
