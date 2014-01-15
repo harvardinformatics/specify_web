@@ -166,10 +166,74 @@ function search() {
 }
 
 function details() {
+  global $connection;
   $result = "";
   $imagesetid = preg_replace('/[^0-9]/','',$_GET['imagesetid']);
 
-  $result .= "Image details for [$imagesetid].  Not implemented yet.";
+
+  $sql = 'SELECT DISTINCT concat(ifnull(r.url_prefix,\'\'),iot.uri), '.
+  ' concat(ifnull(rf.url_prefix,\'\'),iof.uri) '.
+  'FROM IMAGE_SET i '.
+  'LEFT JOIN IMAGE_OBJECT iot ON i.id = iot.image_set_id  ' .
+  'LEFT JOIN REPOSITORY r on iot.repository_id = r.id ' .
+  'LEFT JOIN IMAGE_OBJECT iof ON i.id = iof.image_set_id  ' .
+  'LEFT JOIN REPOSITORY rf on iof.repository_id = rf.id ' .
+  'WHERE i.id = ? and iot.object_type_id = 2  '.
+  ' and iof.object_type_id = 4 ';
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) { 
+     $stmt->bind_param('i',$imagesetid);
+     $stmt->execute();
+     $stmt->bind_result($thumburi,$fulluri);
+     $stmt->fetch();
+     $stmt->close();
+  }
+  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, i.collectionobjectid " .
+         "from IMAGE_SET_collectionobject i left join fragment f on i.collectionobjectid = f.collectionobjectid left join guids g on f.fragmentid = g.primarykey left join dwc_search d on g.uuid = d.fragmentguid  where g.tablename = 'fragment' and i.imagesetid = ? ";
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) { 
+     $stmt->bind_param('i',$imagesetid);
+     $stmt->execute();
+     $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid);
+     $stmt->fetch();
+     $stmt->close();
+  }
+  $result .= "
+          <script type=\"text/javascript\">
+          // Featured Image Zoomer (w/ optional multizoom and adjustable power)- By Dynamic Drive DHTML code library (www.dynamicdrive.com)
+          // Multi-Zoom code (c)2012 John Davenport Scheuer
+          // as first seen in http://www.dynamicdrive.com/forums/
+          // username: jscheuer1 - This Notice Must Remain for Legal Use
+          // Visit Dynamic Drive at http://www.dynamicdrive.com/ for this script and 100s more
+          
+          jQuery(document).ready(function($){
+          
+              $('#image1').addimagezoom({ // 
+                  zoomrange: [10, 20],
+                  magnifiersize: [800,600],
+                  magnifierpos: 'right',
+                  cursorshade: true,
+                  largeimage: '$fulluri' 
+              })
+              
+          })
+          
+          </script>
+  ";
+
+  $result .= "<h2>Image details for [$imagesetid].</h2>\n";
+  $result .= "<br clear='All'/>";
+  $result .= "<div style='background-color:#F3F3F3; width:1075px; height:625px; border-color:#939393; border-width:1; border-style:solid;' >";
+
+  $result .= "<img id='image1' border='0' src='$thumburi' style=' width:250px; height:338px; '>";
+  $result .= "&nbsp;&nbsp;Mouse over image to zoom.<br/>\n";
+
+  $result .= "</div>";
+  $result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a><br/>";
+  $result .= "<em>$scientificname</em> $authorship<br/>";
+  $result .= "$country $stateprovince<br/>";
+  $result .= "$locality<br/>";
+  $result .= "<br clear='All'/>";
 
   return $result;
 }
