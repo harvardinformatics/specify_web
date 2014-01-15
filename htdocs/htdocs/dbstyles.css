@@ -564,3 +564,30 @@ color: #89201b;
 	text-decoration: none;
 	}
 /* footer styles end */
+
+
+/* Pages with lists of thumbnails */
+div.tndiv{
+    float: left;
+    text-align: center;
+    width: 170px;
+    height: 280px;
+}
+
+div.tnimg{
+    width:  160px;
+    height: 220px;
+    border: 1px solid gray;
+    overflow:   hidden;
+}
+
+div.tnimg a{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+}
+
+div.tnimg img{
+    width: 100%;
+}

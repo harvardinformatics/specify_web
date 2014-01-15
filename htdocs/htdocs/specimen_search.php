@@ -680,6 +680,7 @@ function details() {
 													$determination['Annotation Text'] = "$text2";
 												}
 												// If a CITES listed species, set redactlocality flag.
+                                                if ($citesstatus == '') { $citesstatus = 'None'; }  // handle nulls
 												if ($citesstatus != "None") {
 													$redactlocality = true; 
 												}
