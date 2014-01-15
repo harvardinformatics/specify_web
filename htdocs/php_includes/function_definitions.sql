@@ -35,6 +35,11 @@
 -- master of a replication set of specify instances where binary logging
 -- is enabled.
 
+drop function if exists specify.getHigherTaxonOfRank;
+drop function if exists specify.getGeographyOfRank;
+drop function if exists specify.getTextDate;
+drop function if exists specify.getAgentName;
+
 delimiter | 
 create function specify.getHigherTaxonOfRank(rank_id INT, highestchild INT, nodenum INT) 
 returns VARCHAR(255)
@@ -259,3 +264,12 @@ grant execute on procedure specify.getHigherTaxonOfRank to 'specify_web_user'@'k
 grant execute on procedure specify.getAgentName to 'specify_web_user'@'kiki.huh.harvard.edu';
 grant execute on procedure specify.concatPrepTypes to 'specify_web_user'@'kiki.huh.harvard.edu';
 grant execute on procedure specify.getCurrentDetermination to 'specify_web_user'@'kiki.huh.harvard.edu';
+
+
+
+grant execute on procedure .getTextDate to 'specify_user'@'localhost';
+grant execute on procedure .getGeographyOfRank to 'specify_user'@'localhost';
+grant execute on procedure .getHigherTaxonOfRank to 'specify_user'@'localhost';
+grant execute on procedure .getAgentName to 'specify_user'@'localhost';
+grant execute on procedure .concatPrepTypes to 'specify_user'@'localhost';
+grant execute on procedure .getCurrentDetermination to 'specify_user'@'localhost';

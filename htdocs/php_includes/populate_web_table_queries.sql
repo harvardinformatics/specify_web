@@ -531,6 +531,8 @@ insert into temp_web_quicksearch (collectionobjectid, searchable) (
 -- 1 min 4 sec   
 create fulltext index i_temp_web_quicksearch on temp_web_quicksearch(searchable);
 
+create table if not exists web_search (id int); 
+create table if not exists web_quicksearch (id int); 
 -- switch out the web_search tables for the newly build temp_web_search tables
 rename table web_search to old_web_search, temp_web_search to web_search, web_quicksearch to old_web_quicksearch, temp_web_quicksearch to web_quicksearch;
 

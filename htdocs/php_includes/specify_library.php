@@ -137,6 +137,14 @@ function pageheader($mode = "specimen") {
 			$active['p'] = " class='active' ";
 			$active['b'] = " ";
 			break;
+		case "image":
+			$title = "Specimen Image Search"; 
+	                $heading = "Botanical Specimens"; 
+                        $link = "specimen_index.html";
+			$active['s'] = " class='active' ";
+			$active['p'] = "";
+			$active['b'] = "";
+			break;
 		default;
 		
 	}
@@ -147,7 +155,25 @@ function pageheader($mode = "specimen") {
 	<title>HUH - Databases - $title</title>
 	<link rel='stylesheet' type='text/css' media='print' href='print.css'></link>
 	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
-	<link rel='stylesheet' type='text/css' media='print' href='cms-db.css'></link>
+	<!-- link rel='stylesheet' type='text/css' media='print' href='cms-db.css'></link  -->";
+if ($mode=='image') { 
+    $result.='
+        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
+        <script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/jquery-ui.js"></script>
+        <!--  Supporting visualsearch search box widget -->
+        <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
+        <script type="text/javascript" src="js/backbone-0.9.10.js"></script>
+
+        <script src="js/visualsearch.js" type="text/javascript"></script>
+        <!--[if (!IE)|(gte IE 8)]><!-->
+           <link href="css/visualsearch-datauri.css" media="screen" rel="stylesheet" type="text/css"/>
+        <!--<![endif]-->
+        <!--[if lte IE 7]><!-->
+           <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
+        <!--<![endif]-->';
+} // end mode==image
+$result .= "
 </head>
 <body>
 <div id='allcontent'>
