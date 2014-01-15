@@ -155,19 +155,21 @@ function pageheader($mode = "specimen") {
 	<title>HUH - Databases - $title</title>
 	<link rel='stylesheet' type='text/css' media='print' href='print.css'></link>
 	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
-	<!-- link rel='stylesheet' type='text/css' media='print' href='cms-db.css'></link  -->";
-if ($mode=='image') { 
+";
+if ($mode=='image' || $mode=='imagedetails') { 
+    // include jquery libraries
     $result.='
-        <!--  Include JQuery -->
         <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-
-        <!--  Required for visualsearch search box widget -->
+    ';
+}
+if ($mode=='image') { 
+    // include libraries for visualsearch search bar
+    $result.='
         <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
         <script type="text/javascript" src="js/backbone-0.9.10.js"></script>
 
-        <!--  VisualSearch search box widget  -->
         <script src="js/visualsearch.js" type="text/javascript"></script>
         <!--[if (!IE)|(gte IE 8)]><!-->
            <link href="css/visualsearch-datauri.css" media="screen" rel="stylesheet" type="text/css"/>
@@ -175,12 +177,13 @@ if ($mode=='image') {
         <!--[if lte IE 7]><!-->
            <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
         <!--<![endif]-->';
+}
+if ($mode=='imagedetails') { 
+     // include libraries for featured image zoom widget
      $result.= "
-           <!-- Support Featured Image Zoomer -->
           <link rel=\"stylesheet\" href=\"css/multizoom.css\" type=\"text/css\" />
-          <script type=\"text/javascript\" src=\"js/multizoom.js\" > </script>
+          <script type=\"text/javascript\" src=\"js/multizoom.js\" ></script>
           ";
-
 } // end mode==image
 $result .= "
 </head>
