@@ -140,7 +140,7 @@ function pageheader($mode = "specimen") {
 		case "image":
 			$title = "Specimen Image Search"; 
 	                $heading = "Botanical Specimens"; 
-                        $link = "specimen_index.html";
+                        $link = "image_search.php";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
 			$active['b'] = "";
@@ -158,13 +158,16 @@ function pageheader($mode = "specimen") {
 	<!-- link rel='stylesheet' type='text/css' media='print' href='cms-db.css'></link  -->";
 if ($mode=='image') { 
     $result.='
+        <!--  Include JQuery -->
         <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-        <!--  Supporting visualsearch search box widget -->
+
+        <!--  Required for visualsearch search box widget -->
         <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
         <script type="text/javascript" src="js/backbone-0.9.10.js"></script>
 
+        <!--  VisualSearch search box widget  -->
         <script src="js/visualsearch.js" type="text/javascript"></script>
         <!--[if (!IE)|(gte IE 8)]><!-->
            <link href="css/visualsearch-datauri.css" media="screen" rel="stylesheet" type="text/css"/>
@@ -172,6 +175,12 @@ if ($mode=='image') {
         <!--[if lte IE 7]><!-->
            <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
         <!--<![endif]-->';
+     $result.= "
+           <!-- Support Featured Image Zoomer -->
+          <link rel=\"stylesheet\" href=\"css/multizoom.css\" type=\"text/css\" />
+          <script type=\"text/javascript\" src=\"js/multizoom.js\" > </script>
+          ";
+
 } // end mode==image
 $result .= "
 </head>
