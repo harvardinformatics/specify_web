@@ -189,7 +189,7 @@ DETERMINISTIC
 CONTAINS SQL
 BEGIN
 	declare t_result bigint ;
-	select determinationid into t_result from determination where fragmentid = aFragmentId order by typestatusname desc, iscurrent desc, determineddate limit 1;
+	select determinationid into t_result from determination where fragmentid = aFragmentId order by typestatusname desc, yesno3 desc, iscurrent desc, determineddate limit 1;
 	return t_result;
 END | 
 delimiter ;

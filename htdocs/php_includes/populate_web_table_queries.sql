@@ -589,6 +589,7 @@ create table if not exists temp_dwc_search (
   typestatus varchar(50),
   scientificname varchar(255),
   scientificnameauthorship varchar(128),
+  genus  varchar(255),
   family varchar(255),
   informationwitheld varchar(255),
   datageneralizations varchar(255),
@@ -812,11 +813,12 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
        where taxon.taxonid is not null;
 
 -- family, from temp taxon table
--- 2 min
+-- 2 min 
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid
        left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
-       set temp_dwc_search.family = temp_taxon.family
+       set temp_dwc_search.family = temp_taxon.family,
+           temp_dwc_search.genus = temp_taxon.genus
        where taxon.taxonid is not null;
 
 -- Run setCitesChildren(); to make sure that all children of cites genera/families are also marked as cites listed, then queries can run 
