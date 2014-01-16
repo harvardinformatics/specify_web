@@ -47,7 +47,41 @@ include_once('ImageExplorer.php');
     echo "<strong>Query for: $querytext</strong><br/>";
     $resultCount = $imgArr['cnt'];
     if (strlen($resultCount)==0) { $resultCount = "0"; }
-    echo "<br/><strong>Found $resultCount Sheets.</strong><br/>" ;
+    $st = $start + 1;
+    $end = $start + 50;
+    if ($end > $resultCount) { $end = $resultCount; } 
+    $last = $resultCount - 50;
+    $prev = $start - 50;
+    if ($prev < 0 ) { $prev = 0; } 
+    echo "<br/><strong>Found $resultCount Sheets.  Showing $st to $end.</strong>" ; 
+    if ($resultCount>50) { 
+    echo "<form >";
+         $b1d=$b2d=$b3d=$b4d='';
+         if ($start==0) { $b1d = "disabled='true'"; $b2d = "disabled='true'"; } 
+         if ($end==$resultCount) { $b3d = "disabled='true'"; $b4d = "disabled='true'"; } 
+         echo "<input type='button' $b1d value='First' onclick=\"
+                              $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '0' }, function(result) {
+                                   $('#results').html(result); 
+                                   });
+         \">"; 
+         echo "<input type='button' $b2d value='Previous 50' onclick=\"
+                              $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$prev' }, function(result) {
+                                   $('#results').html(result); 
+                                   });
+         \">"; 
+         echo "<input type='button' $b3d value='Next 50' onclick=\"
+                              $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$end' }, function(result) {
+                                   $('#results').html(result); 
+                                   });
+         \">"; 
+         echo "<input type='button' $b4d value='Last' onclick=\"
+                              $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$last' }, function(result) {
+                                   $('#results').html(result); 
+                                   });
+         \">"; 
+    echo "</form>";
+    }
+    echo "<br/>" ;
     echo '<input type="hidden" id="imgCnt" value="'.$resultCount.'" />';
 
     unset($imgArr['cnt']);
