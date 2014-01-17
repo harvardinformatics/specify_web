@@ -606,6 +606,7 @@ create table if not exists temp_dwc_search (
   temp_enddateprecision int,
   temp_geographyid int,
   temp_determinationid bigint,
+  temp_fragmentid bigint,
   unredacted_locality text,
   unredacted_decimallatitude decimal(12,10),
   unredacted_decimallongitude decimal(13,10)
@@ -616,7 +617,7 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
 -- make the fragment guid resolvable
 update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
