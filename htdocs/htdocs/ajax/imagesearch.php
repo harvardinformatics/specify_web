@@ -15,7 +15,6 @@ include_once('ImageExplorer.php');
     $query = preg_replace('/: "/',':',$query);
     $query = preg_replace('/" /','|',"$query ");
     $pairs = explode('|',$query);
-    $querytext = "";  // human readable description of query
     foreach ($pairs as $pairstr) { 
        if (strpos($pairstr,':')===FALSE) { 
           $pairstr = "text:$pairstr";
@@ -37,6 +36,17 @@ include_once('ImageExplorer.php');
             $querytext .= "$value";
           }
        }
+    }
+    $querytext = "";  // human readable description of query
+    $semicolon = "";
+    foreach ($queryArray as $key => $values) { 
+        $querytext .= "$semicolon$key=";
+        $comma = "";
+        foreach ($values as $value) { 
+            $querytext .= "$comma$value";
+            $comma = ",";
+        } 
+        $semicolon = "; ";
     }
     // set start point for page
     $queryArray['start'] = $start;  
@@ -62,23 +72,27 @@ include_once('ImageExplorer.php');
          echo "<input type='button' $b1d value='First' onclick=\"
                               $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '0' }, function(result) {
                                    $('#results').html(result); 
-                                   });
-         \">"; 
+                                   }); \"
+                      class='styledButton' 
+         />"; 
          echo "<input type='button' $b2d value='Previous 50' onclick=\"
                               $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$prev' }, function(result) {
                                    $('#results').html(result); 
-                                   });
-         \">"; 
+                                   }); \"
+                      class='styledButton' 
+         />"; 
          echo "<input type='button' $b3d value='Next 50' onclick=\"
                               $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$end' }, function(result) {
                                    $('#results').html(result); 
-                                   });
-         \">"; 
+                                   }); \"
+                      class='styledButton' 
+         />"; 
          echo "<input type='button' $b4d value='Last' onclick=\"
                               $.post('ajax/imagesearch.php', { 'query' : '$query' , 'start' : '$last' }, function(result) {
                                    $('#results').html(result); 
-                                   });
-         \">"; 
+                                   }); \"
+                      class='styledButton' 
+         />"; 
     echo "</form>";
     }
     echo "<br/>" ;

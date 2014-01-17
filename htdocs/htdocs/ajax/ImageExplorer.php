@@ -34,9 +34,14 @@ class ImageExplorer{
     } 
 
 	public function getImages($searchCriteria){
-        global $connection;
+        global $connection,$debug;
 		$retArr = array();
 		$sql = $this->getSql($searchCriteria);
+        if ($debug) { 
+           echo "[$sql->sql]";
+           echo "[$sql->types]";
+           echo "["; print_r($sql->params); echo "]";
+        }
         $stmt = $connection->stmt_init();
         if ($stmt->prepare($sql->sql)) { 
             if (strlen($sql->types)==1) {
@@ -46,13 +51,13 @@ class ImageExplorer{
                $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1]);
             }
             if (strlen($sql->types)==3) {
-               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2]);
+               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2]);
             }
             if (strlen($sql->types)==4) {
-               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2], $sql->params[3]);
+               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2], $sql->params[3]);
             }
             if (strlen($sql->types)==5) {
-               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2], $sql->params[3], $sql->params[4]);
+               $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2], $sql->params[3], $sql->params[4]);
             }
             //call_user_func_array('mysqli_stmt_bind_param', 
             //     array_merge (array($stmt, $sql->types), $this->correctReferences($sql->params))

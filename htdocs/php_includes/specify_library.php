@@ -112,38 +112,43 @@ function pageheader($mode = "specimen") {
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
 	$active['b'] = "";
+	$active['i'] = " ";
 	switch ($mode) {
 		case "specimen":
 			$title = "Specimen Search"; 
-	                $heading = "Botanical Specimens"; 
-                        $link = "specimen_index.html";
+	        $heading = "Botanical Specimens"; 
+            $link = "specimen_index.html";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
 			$active['b'] = "";
+			$active['i'] = " ";
 			break;
 		case "agent":
 			$title = "Botanist Search"; 
-	                $heading = "Botanists"; 
-                        $link = "botanist_index.html";
+	        $heading = "Botanists"; 
+            $link = "botanist_index.html";
 			$active['s'] = " ";
 			$active['p'] = " ";
 			$active['b'] = " class='active' ";
+			$active['i'] = " ";
 			break;
 		case "publication":
 			$title = "Publication Search"; 
-	                $heading = "Botanical Publications"; 
-                        $link = "publication_index.html";
+	        $heading = "Botanical Publications"; 
+            $link = "publication_index.html";
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
 			$active['b'] = " ";
+			$active['i'] = " ";
 			break;
 		case "image":
 			$title = "Specimen Image Search"; 
-	                $heading = "Botanical Specimens"; 
-                        $link = "image_search.php";
-			$active['s'] = " class='active' ";
+	        $heading = "Botanical Specimens"; 
+            $link = "image_search.php";
+			$active['s'] = "";
 			$active['p'] = "";
 			$active['b'] = "";
+			$active['i'] = " class='active' ";
 			break;
 		default;
 		
@@ -248,6 +253,7 @@ $result .= "
     <li><a href='botanist_index.html' ". $active['b'].">BOTANISTS</a></li>
     <li><a href='publication_index.html' ". $active['p'] .">PUBLICATIONS</a></li>
     <li><a href='specimen_index.html' ". $active['s'] .">SPECIMENS</a></li>
+    <li><a href='image_search.php' ". $active['i'] .">IMAGES</a></li>
     <li><a href='add_correct.html'>Contribute</a></li>
     <li><a href='comment.html'>Comments/questions</a></li>
     

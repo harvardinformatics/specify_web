@@ -565,6 +565,50 @@ color: #89201b;
 	}
 /* footer styles end */
 
+/* Styled Button */ 
+input.styledButton {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: #000000;
+    padding: 3px 10px;
+    background: -moz-linear-gradient(
+        top,
+        #f0f0f0 0%,
+        #bdbdbd);
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#f0f0f0),
+        to(#bdbdbd));
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+    border: 1px solid #104000;
+    -moz-box-shadow:
+        0px 1px 3px rgba(000,000,000,0.5),
+        inset 0px 0px 2px rgba(061,061,061,1);
+    -webkit-box-shadow:
+        0px 1px 3px rgba(000,000,000,0.5),
+        inset 0px 0px 2px rgba(061,061,061,1);
+    box-shadow:
+        0px 1px 3px rgba(000,000,000,0.5),
+        inset 0px 0px 2px rgba(061,061,061,1);
+    text-shadow:
+        0px -1px 0px rgba(077,076,077,0.4),
+        1px 1px 1px rgba(255,255,255,0.3);
+}
+input.styledButton[disabled="disabled"], input.styledButton:disabled { 
+    color: GrayText;
+    background: -moz-linear-gradient(
+        top,
+        #d0d0d0 0%,
+        #cdcdcd);
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#d0d0d0),
+        to(#cdcdcd));
+    border: 1px solid #555555;
+}
+
 
 /* Pages with lists of thumbnails */
 div.tndiv{
