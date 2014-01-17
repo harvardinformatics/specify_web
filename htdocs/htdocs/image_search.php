@@ -190,11 +190,24 @@ function details() {
      $stmt->fetch();
      $stmt->close();
   }
-  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, i.collectionobjectid " .
-         "from IMAGE_SET_collectionobject i left join fragment f on i.collectionobjectid = f.collectionobjectid left join guids g on f.fragmentid = g.primarykey left join dwc_search d on g.uuid = d.fragmentguid  where g.tablename = 'fragment' and i.imagesetid = ? ";
+  $uuid = "";
+  $sql = "select uuid " .
+         "from IMAGE_SET_collectionobject i left join fragment f on i.collectionobjectid = f.collectionobjectid left join guids g on f.fragmentid = g.primarykey where g.tablename = 'fragment' and i.imagesetid = ? ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
+     if ($debug) { echo "[$sql]"; } 
      $stmt->bind_param('i',$imagesetid);
+     $stmt->execute();
+     $stmt->bind_result($uuid);
+     $stmt->fetch();
+     $stmt->close();
+  }
+  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, i.collectionobjectid " .
+         "from dwc_search where fragmentguid = ? ";
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) { 
+     if ($debug) { echo "[$sql]"; } 
+     $stmt->bind_param('i',"http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid");
      $stmt->execute();
      $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid);
      $stmt->fetch();
