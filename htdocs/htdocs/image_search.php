@@ -42,6 +42,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="search") {
 		$mode = "search"; 
 	}
+	if ($_GET['mode']=="qc") {
+		$mode = "qc"; 
+	}
 	if ($_GET['mode']=="details") {
 		$mode = "details"; 
         $passon = "imagedetails";
@@ -53,6 +56,10 @@ if ($connection) {
     if ($debug===TRUE) {  echo "[$mode]"; } 
 		
 	switch ($mode) {
+		    case "qc":
+                echo "<h2>Image Batch Quality Control</h2>";
+		        echo batch_qc();
+		        break;
 		    case "details":
 		        echo details();
 		        break;
@@ -202,12 +209,13 @@ function details() {
      $stmt->fetch();
      $stmt->close();
   }
-  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, i.collectionobjectid " .
+  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid " .
          "from dwc_search where fragmentguid = ? ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
      if ($debug) { echo "[$sql]"; } 
-     $stmt->bind_param('i',"http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid");
+     $guid = "http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid";
+     $stmt->bind_param('s',$guid);
      $stmt->execute();
      $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid);
      $stmt->fetch();
@@ -249,6 +257,102 @@ function details() {
   $result .= "$country $stateprovince<br/>";
   $result .= "$locality<br/>";
   $result .= "<br clear='All'/>";
+
+  return $result;
+}
+
+function batch_qc() { 
+  global $connection;
+
+  $batchid = preg_replace('/[^0-9]/','',$_GET['batchid']);
+  if (strlen($batchid>0)) { 
+     return batch_details($batchid);
+  } else { 
+     return list_batches();
+  }
+
+}
+
+function batch_details($batchid) { 
+  global $connection;
+  $result = "<br/>";
+
+  $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) { 
+    $stmt->bind_param('i',$batchid);
+    $stmt->execute();
+    $stmt->bind_result($imagesetid, $date, $name, $remarks, $project, $lab, $activeflag, $description, $owner, $copyright, $setremarks);
+    $row = 0;
+    $links = "";
+    $stmt->store_result();
+    $subresult = "";
+    while ($stmt->fetch()) { 
+       $setcount++;
+       if ($row==0) { 
+          $result .= "<strong>Batch:</strong> <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a><br/><strong>Date:</strong> $date<br/><strong>Project:</strong> $project.<br/><strong>Facility:</strong> $lab<br/><strong>Remarks:</strong> $remarks</br>\n";
+       } 
+       $links = "";
+       $sql = "select distinct j.collectionobjectid, f.text1, f.identifier, p.identifier from IMAGE_SET_collectionobject j left join fragment f on j.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid where j.imagesetid = ? ";
+       $stmt1 = $connection->stmt_init();
+       if ($stmt1->prepare($sql)) { 
+          $stmt1->bind_param('i',$imagesetid);
+          $stmt1->execute();
+          $stmt1->bind_result($collectionobjectid, $collectioncode, $fbarcode, $pbarcode);
+          $stmt1->store_result();
+          while ($stmt1->fetch()) { 
+            $collcount++;
+            $links .= "<a href='specimen_search.php?mode=details&id[]=$collectionobjectid'>$collectioncode $fbarcode $pbarcode</a>";
+          }
+          $stmt1->close();
+       }
+       $images = ""; 
+       $sql = "select url_prefix, uri, r.name, t.name from IMAGE_OBJECT i left join REPOSITORY r on i.repository_id = r.id left join IMAGE_OBJECT_TYPE t on i.object_type_id = t.id where image_set_id = ?";
+       $stmt1 = $connection->stmt_init();
+       if ($stmt1->prepare($sql)) { 
+          $stmt1->bind_param('i',$imagesetid);
+          $stmt1->execute();
+          $stmt1->bind_result($prefix,$url,$repository,$type);
+          $stmt1->store_result();
+          while ($stmt1->fetch()) { 
+            $imagecount++;
+            $images .= "$repository <a href='$prefix$url'>$type</a> $url<br/>";
+            if ($type=="Thumbnail") { 
+               $images .= "<img src='$prefix$url'><br/>"; 
+            }
+          }
+          $stmt1->close();
+       }
+       if ($activeflag==1) {  $active = "Image set:"; } else { $active = "Image set <strong>(Inactive)</strong>:"; } 
+       $subresult .= "<a href='image_search.php?mode=details&imagesetid=$imagesetid'>$active</a> $description $links $owner $copyright $remarks $setremarks<br/>$images<br/>";
+       $row++;
+    } 
+    $result .= "Specimens: $collcount<br/>Image Sets: $setcount<br/>Images: $imagecount<br/><br/>$subresult";
+    $stmt->close();
+  } else { 
+    $result .= "Query Error: " . $connection->error . $stmt->error;
+  }
+
+  return $result;
+
+} 
+
+function list_batches() { 
+  global $connection;
+  $result = "";
+
+  $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) { 
+    $stmt->execute();
+    $stmt->bind_result($specimencount, $batchid, $date, $name, $remarks, $project, $lab);
+    while ($stmt->fetch()) { 
+       $result .= "Batch: <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a> on $date with $specimencount sheets.  Project: $project. Lab: $lab. $remarks</br>\n";
+    } 
+    $stmt->close();
+  } else { 
+    $result .= "Query Error: " . $connection->error . $stmt->error;
+  }
 
   return $result;
 }
