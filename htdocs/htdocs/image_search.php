@@ -277,12 +277,12 @@ function batch_details($batchid) {
   global $connection;
   $result = "<br/>";
 
-  $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
+  $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks, s.caption from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
     $stmt->bind_param('i',$batchid);
     $stmt->execute();
-    $stmt->bind_result($imagesetid, $date, $name, $remarks, $project, $lab, $activeflag, $description, $owner, $copyright, $setremarks);
+    $stmt->bind_result($imagesetid, $date, $name, $remarks, $project, $lab, $activeflag, $description, $owner, $copyright, $setremarks,$caption);
     $row = 0;
     $links = "";
     $stmt->store_result();
@@ -324,7 +324,7 @@ function batch_details($batchid) {
           $stmt1->close();
        }
        if ($activeflag==1) {  $active = "Image set:"; } else { $active = "Image set <strong>(Inactive)</strong>:"; } 
-       $subresult .= "<a href='image_search.php?mode=details&imagesetid=$imagesetid'>$active</a> $description $links $owner $copyright $remarks $setremarks<br/>$images<br/>";
+       $subresult .= "<a href='image_search.php?mode=details&imagesetid=$imagesetid'>$active</a> $caption $description $links $owner $copyright $remarks $setremarks<br/>$images<br/>";
        $row++;
     } 
     $result .= "Specimens: $collcount<br/>Image Sets: $setcount<br/>Images: $imagecount<br/><br/>$subresult";
