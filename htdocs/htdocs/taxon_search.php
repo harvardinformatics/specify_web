@@ -259,6 +259,8 @@ function details() {
 
 function search() {  
   // Not implemented yet	
+  $_GET['id']=1;
+  details();
 }
 
 
