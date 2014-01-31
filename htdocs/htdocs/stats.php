@@ -58,6 +58,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="annualreport_details") {
 		$mode = "annualreport_details"; 
 	}
+	if ($_GET['mode']=="loan_list") {
+		$mode = "loan_list"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -85,6 +88,9 @@ if ($isinternal===TRUE) {
 		        break;
 		    case "family_type_count_summary":
 		        echo family_type_count_summary();
+		        break;
+		    case "loan_list":
+		        echo loan_list();
 		        break;
 			case "menu": 	
 			default:
@@ -124,6 +130,8 @@ function menu() {
    $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Reports</h2>";
    $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='stats.php?mode=loan_list'>List of Loans</li>";
+   $returnvalue .= "<li></li>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</li>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</li>";
    for ($year=intval(date("Y"));$year>1958;$year--) { 
@@ -564,6 +572,64 @@ function transactionitemlist($query,$title,$type="Loans") {
                 $returnvalue .= "</table>";
         }
      return $returnvalue;
+}
+
+function loan_list() { 
+   global $connection,$debug;
+   $returnvalue = "";
+
+   $query = "select  l.loanid, l.loannumber, l.text2 as unit, l.purposeofloan, a.abbreviation, l.text3 as recipientrole, l.loandate, l.dateclosed, l.isclosed=1, sum(lp.itemcount), sum(lp.nonspecimencount), sum(lp.typecount), count(f.identifier) from loan l left join loanagent la on l.loanid = la.loanid left join agent a on la.agentid = a.agentid left join loanpreparation lp on l.loanid = lp.loanid left join fragment f on lp.preparationid = f.preparationid where la.role = 'Borrower' group by l.loannumber, l.text2, l.purposeofloan, a.abbreviation, l.text3, l.loandate, l.dateclosed, l.isclosed=1 order by l.loandate desc";
+   $returnvalue .= "<h2>List of Loans</h2>";
+   $statement = $connection->prepare($query);
+   if ($statement) {
+       $itemcounttotal=$nonspecimencounttotal=$typecounttotal=$barcodecounttotal = 0;
+       $statement->execute();
+       $statement->bind_result($loanid, $loannumber,$unit, $purpose, $recipient, $role, $loandate, $dateclosed, $isclosed, $itemcount, $nonspecimencount, $typecount, $barcodecount);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $returnvalue .= "<tr><th>LoanNumber</th><th>Unit</th><th>Purpose</th><th>Herbarium</th><th>RecipientRole</th><th>LoanDate</th><th>DateClosed</th><th>IsClosed</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>BarcodedItems</th></tr>";
+                while ($statement->fetch()) {
+                    $itemcounttotal += $itemcount;
+                    $nonspecimencounttotal += $nonspecimencount;
+                    $typecounttotal += $typecount;
+                    $barcodecounttotal += $barcodecount;
+                    if ($unit=='FC') { 
+                        $unit = "Farlow Collections"; 
+                    } 
+                    if ($unit=='GC') { 
+                        $unit = "General Collections"; 
+                    }
+                    if ($isclosed=='1') { 
+                        $isclosed = "Closed"; 
+                    } 
+                    if ($isclosed=='0') { 
+                        $isclosed = "Open"; 
+                    } 
+                    if ($barcodecount!=0) { 
+                      $sql = "select collectionobjectid from loanpreparation lp left join fragment f on lp.preparationid = f.preparationid where lp.loanid = ? ";
+                      $statement2 = $connection->prepare($sql);
+                      $ids = "";
+                      if ($statement2) { 
+                         $statement2->bind_param('i',$loanid);
+                         $statement2->execute();
+                         $statement2->bind_result($collectionobjectid);
+                         $statement2->store_result();
+                         while ($statement2->fetch()) { 
+                            $ids .= "&id[]=$collectionobjectid";
+                         }
+                         $statement2->close();
+                         if ($ids!="") { 
+                            $barcodecount = "<a href='specimen_search.php?mode=details$ids'>$barcodecount</a>";
+                         }
+                      }
+                    }
+                    $returnvalue .= "<tr><td>$loannumber</td><td>$unit</td><td>$purpose</td><td>$recipient</td><td>$role</td><td>$loandate</td><td>$dateclosed</td><td>$isclosed</td><td>$itemcount</td><td>$nonspecimencount</td><td>$typecount</td><td>$barcodecount</td></tr>";
+                }
+                $returnvalue .= "<tr><td><strong>Totals</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>$itemcounttotal</td><td>$nonspecimencounttotal</td><td>$typecounttotal</td><td>$barcodecounttotal</td></tr>";
+                $returnvalue .= "</table>";
+        }
+
+   return $returnvalue;
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
