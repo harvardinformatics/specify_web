@@ -92,14 +92,14 @@ function search() {
    // obtain a list of type status terms with counts of images
    $tsList = array();
    foreach($dataexplorer->getTypestatusList() as $row => $tsArr){
-       $tsList[] = (object)array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
+       $tsList[] = array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
    }
    $declareTypestatus = "var typestatus = ".json_encode($tsList)."; \n";
 
    // obtain a list of country names with counts of images
    $tsList = array();
    foreach($dataexplorer->getCountryList() as $row => $tsArr){
-       $tsList[] = (object)array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
+       $tsList[] = array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
    }
    $declareCountry = "var country = ".json_encode($tsList)."; \n";
 
@@ -113,7 +113,7 @@ function search() {
    // obtain a list of family names with counts of images
    $tsList = array();
    foreach($dataexplorer->getFamilyList() as $row => $tsArr){
-       $tsList[] = (object)array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
+       $tsList[] = array( 'value' => $tsArr['value'], 'label' => $tsArr['label']);
    }
    $declareFamily = "var family = ".json_encode($tsList)."; \n";
 
@@ -205,11 +205,12 @@ function details() {
      if ($debug) { echo "[$sql]"; } 
      $stmt->bind_param('i',$imagesetid);
      $stmt->execute();
+     echo "$stmt->error";
      $stmt->bind_result($uuid);
      $stmt->fetch();
      $stmt->close();
   }
-  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid " .
+  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid, typestatus " .
          "from dwc_search where fragmentguid = ? ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
@@ -217,9 +218,11 @@ function details() {
      $guid = "http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid";
      $stmt->bind_param('s',$guid);
      $stmt->execute();
-     $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid);
+     $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid, $typestatus);
      $stmt->fetch();
      $stmt->close();
+  } else {  
+     echo "$stmt->error";
   }
   $result .= "
           <script type=\"text/javascript\">
@@ -244,7 +247,7 @@ function details() {
           </script>
   ";
 
-  $result .= "<h2>Image details for [$imagesetid].</h2>\n";
+  $result .= "<h2>Image details for $collectioncode $catalognumber.</h2>\n";
   $result .= "<br clear='All'/>";
   $result .= "<div style='background-color:#F3F3F3; width:1075px; height:625px; border-color:#939393; border-width:1; border-style:solid;' >";
 
@@ -252,7 +255,8 @@ function details() {
   $result .= "&nbsp;&nbsp;Mouse over image to zoom.<br/>\n";
 
   $result .= "</div>";
-  $result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a><br/>";
+  //$result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a><br/>";
+  $result .= "$collectioncode $catalognumber <strong style='color:RED; '>$typestatus</strong><br/>";
   $result .= "<em>$scientificname</em> $authorship<br/>";
   $result .= "$country $stateprovince<br/>";
   $result .= "$locality<br/>";

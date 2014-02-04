@@ -329,6 +329,9 @@ function annualreport($year,$showdetails=FALSE) {
     group by text2, purposeofloan, text3;";
    if ($debug) { echo "[$query]<BR>"; } 
       $returnvalue .= "<h2>Loans out in fiscal year $syear-$year</h2>";
+      if ($syear<1993) { 
+          $returnvalue .= "<p>Note: Then open loan records were captured in late 1991, loans that were closed at that time were not systematically captured, counts of loans prior to 1992 are progressively more incomplete in earlier years.</p>";
+      }
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
