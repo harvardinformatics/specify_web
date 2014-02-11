@@ -265,7 +265,7 @@ function details() {
 							
 							// Determine if this is a simple collection object (one collectionobject, one fragment, one preparation) or not. 
 							$objectcomplexity = array();
-                                                        $query = "select count(distinct f.fragmentid), count(distinct p.preparationid) from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid where c.collectionobjectid = ? ";
+                                                        $query = "select count(distinct f1.fragmentid), count(distinct p.preparationid) from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid left join fragment f1 on p.preparationid = f1.preparationid where c.collectionobjectid = ? ";
 							if ($debug) { echo "[$query]<BR>"; } 
 							$statement_cmp = $connection->prepare($query);
 							if ($statement_cmp) {
@@ -284,6 +284,54 @@ function details() {
                                                                                 if ($fragmentcount>1) { $fs="s"; } 
                                                                                 if ($preparationcount>1) { $ps="s"; } 
 										$objectcomplexity['Complex Object'] = "This is a complex collection object ($fragmentcount item$fs with $preparationcount preparation$ps)";
+                                        if ($fragmentcount>1) { 
+                                        // obtain a full list of barcodes directly associated with this collection object
+                                    $query = "select distinct fragment.identifier, preparation.identifier " .
+                                        " from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
+                                        " where fragment.collectionobjectid = ? ";
+                                    if ($debug===true) {  echo "[$query]<BR>"; }
+                                    $barcodeArray = array();
+                                    $statement_bar0 = $connection->prepare($query);
+                                    if ($statement_bar0) {
+                                        $statement_bar0->bind_param("i",$id);
+                                        $statement_bar0->execute();
+                                        $statement_bar0->bind_result($identifierf,$identifierp);
+                                        $statement_bar0->store_result();
+                                        $separator = "";
+                                        while ($statement_bar0->fetch()) {
+                                            if ($identifierf!="") {
+                                                $barcodeArray[] = $identifierf;
+                                            }
+                                            if ($identifierp!="") {
+                                                $barcodeArray[] = $identifierp;
+                                            }
+
+                                        }
+                                        $barcodelist .= $barcodelistseparator.$CatalogNumber;
+                                        $barcodelistseparator = "; ";
+                                    } else {
+                                        echo "Error: " . $connection->error;
+                                    }
+
+                                            $sql = "select f1.collectionobjectid, f1.identifier  from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid left join fragment f1 on p.preparationid = f1.preparationid where c.collectionobjectid = ? ";
+ 							                $statement_bits = $connection->prepare($sql);
+							                if ($statement_bits) { 
+								                $statement_bits->bind_param("i",$id);
+ 								                $statement_bits->execute();
+								                $statement_bits->bind_result($collobjid,$barcode);
+								                $statement_bits->store_result();
+                                                $sep="";
+								                while ($statement_bits->fetch()) {
+                                                    if (!in_array($barcode,$barcodeArray)) { 
+  									                   $itemList .= "$sep<a href='specimen_search.php?mode=details&barcode=$barcode'>$barcode</a>";
+                                                       $sep = "; ";
+                                                    }
+								                }
+									            $otheritems .= "<tr><td class='cap'>Other Barcodes on Sheet</td><td class='val'>$itemList</td></tr>";
+							                 } else { 
+								                    echo "Error: " . $connection->error;
+							                 }
+                                        }
 									}
 								}
 							}	    
@@ -899,6 +947,7 @@ function details() {
 							      if (trim(value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
 							}
 							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Harvard University Herbaria Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
+							if (trim($otheritems!=""))   { echo $otheritems; }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) { 
 							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
