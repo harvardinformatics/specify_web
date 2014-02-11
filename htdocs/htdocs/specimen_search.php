@@ -314,6 +314,8 @@ function details() {
                                     }
 
                                             $sql = "select f1.collectionobjectid, f1.identifier  from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid left join fragment f1 on p.preparationid = f1.preparationid where c.collectionobjectid = ? ";
+                                                                        $otheritems = "";
+                                                                        $itemList = "";
  							                $statement_bits = $connection->prepare($sql);
 							                if ($statement_bits) { 
 								                $statement_bits->bind_param("i",$id);
@@ -327,7 +329,9 @@ function details() {
                                                        $sep = "; ";
                                                     }
 								                }
+                                                                                if ($itemList!="") { 
 									            $otheritems .= "<tr><td class='cap'>Other Barcodes on Sheet</td><td class='val'>$itemList</td></tr>";
+                                                                                }
 							                 } else { 
 								                    echo "Error: " . $connection->error;
 							                 }
@@ -719,6 +723,7 @@ function details() {
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
 													$determination['Date Determined'] = "$determinedDate";
 												}
+                                                                                                $determinationRemarks = str_replace("[]","",$determinationRemarks);
 												if (trim($determinationRemarks)!="") { 
 													$determinationHistory.= "<tr class='item_row'><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
 													$determination['Determination Remarks'] = "$determinationRemarks";
