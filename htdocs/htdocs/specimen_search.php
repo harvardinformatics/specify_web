@@ -242,11 +242,12 @@ function details() {
 					" collectingevent.startdateprecision, collectingevent.enddateprecision, collectingevent.remarks as habitat, " .
 					" collectingevent.verbatimlocality, collectionobject.text2 as substrate, collectionobject.text1 as host, " .
 					" collectionobject.text3 as vernacularname, collectionobject.text4 as frequency, collectingevent.stationfieldnumber, " .
-                                        " locality.verbatimelevation, container.name as container, locality.remarks as localityremarks " .
+                                        " locality.verbatimelevation, container.name as container, locality.remarks as localityremarks, project.projectname as projectname " .
 					" from collectionobject " .
 					"    left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
 					"    left join locality on collectingevent.localityid = locality.localityid  " .
 				        "    left join container on collectionobject.containerid = container.containerid " .
+				        "    left join project_colobj on collectionobject.collectionobjectid = project_colobj.collectionobjectid left join project on project_colobj.projectid = project.projectid " .
 					" where $wherebit";
 				if ($debug) { echo "[$query][$id]<BR>"; } 
 				$statement = $connection->prepare($query);
@@ -254,7 +255,7 @@ function details() {
 					$statement->bind_param("i",$id);
 					$statement->execute();
 					//$statement->bind_result($country, $locality, $FullName, $geoid, $CatalogNumber, $CollectionObjectID, $state);
-					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation, $container,$localityremarks);
+					$statement->bind_result($geoid, $lname, $lat1text, $lat2text, $long1text, $long2text, $datum, $latlongmethod, $AltCatalogNumber, $CollectionObjectID, $fieldnumber, $specimenRemarks, $verbatimdate, $startDate, $endDate, $maxElevation, $minElevation, $startdateprecision, $enddateprecision, $habitat, $verbatimlocality, $substrate, $host, $vernacularname, $frequency, $stationfieldnumber, $verbatimelevation, $container,$localityremarks,$projectname);
 					$statement->store_result();
 					if ($statement->num_rows()==0) { 
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
@@ -999,6 +1000,7 @@ function details() {
 							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
 							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
 							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
+							if (trim($projectname!=""))   { echo "<tr><td class='cap'>Project</td><td class='val'>$projectname</td></tr>"; }
 							$itemcounter = 0;  // check if even or odd to distinguish alternate pairs of items.
 							foreach ($itemarray as  $item) {
 								$itemcounter ++;  
