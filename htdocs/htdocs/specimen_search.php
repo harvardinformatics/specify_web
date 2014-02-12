@@ -276,7 +276,7 @@ function details() {
 								while ($statement_cmp->fetch()) { 
 									if ($fragmentcount==1 && $preparationcount==1) { 
 										//$objectcomplexity = "<tr><td class='cap'>Simple Object</td><td class='val'>This is a simple collection object (one sheet-item-preparation)</td></tr>";
-										$objectcomplexity['Simple Object'] = "This is a simple collection object (one sheet-item-preparation)";
+										// $objectcomplexity['Simple Object'] = "This is a simple collection object (one sheet-item-preparation)";
 									} else { 
 										//$objectcomplexity = "<tr><td class='cap'>Complex Object</td><td class='val'>This is a complex collection object ($objectfragmentprepfragmentrows sheet(s)-item(s)-preparation(s))</td></tr>";
                                                                                 $fs = "";
@@ -534,8 +534,10 @@ function details() {
 							        $item = array();        // Each $item array contains key - value pairs for the fields associated with that item.
 									$itemcount ++; 
 									//$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount of $fragmentcount</td></tr>";
-									$itemheader['Item'] = "$itemcount of $fragmentcount";
-									$item[] = $itemheader;
+                                                                        if ($fragmentcount>1) { 
+									   $itemheader['Item'] = "$itemcount of $fragmentcount";
+									   $item[] = $itemheader;
+                                                                        }
 									
 									// **** HUH Specific *****
 									// Acronym for herbarium is stored in fragment.text1
@@ -686,8 +688,10 @@ function details() {
 													$det = trim("$confidence $typeStatusName of");
 												    $determination["Type Status"] = "$confidence $typeStatusName";
 													// Append to list of type statuses for this collection object
-													$typeStatus .= trim("$separator$confidence $typeStatusName");
-													$separator = ", ";
+                                                                                                        if (strpos($typeStatus,trim("$confidence $typeStatusName"))===FALSE) { 
+													    $typeStatus .= trim("$separator$confidence $typeStatusName");
+													    $separator = ", ";
+                                                                                                        }
 												    $taxonname = "$qualifier <em>$fullName</em> $author";
 												    $determination["$det"] = $taxonname;
 												    $determination["Determination"] = "";
@@ -1429,11 +1433,11 @@ function search() {
 						 echo "$familylink<BR>"; 
 					}
 					$oldfamilylink = $familylink;
-					if (strlen($locality) > 12) { 
-						$locality = substr($locality,0,11) . "...";
+					if (strlen($locality) > 35) { 
+						$locality = substr($locality,0,34) . "...";
 					}
-					if (strlen($collector) > 12) { 
-						$collector = substr($collector,0,11) . "...";
+					if (strlen($collector) > 35) { 
+						$collector = substr($collector,0,34) . "...";
 					}
 					if (strlen($imagesetid)>0) { 
 						$imageicon = "<img src='images/leaf.gif'>";
@@ -1442,7 +1446,7 @@ function search() {
 					}
 					$FullName = " <em>$genus $species $infraspecific</em> $author";
 					$geography = "$country: $state $locality ";
-					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria Barcode: $barcode</a>"; 
+					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria: $barcode</a>"; 
 					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $collector $collectornumber $datecollected $imageicon";
                                         // Obtain a list of collectionobjectids to pass to dumps to obtain spreadsheet.
 					$CollectionObjectIDs.= "$comma$CollectionObjectID";
