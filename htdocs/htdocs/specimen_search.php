@@ -535,7 +535,7 @@ function details() {
 									$itemcount ++; 
 									//$items .= "<tr><td class='cap'>Item</td><td class='val'>$itemcount of $fragmentcount</td></tr>";
                                                                         if ($fragmentcount>1) { 
-									   $itemheader['Item'] = "$itemcount of $fragmentcount";
+									   $itemheader['Organism/Item'] = "$itemcount of $fragmentcount";
 									   $item[] = $itemheader;
                                                                         }
 									
@@ -1433,8 +1433,8 @@ function search() {
 						 echo "$familylink<BR>"; 
 					}
 					$oldfamilylink = $familylink;
-					if (strlen($locality) > 35) { 
-						$locality = substr($locality,0,34) . "...";
+					if (strlen($locality) > 45) { 
+						$locality = substr($locality,0,44) . "...";
 					}
 					if (strlen($collector) > 35) { 
 						$collector = substr($collector,0,34) . "...";
@@ -1445,6 +1445,7 @@ function search() {
 						$imageicon = "";
 					}
 					$FullName = " <em>$genus $species $infraspecific</em> $author";
+                                        $country= str_replace("United States of America","USA",$country);
 					$geography = "$country: $state $locality ";
 					$specimenidentifier =  "<a href='specimen_search.php?mode=details&id=$CollectionObjectID'>$herbaria: $barcode</a>"; 
 					echo "<input type='checkbox' name='id[]' value='$CollectionObjectID'> $specimenidentifier $FullName $geography $collector $collectornumber $datecollected $imageicon";
