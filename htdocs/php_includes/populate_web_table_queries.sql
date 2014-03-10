@@ -617,7 +617,7 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate catalognumbers to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
 -- make the fragment guid resolvable
 update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
