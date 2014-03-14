@@ -857,6 +857,7 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
 
 -- Add indexes to dwc_search (but on temp_ not table, as there isn't an if not exists yet in MySQL
 create index dwc_country on temp_dwc_search(country);
+create index dwc_search_collobjectid on temp_dwc_search(collectionobjectid);
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
