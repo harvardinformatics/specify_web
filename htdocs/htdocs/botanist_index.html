@@ -83,17 +83,21 @@
 		<div id="main_text">
         <h3>Index of Botanists</h3>
 
-<p>Plant and cryptogam name authors, collectors, and publication authors are combined into a single resource.
-     Enter a person's name either as <i>lastname, firstname</i>, e.g. <i>jones, david</i>
-
-     or by the standard abbreviation, e.g. <i>d r jones</i>.
-     An author or collector name is sometimes made up of multiple names and can be entered as such or
-     a team record can be located from the record of any of its members.  Be sure to check the team
-     box if you are searching for a team. 
-     Check off the botanist roles by which to constrain the search, otherwise all botanists
-     in the database will be matched.   Herbaria in which material is known to have been deposited by each botanist   
-     can be searched in Remarks.  Place names and taxon names sporadically occur in remarks.
-     </p>
+<p>Authors of plant names, botanical and mycological collectors, and authors
+of publications of importance to systematic botany and mycology, are
+combined into a single resource.  To search: enter the person's name either
+as <i>lastname, firstname</i>, e.g. <i>jones, david</i>
+or by the standard abbreviation, e.g. <i>d r jones</i>.
+The name of an author or collector
+sometimes consists of multiple names and can be entered as such. Team
+records can be located by searching for the name of any of its members.
+Check the <strong>Team</strong> box when searching for a team. Checking the botanist's
+role (Authors, Collectors, Individuals, Teams) will constrain the search
+further, otherwise all records  in the database that satisfy the search
+criteria will be matched. Herbaria in which material is known to have been
+deposited by a botanist can be searched in <strong>Remarks</strong>. Place names and taxon
+names sporadically occur within <strong>Remarks</strong>.
+</p>
 
 <form class="searchform" action="botanist_search.php" method="get">
     <input type="hidden" name="start" value="1"> 
@@ -184,7 +188,7 @@
 
 </form>
 
-<p>Disclaimer: This is a new (2011) interface over recently migrated data.  Both the interface and the data are under review.  Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p>
+<p>Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p>
 
 <?php
   @include_once("connection_library.php");

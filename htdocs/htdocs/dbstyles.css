@@ -89,6 +89,7 @@
 	/* topnav css begins */
 	#topnav {
 	clear: left;
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	}
 	#topnav ul {
 	margin: 0px;
@@ -132,6 +133,7 @@
 	#nav2 {
 	background: #336699;
 	color: white;
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	}
 	#nav2 ul {
 	text-align: left;
@@ -313,6 +315,7 @@
 	border: black solid 1px;
 	}
 	h1 {
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	font-size: 140%;
 	text-align: left;
 	color: #336633;
@@ -320,6 +323,7 @@
 	padding: 10px 10px 10px 0px;
 	}
 	h2 {
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	padding: 0px;
 	margin: 0px;
 	padding-top: 20px;
@@ -438,6 +442,7 @@ td.det_item_cap {
 	color: brown;	
 }
 td.val {
+	font:normal 1.0em Georgia, Garmon, Times, serif; 
 	width: 80%;
 	background: #EEFFFF; 
 }

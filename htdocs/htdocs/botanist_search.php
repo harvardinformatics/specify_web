@@ -201,8 +201,8 @@ function details() {
 						   $enddatetext = "Last date flourished"; 
 						}
 						if ($datetype=="3") { 
-						   $startdatetext = "First date recieved"; 
-						   $enddatetext = "Last date recieved"; 
+						   $startdatetext = "First date received"; 
+						   $enddatetext = "Last date received"; 
 						}
 						if ($datetype=="2") { 
 						   $startdatetext = "First date collected"; 

@@ -74,6 +74,9 @@ if ($_GET['mode']!="")  {
 		$mode = "project_dwc"; 
 		$projectid = preg_replace("/[^0-9]/","",$_GET['projectid']);  
 	}
+	if ($_GET['mode']=="imagefeed") {
+		$mode = "imagefeed"; 
+	}
 
         // Limit the search to records last updated more recently than the 
         // date provided.
@@ -124,6 +127,9 @@ if ($_POST['mode']!="")  {
 		    case "project_dwc":
 		        echo project_dwc($projectid);
 		        break;
+		    case "imagefeed":
+		        echo image_feed();
+		        break;
 		    case "menu": 	
 		    default:
                             echo pageheader('datadumps'); 
@@ -158,6 +164,7 @@ function menu() {
    $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of AMES and other orchid specimens (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=project&projectid=4'>List of Metropolitan Flora Project Material (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=imagefeed'>NEVP Image Feed (csv file)</a></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -529,6 +536,65 @@ if ( !function_exists('sys_get_temp_dir')) {
 
 }
 
+
+function image_feed($since = null) { 
+	global $connection,$debug;
+
+        // width of thumbnail to produce
+        $thumbwidth = 250;
+
+// From comments in php docs
+if ( !function_exists('sys_get_temp_dir')) {
+  function sys_get_temp_dir() {
+      if( $temp=getenv('TMP') )        return $temp;
+      if( $temp=getenv('TEMP') )        return $temp;
+      if( $temp=getenv('TMPDIR') )    return $temp;
+      $temp=tempnam(__FILE__,'');
+      if (file_exists($temp)) {
+          unlink($temp);
+          return dirname($temp);
+      }
+      return null;
+  }
+}
+   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; } 
+   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
+   if ($debug) { echo "[$tempfilename]<BR>"; } 
+   $file = fopen($tempfilename,"w");
+
+   $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where batch_id >= 3217 and (barcodes is null or barcodes = '') and object_type_id = 4 ";
+   if ($since!=null) { 
+      // $query .= " and timestamplastupdated > ? ";
+   }
+   if ($debug) { echo "[$query]<BR>"; } 
+        $linearray = array ("iPlantGUID","ImageURI","ThumbnailURI","collectionCode","catalogNumber","scientificName","higherGeography","locality","collectorNumber","collector","eventDate");
+        fputcsv($file,$linearray);
+	$statement = $connection->prepare($query);
+        $genus = $genus . ' %';
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($imageuri, $collectioncode, $catalognumber, $scientificname, $highergeography, $locality, $collectornumber, $collector, $eventdate);
+		$statement->store_result();
+		while ($statement->fetch()) {
+                    $iplantguid = str_replace('http://bovary.iplantcollaborative.org/image_service/image/','',$imageuri);
+                    $iplantguid = str_replace('?rotate=guess&format=jpeg,quality,100','',$iplantguid);
+                    $thumburi = str_replace('?rotate=guess&format=jpeg,quality,100',"?rotate=guess&resize=$thumbwidth&format=jpeg,quality,100",$imageuri);
+	            $linearray = array("$iplantguid","$imageuri","$thumburi","$collectioncode","$catalognumber","$scientificname","$highergeography","$locality","$collectornumber","$collector","$eventdate");
+                    fputcsv($file,$linearray);
+                } 
+	}
+        fclose($file);
+
+        // write header and send file to browser
+        header("Content-Type: application/csv; charset=utf-8 ");
+        header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
+        header("Cache-Control: no-cache, must-revalidate"); 
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
+        readfile($tempfilename);
+        // remove temp file
+        unlink($tempfilename);
+
+}
 
 function project_dwc($projectid) { 
 	global $connection,$debug;
