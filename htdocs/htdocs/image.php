@@ -80,7 +80,7 @@ function lookup_image($image_local_file_id) {
       $result->path = $path; 
       $result->mimetype = $mimetype; 
    } 
-   $stmt->close;
+   $stmt->close();
    return $result;
 }
 
