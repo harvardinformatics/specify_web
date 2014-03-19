@@ -33,7 +33,7 @@ $mountpointparent = "/mnt/";
 //
 // Path below huhimagestorage/Herbaria{n}/ will be used as batch name.
 // This will be the path stored in the database.
-$basedirectories[0] = 'huhimagestorage/Herbaria2/GPI-Types/HUHGPI00054';
+$basedirectories[0] = 'huhimagestorage/Herbaria2/GPI-Types/HUHGPI00055';
 
 // The, decided by convention for all applications, directory
 // that contains the mountpoints and the list of mountpoints
@@ -49,8 +49,8 @@ $SUFFIXPATTERN = "(_[a-z]){0,1}"; // note, contains () affects array index in $m
 /*  *************  End Configuration  *********** */
 
 include_once('connection_library.php');
-include_once('specify_library.php');
-include_once('ImageShared.php');
+//include_once('specify_library.php');
+//include_once('ImageShared.php');
 
 //$connection = specify_spasa1_adm_connect();
 $connection = specify_connect();
@@ -622,7 +622,7 @@ function findOrCreateObject($imagesetid,$objecttypeid, $imagelocalfileid, $barco
               $mimeid = st_lookup($mime);
               if ($debug) { echo "[$mime][$mimeid]\n";}
               $compressionid = 114802;
-              if ($imagewidth>6500) { 
+              if ($pixelwidth>6500) { 
                  $resolution = "600";
               } else { 
                  $resolution = "300";
@@ -661,7 +661,7 @@ function findOrCreateObject($imagesetid,$objecttypeid, $imagelocalfileid, $barco
  * @return the id for the value, or null if not found.
  */
 function st_lookup($string) { 
-    global $connection;
+    global $connection,$debug;
     $result = null;
     $sql = "select ID from ST_LOOKUP where NAME = ? ";
     if ($debug) { echo "$sql [$name]\n"; } 
