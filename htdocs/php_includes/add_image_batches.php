@@ -616,7 +616,7 @@ function findOrCreateObject($imagesetid,$objecttypeid, $imagelocalfileid, $barco
                  $pixelheight = $imageinfo[1];
                  $mime = $imageinfo['mime'];
                  // find filesize
-                 $filesize = $filesize("$fullpath$filename");
+                 $filesize = filesize("$fullpath$filename");
               } 
               // look up constants in ST_LOOKUP
               $mimeid = st_lookup($mime);
@@ -664,7 +664,7 @@ function st_lookup($string) {
     global $connection,$debug;
     $result = null;
     $sql = "select ID from ST_LOOKUP where NAME = ? ";
-    if ($debug) { echo "$sql [$name]\n"; } 
+    if ($debug) { echo "$sql [$string]\n"; } 
     $statement = $connection->stmt_init();
     if ($statement->prepare($sql)) { 
        $statement->bind_param("s",$string);
