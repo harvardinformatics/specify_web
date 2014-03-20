@@ -48,6 +48,8 @@ class IMAGE_LOCAL_FILE {
   public $filename;
   public $path;
   public $mimetype;
+  public $success=FALSE;
+  public $errormessage;
 }
 
 $convert = "";
@@ -55,11 +57,19 @@ $id = 47086;
 $id = preg_replace("/[^0-9]/","",$_GET['id']);
 $convert = preg_replace("/[^a-z]/","",$_GET['convert']);
 
-$imagefile = lookup_image($id);
-if ($imagefile->mimetype=="image/tiff" && $convert=="jpeg") { 
-   convert_file($imagefile,"jpeg");
+if (strlen($id==0)) { 
+   return_error_image("No image file id provided add parameter ?id= ");
 } else { 
-   fetch_file($imagefile);
+   $imagefile = lookup_image($id);
+   if ($imagefile->success===TRUE) { 
+      if ($imagefile->mimetype=="image/tiff" && ($convert=="jpeg" || $convert=="jpg")) { 
+         convert_file($imagefile,"jpeg");
+      } else { 
+         fetch_file($imagefile);
+      }
+   } else { 
+      return_error_image($imagefile->errormessage);
+   }
 }
 
 /**
@@ -69,17 +79,32 @@ if ($imagefile->mimetype=="image/tiff" && $convert=="jpeg") {
 function lookup_image($image_local_file_id) { 
    global $connection;
    $result = new IMAGE_LOCAL_FILE();
+   $result->success=FALSE;
    $sql = "select filename, path, mimetype from IMAGE_LOCAL_FILE where id = ? ";
    $stmt = $connection->stmt_init();
-   $stmt->prepare($sql);
-   $stmt->bind_param('i',$image_local_file_id); 
-   $stmt->execute();
-   $stmt->bind_result($filename, $path, $mimetype);
-   if ($stmt->fetch()) {
-      $result->filename = $filename; 
-      $result->path = $path; 
-      $result->mimetype = $mimetype; 
-   } 
+   if ($stmt->prepare($sql)) { 
+      $stmt->bind_param('i',$image_local_file_id); 
+      $stmt->execute();
+      $stmt->store_result();
+      if ($stmt->num_rows>0) { 
+         $stmt->bind_result($filename, $path, $mimetype);
+         if ($stmt->fetch()) {
+            $result->filename = $filename; 
+            $result->path = $path; 
+            $result->mimetype = $mimetype; 
+            $result->success = TRUE;
+         } else { 
+            $result->success=FALSE;
+            $result->errormessage = $connection->error . " " . $stmt->error;
+         }
+      } else { 
+         $result->success=FALSE;
+         $result->errormessage = "Image File ID [$image_local_file_id] not found.";
+      }
+   } else { 
+      $result->success=FALSE;
+      $result->errormessage = $connection->error . " " . $stmt->error;
+   }
    $stmt->close();
    return $result;
 }
@@ -90,13 +115,23 @@ function lookup_image($image_local_file_id) {
  */
 function convert_file($imagefile,$toType="jpeg") { 
    global $base;
-   $im = new imagick($base.$imagefile->path.$imagefile->filename);
-   $im->setImageFormat('jpeg');
-   $name = preg_replace("/\.[a-zA-Z]*$/",".jpg",$imagefile->filename);
-   sendheader("image/jpeg",$name);
-   echo $im;
-   $im->clear();
-   $im->destroy();
+   $file = $base.$imagefile->path.$imagefile->filename;
+   if (is_readable($file)) { 
+      $im = new imagick();
+      try {
+         $im->readImage($file);
+         $im->setImageFormat('jpeg');
+      } catch(ImagickException $e) {
+         return_error_image("Unable to convert: " .$imagefile->filename . " $e");
+      }
+      $name = preg_replace("/\.[a-zA-Z]*$/",".jpg",$imagefile->filename);
+      sendheader("image/jpeg",$name);
+      echo $im;
+      $im->clear();
+      $im->destroy();
+   } else { 
+      return_error_image("Unable to read file to convert: " .$imagefile->filename);
+   }
 }
 
 /**
@@ -105,8 +140,27 @@ function convert_file($imagefile,$toType="jpeg") {
  */
 function fetch_file($imagefile) { 
    global $base;
-   sendheader($imagefile->mimetype,$imagefile->filename);
-   readfile($base.$imagefile->path.$imagefile->filename);
+   $file = $base.$imagefile->path.$imagefile->filename;
+   if (is_readable($file)) { 
+      sendheader($imagefile->mimetype,$imagefile->filename);
+      readfile($file);
+   } else { 
+      return_error_image("Unable to read file: " .$imagefile->filename);
+   }
+}
+
+function return_error_image($message) { 
+   sendheader("image/png","errormessage.png");
+   $draw = new ImagickDraw();
+   $draw->setFillColor('black');
+   $draw->setFontSize(16);
+   $draw->annotation(10, 30, $message);
+   $im = new Imagick();
+   $im->newImage(640, 100, "white");
+   $im->drawImage($draw);
+   $im->borderImage('blue', 1, 1);
+   $im->setImageFormat('png');
+   echo $im;
 }
 
 /**
