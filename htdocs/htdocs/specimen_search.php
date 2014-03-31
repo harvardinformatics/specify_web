@@ -417,7 +417,7 @@ function details() {
 								$statement_img->store_result();
 								$fullurl = "";
 								while ($statement_img->fetch()) { 
-								       $images[] = "File at: $imagepath/$imagefilename";
+								       $images[] = "File at: $imagepath$imagefilename";
 								}
 							} else { 
 								echo "Error: " . $connection->error;

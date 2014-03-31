@@ -1,66 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<title>HUH - Databases - Specimen Search</title>
-	<link rel="stylesheet" type="text/css" media="print" href="print.css"></link>
-	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
-	<link rel="stylesheet" type="text/css" media="print" href="cms-db.css"></link>
-</head>
-<body>
-<div id="allcontent">
-	
-		<!-- header code begins -->
-		<div id="header">
-			<div id="top_menu">
-			
-		        <!-- SiteSearch Google HERE -->
-		         
-				<div id="embed_nav">
-		  			<ul>
-						<li><a href="/">Home</a></li>
-						<li>&#124;</li>
-						<li><a href="http://zatoichi.huh.harvard.edu/people/index.php">Contact</a></li>
-						<li>&#124;</li>
-						<li><a href="/news_events/news_events.html">News &#38; Events</a></li>
+<?php
+include_once('specify_library.php');
 
-						<li>&#124;</li>
-						<li><a href="/news_events/calendar.html">Calendar</a></li>
-						<li>&#124;</li>
-						<li><a href="/sitemap.html">Sitemap</a></li>
-						<li>&#124;</li>
-						<li><a href="/links.html">Links</a></li>
-		  			</ul>
+echo pageheader("specimen","off");
 
-				</div>
-			
-			</div>
-			<!-- top menu ends -->
-		
-				<div id="mid_sect">
-					<a href="http://www.huh.harvard.edu"><img width="100" src="http://www.huh.harvard.edu/images/huh_logo_bw_100.png" alt="HUH logo" title="Home page" /></a>
-				</div>
-	
-
-				<div id='topnav'>
-		 			<ul>
-			 			<li ><a href='http://www.huh.harvard.edu/collections/'>Collections</a></li>
-
-			 			<li class=active><a href='http://www.huh.harvard.edu/databases/'>Databases</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/research/'>Research</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/seminar_series/'>Seminar Series</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/libraries/'>Libraries</a></li>
-			 			<li  ><a href='http://zatoichi.huh.harvard.edu/people/'>People</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/publications/'>HPB Journal</a></li>
-
-			 			<li ><a href='http://www.huh.harvard.edu/visiting/'>Visiting</a></li>
-		   			</ul>
-		 		</div>
-		
-		</div>
-
-		<!-- header code ends -->
-		
+?>		
 <div id="sidenav">
   <ul>
     <li><a href="addenda.html">SEARCH HINTS</a></li>
@@ -71,6 +14,8 @@
     <li><a href="specimen_index.html" class="active">SPECIMENS</a></li>
     <li><a href="image_search.php" >IMAGES</a></li>
   <hr />   
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
     <li><a href="add_correct.html">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
     
@@ -271,38 +216,8 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 
 	<!-- main content ends -->
 
-<!-- footer include begins -->		
-	<div id="footer">
+<?php
 
-			<div id="embed_nav2">
-		  		<ul>
-					<li><a href="http://www.arboretum.harvard.edu/" target="_blank">Arnold Arboretum</a></li>
-					<li>&#124;</li>
-					<li><a href="http://www.oeb.harvard.edu/" target="_blank">OEB</a></li>
+echo pagefooter();
 
-					<li>&#124;</li>
-					<li><a href="http://www.pbi.fas.harvard.edu/" target="_blank">PBI</a></li>
-					<li>&#124;</li>
-					<li><a href="http://www.hmnh.harvard.edu/" target="_blank">HMNH</a></li> 
-		  		</ul>
-			</div>
-			<h5>&copy; 2011 - <span id="cdate"></span> by the President and Fellows of <a href="http://www.harvard.edu/" target="_blank">Harvard</a> College
-		 	<br /><a href="/priv_statement.html">Privacy Statement</a> <span class="footer_indent">Updated: 
-		 		
-		 		2011 Apr 6		 		
-				</span></h5>
-
-		 		
-		 		<!-- gets current year for copyright date -->
-		 		<script type="text/javascript">
-					// <![CDATA[
-						var now = new Date()
-						document.getElementById("cdate").innerHTML = now.getFullYear();
-					// ]]>
-				</script>
-
-	</div>
-
-</div> <!-- all content div tag ends -->
-</body>
-</html>
+?>

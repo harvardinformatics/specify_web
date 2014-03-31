@@ -1,7 +1,10 @@
 <?php
 	// Collections Home page
-	$majorContext = "Databases";
-	require_once("../templates/header.php");
+	//$majorContext = "Databases";
+	//require_once("../templates/header.php");
+
+    include_once('specify_library.php');
+    echo pageheader("off");
 ?>
 	
 <div id="sidenav">
@@ -12,7 +15,11 @@
     <li><a href="botanist_index.html">BOTANISTS</a></li>
     <li><a href="publication_index.html">PUBLICATIONS</a></li>
     <li><a href="specimen_index.html">SPECIMENS</a></li>
+    <li><a href='image_search.php' ". $active['i'] .">IMAGES</a></li>
   <hr />   
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+
     <li><a href="add_correct.html">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>    
   </ul>
@@ -47,7 +54,7 @@
 </tr>-->
                     <tr>
                         <td colspan="2">All of the lists below are generated from sources that include vascular plants
-                    and cryptogams. </td>
+                    cryptogams, and fungi. </td>
                     </tr>
 					<tr>
 						<td class="nm"><a href="botanist_index.html">Botanists</a></td>
@@ -62,6 +69,10 @@
 						<td class="nm"><a href="specimen_index.html">Specimens</a></td>
 						<td>Specimen records, primarily type specimens from the Harvard University Herbaria and New England Botanical Club served from our Specify6 specimen database.</td>
 					</tr>
+					<tr>
+						<td class="nm"><a href="image_search.php">Images</a></td>
+						<td>Images of specimens, including type specimens from the Harvard University Herbaria and New England Botanical Club served from our Specify6 specimen database.</td>
+					</tr>
 			</table>
 
 
@@ -70,7 +81,8 @@
 	<!-- main content ends -->
 	
 <?php
-	$theDate = "04/06/2011"; //date last updated, Paul J. Morris
+	$theDate = "03/31/2014"; //date last updated, Paul J. Morris
 	//$filename = 'index.php'; //automatically generated update date, when files updated to server automatically	
-	require_once("../templates/footer.php");
+	// require_once("../templates/footer.php");
+    echo pagefooter();
 ?>

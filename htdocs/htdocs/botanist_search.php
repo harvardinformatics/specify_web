@@ -84,7 +84,7 @@ if ($errormessage!="") {
 	echo "<strong>Error: $errormessage</strong>";
 }
 
-echo pagefooter();
+echo pagefooter1();
 
 // ******* main code block ends here, supporting functions follow. *****
 

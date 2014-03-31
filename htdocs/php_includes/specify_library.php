@@ -24,6 +24,10 @@
 // Uncomment to turn on debugging 
 //$debug = true;
 
+// set to "hwpi" to turn on new page header/footer 
+$useheader = 'old';
+// $useheader = 'hwpi';
+
 // ******* this file contains only supporting functions. *****
 
 
@@ -104,8 +108,25 @@ function transformDateText($date, $precision) {
 }
  
  
+function pageheader($mode = "specimen",$topbar = "on") { 
+  global $useheader;
+  if ($mode=="off") { $topbar = "off"; } 
+  if  ($useheader=='hwpi') { 
+    return pageheader_new($mode,$topbar);
+  } else { 
+    return pageheader_old($mode,$topbar);
+  }
+}
+function pagefooter() { 
+  global $useheader;
+  if  ($useheader=='hwpi') { 
+    return pagefooter_new($mode);
+  } else { 
+    return pagefooter_old($mode);
+  }
+}
  
-function pageheader($mode = "specimen") {
+function pageheader_old($mode = "specimen",$topbar = "on") {
 	$title = "Specimen Search"; 
 	$heading = "Botanical Specimens"; 
         $link = "specimen_index.html";
@@ -114,6 +135,11 @@ function pageheader($mode = "specimen") {
 	$active['b'] = "";
 	$active['i'] = " ";
 	switch ($mode) {
+		case "off":
+			$title = "Databases"; 
+	        $heading = "Botanical Databases"; 
+            $link = "specimen_index.html";
+            break;
 		case "specimen":
 			$title = "Specimen Search"; 
 	        $heading = "Botanical Specimens"; 
@@ -196,7 +222,7 @@ $result .= "
 <div id='allcontent'>
 	
 		<!-- header code begins -->
-		<div id='header'>
+		<div id='old_header'>
 			<div id='top_menu'>
 			
 		        <!-- SiteSearch Google HERE -->
@@ -245,7 +271,9 @@ $result .= "
 		</div>
 
 		<!-- header code ends -->
-		
+";
+if ($topbar!="off") { 		
+$result .= "
 <div id='nav2'>
   <ul>
     <li><a href='addenda.html'>Search Hints</a></li>
@@ -254,13 +282,17 @@ $result .= "
     <li><a href='publication_index.html' ". $active['p'] .">PUBLICATIONS</a></li>
     <li><a href='specimen_index.html' ". $active['s'] .">SPECIMENS</a></li>
     <li><a href='image_search.php' ". $active['i'] .">IMAGES</a></li>
+    <li><a href='taxon_search.php' ". $active['t'] .">TAXA</a></li>
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts</a></li>
     <li><a href='add_correct.html'>Contribute</a></li>
     <li><a href='comment.html'>Comments/questions</a></li>
     
   </ul>
 </div>  <!-- nav2 ends -->		
-		
-		
+";
+}
+$result .= "		
 <div id='main'>
    <!-- main content begins -->
    <div id='main_text_wide'>
@@ -271,7 +303,7 @@ $result .= "
    return $result;
 }
 
-function pagefooter() { 
+function pagefooter_old() { 
    $result = "
    </div>
 </div>
@@ -316,6 +348,316 @@ Disclaimer: This is a new (2011) interface over recently migrated data.  Both th
 </div> <!-- all content div tag ends -->
 </body>
 </html>";
+   return $result;
+} 
+
+
+function pageheader_new($mode = "specimen",$topbar = "on") {
+	$title = "Specimen Search"; 
+	$heading = "Botanical Specimens"; 
+        $link = "specimen_index.html";
+	$active['s'] = " class='active' ";
+	$active['p'] = "";
+	$active['b'] = "";
+	$active['i'] = " ";
+	switch ($mode) {
+		case "off":
+			$title = "Databases"; 
+	        $heading = "Botanical Databases"; 
+            $link = "specimen_index.html";
+            break;
+		case "specimen":
+			$title = "Specimen Search"; 
+	        $heading = "Botanical Specimens"; 
+            $link = "specimen_index.html";
+			$active['s'] = " class='active' ";
+			$active['p'] = "";
+			$active['b'] = "";
+			$active['i'] = " ";
+			$active['t'] = "";
+			break;
+		case "agent":
+			$title = "Botanist Search"; 
+	        $heading = "Botanists"; 
+            $link = "botanist_index.html";
+			$active['s'] = " ";
+			$active['p'] = " ";
+			$active['b'] = " class='active' ";
+			$active['i'] = " ";
+			$active['t'] = "";
+			break;
+		case "publication":
+			$title = "Publication Search"; 
+	        $heading = "Botanical Publications"; 
+            $link = "publication_index.html";
+			$active['s'] = " ";
+			$active['p'] = " class='active' ";
+			$active['b'] = " ";
+			$active['i'] = " ";
+			$active['t'] = "";
+			break;
+		case "image":
+			$title = "Specimen Image Search"; 
+	        $heading = "Botanical Specimens"; 
+            $link = "image_search.php";
+			$active['s'] = "";
+			$active['p'] = "";
+			$active['b'] = "";
+			$active['i'] = " class='active' ";
+			$active['t'] = "";
+			break;
+		case "taxa":
+			$title = "Taxon Search"; 
+	        $heading = "Botanical Taxa"; 
+            $link = "taxon_search.php";
+			$active['s'] = "";
+			$active['p'] = "";
+			$active['b'] = "";
+			$active['i'] = "";
+			$active['t'] = " class='active' ";
+			break;
+		default;
+		
+	}
+	$result="<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+	<meta http-equiv='content-type' content='text/html; charset=utf-8' />
+    <meta property='og:type' content='university' />
+    <meta property='og:title' content='Harvard University Herbaria &amp; Libraries' />
+<link rel='shortcut icon' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/favicon.ico' type='image/vnd.microsoft.icon' />
+	<title>HUH - Databases - $title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+";
+    // Potentially unstable style sheets coming from hwpi 
+    $result .= "
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_JaNIC6wAnhTMzh3xDSc6hSOR4a8NIi7FBl7RJnEZUF0.css' media='all' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_psZ8OlULY14AOoMNe2Kt39fAuijWv5aZtPwhAuX3_o8.css' media='screen' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_TSFJaqeRCa9iy7Dzv3-P2rX74YTgfVsJXDA81TWuTRA.css' media='print' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
+    ";
+// Original hwpi test website styles
+/*
+    <style>
+      @import url('http://hwpi.harvard.edu/modules/system/system.base.css');
+      @import url('http://hwpi.harvard.edu/modules/system/system.menus.css');
+      @import url('http://hwpi.harvard.edu/modules/system/system.messages.css');
+      @import url('http://hwpi.harvard.edu/modules/system/system.theme.css');
+      
+      @import url('http://hwpi.harvard.edu/modules/book/book.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/calendar/css/calendar_multiday.css');
+      @import url('http://hwpi.harvard.edu/modules/comment/comment.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_api/date.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_popup/themes/datepicker.1.7.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_repeat_field/date_repeat_field.css');
+      @import url('http://hwpi.harvard.edu/modules/field/theme/field.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/mollom/mollom.css');
+      @import url('http://hwpi.harvard.edu/modules/node/node.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/modules/os_help/os_help.css');
+      @import url('http://hwpi.harvard.edu/modules/search/search.css');
+      @import url('http://hwpi.harvard.edu/modules/user/user.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/views/css/views.css');
+      
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/colorbox/styles/default/colorbox_style.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/ctools/css/ctools.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/nice_menus/nice_menus.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/nice_menus/nice_menus_default.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/views_slideshow/views_slideshow.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/biblio/biblio.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/modules/os_slideshow/os_slideshow.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.base.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.layout.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.nav.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.slideshow.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.widgets.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/responsive.classic.css');
+      
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/adaptivetheme/at_core/css/at.layout.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/globals.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/hwpi.globals.css');
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/hwpi_classic.css');
+      
+      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/theme/os_dismiss.css');
+    </style>
+*/
+
+// ivy style sheets from hwpi
+$result .= "
+<style media='print'>@import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/print.css');</style>
+    <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/ivy_accents.css' media='all' />
+    <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/responsive.ivy.css' media='all' />
+        <script type='text/javascript' src='http://hwpi.harvard.edu/files/js/js_-z-2lAhufzBeVjYseT6cTzSICUy9vnoLBpu1sF_zZrs.js'></script>
+        <script type='text/javascript' src='http://hwpi.harvard.edu/files/js/js_x18b6ZdKNvVeV4maLWsqLcgg3HQjlk5sC6vrF6FbIlk.js'></script>
+        <script type='text/javascript'>
+        </script>
+";
+$result .= '
+        <script type="text/javascript">
+jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"herbaria\/","ajaxPageState":{"theme":"hwpi_classic","theme_token":"B2peLlHWVgl3MujkxO_-L1AVgD_yW5qJJftnZtO1lk8","js":{"profiles\/openscholar\/libraries\/respondjs\/respond.min.js":1,"profiles\/openscholar\/modules\/contrib\/jquery_update\/replace\/jquery\/1.8\/jquery.min.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"profiles\/openscholar\/modules\/os\/theme\/os_colorbox.js":1,"profiles\/openscholar\/libraries\/colorbox\/jquery.colorbox-min.js":1,"profiles\/openscholar\/modules\/contrib\/colorbox\/js\/colorbox.js":1,"profiles\/openscholar\/modules\/contrib\/colorbox\/styles\/default\/colorbox_style.js":1,"profiles\/openscholar\/modules\/contrib\/colorbox\/js\/colorbox_inline.js":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/superfish\/js\/superfish.js":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/superfish\/js\/jquery.bgiframe.min.js":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/superfish\/js\/jquery.hoverIntent.minified.js":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/nice_menus.js":1,"profiles\/openscholar\/modules\/contrib\/views_slideshow\/js\/views_slideshow.js":1,"0":1,"profiles\/openscholar\/modules\/os\/modules\/os_ga\/os_ga.js":1,"profiles\/openscholar\/modules\/os\/theme\/os_dismiss.js":1,"profiles\/openscholar\/themes\/os_basetheme\/js\/os_base.js":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/js\/css_browser_selector.js":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/js\/matchMedia.js":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/js\/eq.js":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/js\/eq-os.js":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/js\/scripts.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"modules\/book\/book.css":1,"profiles\/openscholar\/modules\/contrib\/calendar\/css\/calendar_multiday.css":1,"modules\/comment\/comment.css":1,"profiles\/openscholar\/modules\/contrib\/date\/date_api\/date.css":1,"profiles\/openscholar\/modules\/contrib\/date\/date_popup\/themes\/datepicker.1.7.css":1,"profiles\/openscholar\/modules\/contrib\/date\/date_repeat_field\/date_repeat_field.css":1,"modules\/field\/theme\/field.css":1,"profiles\/openscholar\/modules\/contrib\/mollom\/mollom.css":1,"modules\/node\/node.css":1,"profiles\/openscholar\/modules\/os\/modules\/os_slideshow\/os_slideshow.css":1,"profiles\/openscholar\/modules\/os\/modules\/os_slideshow\/os_slideshow_aspect_ratio_form.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"profiles\/openscholar\/modules\/contrib\/views\/css\/views.css":1,"profiles\/openscholar\/modules\/contrib\/colorbox\/styles\/default\/colorbox_style.css":1,"profiles\/openscholar\/modules\/contrib\/ctools\/css\/ctools.css":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/nice_menus.css":1,"profiles\/openscholar\/modules\/contrib\/nice_menus\/nice_menus_default.css":1,"profiles\/openscholar\/modules\/contrib\/views_slideshow\/views_slideshow.css":1,"profiles\/openscholar\/modules\/contrib\/biblio\/biblio.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/responsive.base.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/responsive.layout.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/responsive.nav.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/responsive.slideshow.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/responsive.widgets.css":1,"profiles\/openscholar\/themes\/hwpi_classic\/css\/responsive.classic.css":1,"profiles\/openscholar\/themes\/adaptivetheme\/at_core\/css\/at.layout.css":1,"profiles\/openscholar\/themes\/os_basetheme\/css\/globals.css":1,"profiles\/openscholar\/themes\/hwpi_basetheme\/css\/hwpi.globals.css":1,"profiles\/openscholar\/themes\/hwpi_classic\/css\/hwpi_classic.css":1,"profiles\/openscholar\/themes\/os_basetheme\/css\/print.css":1,"profiles\/openscholar\/modules\/os\/theme\/os_dismiss.css":1,"profiles\/openscholar\/themes\/hwpi_classic\/flavors\/ivy_accents\/ivy_accents.css":1,"profiles\/openscholar\/themes\/hwpi_classic\/flavors\/ivy_accents\/responsive.ivy.css":1}},"colorbox":{"opacity":"0.85","current":"{current} of {total}","previous":"\u00ab Prev","next":"Next \u00bb","close":"Close","maxWidth":"98%","maxHeight":"98%","fixed":true,"mobiledetect":true,"mobiledevicewidth":"480px"},"jcarousel":{"ajaxPath":"\/herbaria\/jcarousel\/ajax\/views"},"nice_menus_options":{"delay":800,"speed":1},"os_ga":{"trackOutbound":1,"trackMailto":1,"trackDownload":1,"trackDownloadExtensions":"7z|aac|arc|arj|asf|asx|avi|bin|csv|docx?|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xlsx?|xml|z|zip","trackNavigation":1},"ogContext":{"groupType":"node","gid":"92531"},"password":{"strengthTitle":"Password compliance:"},"type":"setting"});
+
+        </script>
+        ';
+// Local HUH stylesheet
+$result .= "
+	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
+";
+if (1==1 || $mode=='image' || $mode=='imagedetails') { 
+    // include jquery libraries
+    $result.='
+        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
+        <script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/jquery-ui.js"></script>
+    ';
+}
+if ($mode=='image') { 
+    // include libraries for visualsearch search bar
+    $result.='
+        <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
+        <script type="text/javascript" src="js/backbone-0.9.10.js"></script>
+
+        <script src="js/visualsearch.js" type="text/javascript"></script>
+        <!--[if (!IE)|(gte IE 8)]><!-->
+           <link href="css/visualsearch-datauri.css" media="screen" rel="stylesheet" type="text/css"/>
+        <!--<![endif]-->
+        <!--[if lte IE 7]><!-->
+           <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
+        <!--<![endif]-->';
+}
+if ($mode=='imagedetails') { 
+     // include libraries for featured image zoom widget
+     $result.= "
+          <link rel=\"stylesheet\" href=\"css/multizoom.css\" type=\"text/css\" />
+          <script type=\"text/javascript\" src=\"js/multizoom.js\" ></script>
+          ";
+} // end mode==image
+$result .= "
+</head>
+<body class='html not-front not-logged-in one-sidebar sidebar-second page-node page-node- page-node-99711 node-type-page og-context og-context-node og-context-node-92531 navbar-on'>
+  <div id='skip-link'>
+    <a href='#main-content' class='element-invisible element-focusable' tabindex='1'>Skip to main content</a>
+  </div>
+<div id='allcontent'>
+    
+<!--FLEXIBLE ADMIN HEADER FOR USE BY SELECT GROUPS USING OS-->
+    <div id='branding_header'>
+        <div  class='branding-container clearfix'>
+          <div class='branding-left'><a href='http://www.harvard.edu' ><img typeof='foaf:Image' src='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/images/harvard-logo.png' width='259' height='35' alt='Harvard Logo' /></a></div><div class='branding-right'><a href='http://www.fas.harvard.edu/' >FACULTY OF ARTS AND SCIENCES</a> | <a href='http://www.harvard.edu' >HARVARD.EDU</a></div>     </div>
+    </div>
+
+<div id='page' class='container page header-main header-right content-top content-right footer footer-right'>
+    <div id='page-wrapper'>
+
+					<!--header regions beg-->
+			<header id='header' class='clearfix' role='banner'>
+			 <div id='header-container'>
+				 <div id='header-panels' class='at-panel gpanel panel-display three-col clearfix'>
+					 <div class='region region-header-second'><div class='region-inner clearfix'><div id='block-boxes-site-info' class='block block-boxes block-boxes-os_boxes_site_info no-title' ><div class='block-inner clearfix'>  
+                     <div class='block-content content'><div id='boxes-box-site_info' class='boxes-box'><div class='boxes-box-content'><h1><a href='http://www.huh.harvard.edu/'  class='active'>Harvard University Herbaria &amp; Libraries</a></h1>
+    <p>
+    </p></div></div></div>
+  </div></div></div></div>					  					  <div class='region region-header-third'><div class='region-inner clearfix'><div id='block-os-secondary-menu' class='block block-os no-title' ><div class='block-inner clearfix'>  
+  
+  <div class='block-content content'><ul class='nice-menu nice-menu-down' id='nice-menu-secondary-menu'><li class='menu-3619 menu-path-node-99471  first   odd  '><a href='/herbaria/pages/contact' >Contact</a></li><li class='menu-3620 menu-path-node-99461   even  '><a href='/herbaria/pages/visit' >Visit</a></li><li class='menu-3604 menu-path-kikihuhharvardedu-databases-   odd   last '><a href='http://kiki.huh.harvard.edu/databases/' >Databases</a></li></ul>
+</div>
+  </div></div><div id='block-os-search-solr-site-search' class='block block-os-search-solr no-title' ><div class='block-inner clearfix'>  
+  
+  <div class='block-content content'><form action='http://hwpi.harvard.edu/herbaria' method='post' id='search-block-form' accept-charset='UTF-8'><div><div class='container-inline'>
+  <div class='form-item form-type-textfield form-item-search-block-form'>
+  <label for='edit-search-block-form--2'>Search </label>
+ <input title='Enter the terms you wish to search for.' type='search' id='edit-search-block-form--2' name='search_block_form' value='' size='15' maxlength='128' class='form-text' />
+</div>
+<div class='form-actions form-wrapper' id='edit-actions'><input type='submit' id='edit-submit' name='op' value='Search' class='form-submit' /></div><input type='hidden' name='form_build_id' value='form-2-0EE9t7nDtl9hRVx2rTRedX-IkvEpOTna-UAoieeUc' />
+<input type='hidden' name='form_id' value='search_block_form' />
+</div></div></form></div>
+  </div></div></div></div>					  				 </div>
+			  </div>
+		  </header>
+      <!--header regions end-->        
+
+				  <!--main menu region beg-->
+		  <div id='menu-bar' class='nav clearfix'><nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >  
+  
+  <ul class='nice-menu nice-menu-down' id='nice-menu-primary-menu'><li class='menu-3464 menu-path-front  first   odd  '><a href='http://hwpi.harvard.edu/herbaria' >HOME</a></li>
+<li class='menu-3564 menuparent  menu-path-node-98801   even active-trail '><a href='http://hwpi.harvard.edu/herbaria/pages/collections' class='active' title=''>Collections</a><ul><li class='menu-3600 menu-path-node-98996  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/herbaria'  title=''>Herbaria</a></li>
+<li class='menu-3601 menu-path-node-99001   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-resources'  title=''>Digital Resources</a></li>
+<li class='menu-3602 menu-path-node-99006   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/use'  title=''>Use Policies</a></li></ul></li>
+<li class='menu-3565 menuparent  menu-path-node-98811   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/research'  title=''>Research</a><ul><li class='menu-3630 menu-path-node-99711  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/taxonomy-and-floristics'  title=''>Taxonomy and Floristics</a></li>
+<li class='menu-3631 menu-path-node-99726   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/plant-phylogenetics'  title=''>Plant Phylogenetics</a></li>
+<li class='menu-5387 menu-path-node-141961   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/publication'  title=''>Publications</a></li></ul></li>
+<li class='menu-4113 menuparent  menu-path-node-110296   even '><a href='http://hwpi.harvard.edu/herbaria/libraries'  title='' >Libraries</a><ul><li class='menu-4657 menuparent  menu-path-node-134106  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/libraries-collections'  title=''>Libraries&#039; Collections</a><ul><li class='menu-4654 menu-path-libharvardedu-  first   odd  '><a href='http://lib.harvard.edu/' >Harvard&#039;s Online Library Catalog (HOLLIS)</a></li>
+<li class='menu-4662 menu-path-node-134096   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/archives-0' >Archives Collections</a></li>
+<li class='menu-4671 menu-path-node-138056   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-collections-0' >Digital Collections</a></li></ul></li>
+<li class='menu-4660 menuparent  menu-path-node-134126   even   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/use-libraries'  title='' class='active'>Use of the Library</a><ul><li class='menu-4666 menu-path-node-137936  first   odd   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/hours-directions'  title='' class='active active'>Hours</a></li>
+<li class='menu-4658 menu-path-node-134111   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/resources' >Resources</a></li>
+<li class='menu-4659 menu-path-node-134116   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/services' >Services</a></li>
+<li class='menu-4668 menu-path-node-137946   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/permission-publish'  title=''>Permissions</a></li></ul></li>
+<li class='menu-4673 menu-path-people-taxonomy-term-18916   odd  '><a href='http://hwpi.harvard.edu/herbaria/association/libraries'  title=''>Libraries Staff</a></li>
+<li class='menu-4661 menu-path-node-134136   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/line-exhibits'  title=''>Online Exhibits</a></li></ul></li>
+<li class='menu-4141 menuparent  menu-path-node-113866   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/news-events'  title=''>News &amp; Events</a><ul><li class='menu-4142 menu-path-news  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/news' >News</a></li>
+<li class='menu-5072 menu-path-node-146976   even   last '><a href='http://hwpi.harvard.edu/herbaria/events'  title=''>Events</a></li></ul></li>
+<li class='menu-22536 menu-path-people   even  '><a href='http://hwpi.harvard.edu/herbaria/people'  title='List of people'>People</a></li>
+<li class='menu-3610 menuparent  menu-path-node-99451   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/about'  title=''>About</a><ul><li class='menu-3621 menu-path-node-99461  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/visit' >Visit</a></li>
+<li class='menu-3622 menu-path-node-99471   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/contact' >Contact</a></li>
+<li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/history' >History</a></li></ul></li></ul>
+
+  </nav></div>		  <!--main menu region end-->
+        
+
+		<!-- header code ends -->
+
+";
+if ($topbar!="off") { 
+$result .= "	
+<div id='nav2'>
+  <ul>
+    <li><a href='addenda.html'>Search Hints</a></li>
+    <li><a href='addenda.html#policy'>Distribution and Use Policy</a></li>
+    <li><a href='botanist_index.html' ". $active['b'].">BOTANISTS</a></li>
+    <li><a href='publication_index.html' ". $active['p'] .">PUBLICATIONS</a></li>
+    <li><a href='specimen_index.html' ". $active['s'] .">SPECIMENS</a></li>
+    <li><a href='image_search.php' ". $active['i'] .">IMAGES</a></li>
+    <li><a href='taxon_search.php' ". $active['t'] .">TAXA</a></li>
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts</a></li>
+    <li><a href='add_correct.html'>Contribute</a></li>
+    <li><a href='comment.html'>Comments/questions</a></li>
+    
+  </ul>
+</div>  <!-- nav2 ends -->		
+";
+} 
+$result .= "
+		
+<div id='main'>
+   <!-- main content begins -->
+   <a name='main-content'></a>
+   <div id='main_text_wide'>
+   <div id='title'>
+      <h3><a href='$link'>Index of $heading</a></h3>
+   </div>
+"; 
+   return $result;
+}
+
+function pagefooter_new() { 
+   $result = '
+   </div>
+</div>
+	<!-- main content ends -->
+
+<div id="extradiv"></div>
+
+  <!--FLEXIBLE ADMIN FOOTER FOR USE BY SELECT GROUPS USING OS-->
+  <div id="branding_footer">
+        <div class="branding-container">
+        <div class="copyright"><span class="harvard-copyright">Copyright &copy; 2013 The President and Fellows of Harvard College</span> | <a href="http://www.harvard.edu/privacy-statement" >Privacy</a> | <a href="http://accessibility.harvard.edu/" >Accessibility</a></div>       </div>
+  </div>
+
+</div> <!-- all content div tag ends -->
+  </body>
+</html>';
    return $result;
 } 
 

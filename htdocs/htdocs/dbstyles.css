@@ -1,6 +1,5 @@
 /* all content styles begins for databases directory */
 	body {
-	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	background-color: #c7ccbf; 
 	font-size : small; 
 	color: #000000;
@@ -15,12 +14,23 @@
 	/* all content styles ends */
 
 /* header styles begins */
-	#header {
+	#old_header {
+ 	font-family: Verdana, Arial, Helvetica, sans-serif;  
 	background-color: #b8c0d2;
 	margin: 0px;
 	padding: 0px;
     }
-    
+ 
+#branding_header a { 
+	text-decoration: none;
+}
+#header-container a { 
+	text-decoration: none;
+}
+#branding_footer a { 
+	text-decoration: none;
+}
+
     /* top_menu style begins */
     	/* embedded navbar begins */
     	#embed_nav {
@@ -139,7 +149,7 @@
 	text-align: left;
 	font-size: 1em;
 	list-style: none;
-	margin: 0px 0px 0px 200px;
+	margin: 0px 0px 0px 10px;
 	padding: 5px;
 	}
 	#nav2 li {
@@ -173,6 +183,7 @@
 	
 /* sidenav style begins */
 	#sidenav {
+ 	font-family: Verdana, Arial, Helvetica, sans-serif;  
 	color: #89201b;
 	margin: 0px 30px 0px 0px;
 	padding: 30px 0px 20px 5px;
@@ -228,6 +239,7 @@
 	
 /* main text styles begin */
 	#main {
+ 	font-family: Verdana, Arial, Helvetica, sans-serif;  
 	background: #b8c0d2;
 	margin: 0px;
 	padding: 0px;
@@ -314,7 +326,7 @@
 	#main_text_wide img {
 	border: black solid 1px;
 	}
-	h1 {
+	#main h1 {
 	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	font-size: 140%;
 	text-align: left;
@@ -322,7 +334,7 @@
 	margin: 0px;
 	padding: 10px 10px 10px 0px;
 	}
-	h2 {
+	#main h2 {
 	font-family: Verdana, Arial, Helvetica, sans-serif; 
 	padding: 0px;
 	margin: 0px;
@@ -419,6 +431,9 @@ table.text {
 	vertical-align: top; 
 	valign: top;	
 	border-collapse:collapse;
+}
+th, td { 
+    padding: 0.1em;
 }
 td {
 	font:normal 1.0em Arial, Helvetica, Sans-serif;	
