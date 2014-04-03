@@ -372,7 +372,7 @@ function details() {
 								" from IMAGE_SET_collectionobject c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
 								" left join REPOSITORY r on o.repository_id = r.id " .
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
-								" where c.collectionobjectid = ? " .
+								" where c.collectionobjectid = ? and hidden_flag = 0 " .
 								" order by object_type_id desc ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
@@ -417,7 +417,9 @@ function details() {
 								$statement_img->store_result();
 								$fullurl = "";
 								while ($statement_img->fetch()) { 
+                                                                       if (strpos($imagepath,"thumbs")===FALSE) { 
 								       $images[] = "File at: $imagepath$imagefilename";
+}
 								}
 							} else { 
 								echo "Error: " . $connection->error;
