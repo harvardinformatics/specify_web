@@ -875,21 +875,31 @@ function details() {
 									}
 
                                                                         if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-                                                                            $lquery = "select loannumber ".
+                                                                            $lquery = "select loannumber, loan.isclosed, loan.dateclosed, loan.currentduedate, loanreturnpreparation.returneddate ".
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
 										" left join loanpreparation on preparation.preparationid = loanpreparation.preparationid " .
-                                                                                " left join loan on loanpreparation.loanid = loan.loanid where fragment.fragmentid = ?";
+										" left join loanreturnpreparation on loanpreparation.loanpreparationid = loanreturnpreparation.loanpreparationid " .
+                                                                                " left join loan on loanpreparation.loanid = loan.loanid where fragment.fragmentid = ? ";
 									if ($debug===true) {  echo "[$lquery]<BR>"; }
 									if ($debug===true) {  echo "fragmentid[$fragmentid]<BR>"; }
 									$statement_loans = $connection->prepare($lquery);
 									if ($statement_loans) { 
 										$statement_loans->bind_param("i",$fragmentid);
 										$statement_loans->execute();
-										$statement_loans->bind_result($loannumber);
+										$statement_loans->bind_result($loannumber,$isclosed, $dateclosed, $currentduedate,$prepreturndate);
 										$statement_loans->store_result();
 										$separator = "";
 										while ($statement_loans->fetch()) { 
-												$attributes['Loan Number'] = $loannumber;
+                                                                                                if (strlen($dateclosed > 0)) { $loannumber = "$loannumber (Closed $dateclosed)";  } 
+                                                                                                if (strlen($dateclosed)==0 && strlen($currentduedate > 0)) { 
+                                                                                                      if (strlen($prepreturndate)>0) { 
+                                                                                                          $loannumber = "$loannumber (Returned: $prepreturndate; Loan Open, Due: $currentduedate)";
+                                                                                                      } else {   
+                                                                                                          $loannumber = "$loannumber (Due: $currentduedate)";  
+                                                                                                      }
+                                                                                                } 
+												$attributes['Loan Number'] .= $separator.$loannumber;
+                                                                                                $separator = "; ";
 									                        if ($debug===true) {  echo "loannumber[$loannumber]<BR>"; }
                                                                                 }
                                                                         }
