@@ -210,26 +210,67 @@ function menu() {
 function collection_out_of_date_range() { 
 	global $connection;
    $returnvalue = "";
-    
-   $query = "select collectionobjectid, agent.lastname, agent.agentid, dateofbirth, startdate, dateofdeath, agent.initials as datetype " .
+   $query = "select count(collectionobjectid), agent.lastname, agent.agentid, agentvariant.name " .
    		" from agent left join collector on agent.agentid = collector.agentid " .
+                " left join agentvariant on agent.agentid = agentvariant.agentid " .
    		" left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
    		" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
    		" where dateofbirth is not null " .
    		" and (startdate < dateofbirth or enddate > dateofdeath) " .
+                " and agentvariant.vartype = 4 " . 
+                " group by agent.lastname, agent.agentid, agentvariant.name " .
+   		" order by count(collectionobjectid) desc  " . 
+                " limit 10 ";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Most frequent collectors for collecting event dates outside of the birth/death, flourished, collected, or received dates for a collector.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($count,$name,$agentid,$collname);
+		$statement->store_result();
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Number of Anomolies</th></th><th>Collector</th></tr>";
+		while ($statement->fetch()) {
+	          $returnvalue .= "<tr><td>$count</td><td>$name <a href='botanist_search.php?id=$agentid'>$collname<a></td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+    
+   $query = "select collectionobjectid, agent.lastname, agent.agentid, dateofbirth, startdate, dateofdeath, agent.datestype as datetype, agentvariant.name " .
+   		" from agent left join collector on agent.agentid = collector.agentid " .
+                " left join agentvariant on agent.agentid = agentvariant.agentid " .
+   		" left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
+   		" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
+   		" where dateofbirth is not null " .
+   		" and (startdate < dateofbirth or enddate > dateofdeath) " .
+                " and agentvariant.vartype = 4 " . 
    		" order by agent.initials, agent.lastname, startdate "; 
 	if ($debug) { echo "[$query]<BR>"; } 
     $returnvalue .= "<h2>Cases where collecting event dates are outside of the birth/death, flourished, collected, or received dates for a collector.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
-		$statement->bind_result($collectionobjectid,$name,$agentid, $dob, $collectiondate, $dod, $datetype);
+		$statement->bind_result($collectionobjectid,$name,$agentid, $dob, $collectiondate, $dod, $datetype,$collname);
 		$statement->store_result();
         $returnvalue .= "<h2>There are ". $statement->num_rows() . " anomalous collecting events</h2>";
 	    $returnvalue .= "<table>";
 	    $returnvalue .= "<tr><th>Begin Date</th><th>Collecting Event</th><th>End Date</th><th>Type</th><th>Collector</th></tr>";
 		while ($statement->fetch()) {
-	        $returnvalue .= "<tr><td>$dob</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectiondate</a></td><td>$dod</td><td>$datetype</td><td>$name</td></tr>";
+                   switch ($datetype) {  
+                      case 0: 
+                         $datetypetext = "Birth/Death";
+                         break;
+                      case 1: 
+                         $datetypetext = "Flourished";
+                         break;
+                      case 2: 
+                         $datetypetext = "First/Last Collection";
+                         break;
+                      case 3: 
+                         $datetypetext = "First/Last Recieved";
+                         break;
+                  }
+	          $returnvalue .= "<tr><td>$dob</td><td><a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectiondate</a></td><td>$dod</td><td>$datetypetext</td><td>$name <a href='botanist_search.php?id=$agentid'>$collname<a></td></tr>";
 		}
 	    $returnvalue .= "</table>";
 	}
@@ -249,17 +290,20 @@ function agent_ages($type="all") {
 		$agenttype = "Individual"; 
 	}
 	
-	$returnvalue .= "<h2>Distribution of $agenttype agents by difference between date of birth and date of death.</h2>";
+	$returnvalue .= "<h2>Distribution of $agenttype agents by difference between first known and last known date.</h2>";
 	$query = "select count(*), year(dateofdeath)-year(dateofbirth) from agent group by year(dateofdeath)-year(dateofbirth)";
+        $anomolytype = "Class contains fewer than 30 agents.";
 	if ($type==3) { 
-		$query = "select count(*), year(dateofdeath)-year(dateofbirth) from agent where agenttype = 3 group by year(dateofdeath)-year(dateofbirth)";
+		$query = "select count(*), year(dateofdeath)-year(dateofbirth) from agent where agenttype = 3 group by year(dateofdeath)-year(dateofbirth)"; 
+                $anomolytype = "Teams lasting less than zero or more than 50 years";
 	}
 	if ($type==1) { 
 		$query = "select count(*), year(dateofdeath)-year(dateofbirth) from agent where agenttype = 1 group by year(dateofdeath)-year(dateofbirth)";
+                $anomolytype = "Individuals with lifetimes less than 20 or more than 100 years.";
 	}
 	if ($debug) { echo "[$query]<BR>"; } 
 	$returnvalue .= "<table>";
-	$returnvalue .= "<tr><th>Age</th><th>Number of agents</th><th>Anomalous Agents</th></tr>";
+	$returnvalue .= "<tr><th>Age</th><th>Number of agents</th><th>Anomalous Agents: $anomolytype</th></tr>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
@@ -267,14 +311,14 @@ function agent_ages($type="all") {
 		$statement->store_result();
 		while ($statement->fetch()) {
 			$agents = "";
-			if (($type=="all" && $count<20) || (($type==1 && $age < 20 || $age > 100)) || ($type==3 &&( $age <1 || $age > 50))) { 
+			if (($type=="all" && $count<30) || ($type==1 && ($age < 20 || $age > 100))  || ($type==3 &&( $age <1 || $age > 50))) { 
 				$query = "select lastname, agentid from agent where year(dateofdeath)-year(dateofbirth) = ? ";
-	            if ($type==3) {
+	                        if ($type==3) {
 				    $query = "select lastname, agentid from agent where year(dateofdeath)-year(dateofbirth) = ? and agenttype = 3 ";
-	            } 
-	            if ($type==1) {
-				    $query = "select lastname, agentid from agent where year(dateofdeath)-year(dateofbirth) = ? and agenttype = 1 ";
-	            } 
+	                        } 
+	                        if ($type==1) {
+		                   $query = "select lastname, agentid from agent where year(dateofdeath)-year(dateofbirth) = ? and agenttype = 1 and ( datestype = 0 or ( year(dateofdeath)-year(dateofbirth) <= 0 ) )  ";
+   	                        }
 				if ($debug) { echo "[$query]<BR>"; } 
 				$statement_geo = $connection->prepare($query);
 				if ($statement_geo) {
@@ -283,8 +327,19 @@ function agent_ages($type="all") {
 					$statement_geo->bind_result($agentname,$agentid);
 					$statement_geo->store_result();
 					$separator = "";
-					while ($statement_geo->fetch()) {
-						$agents .= "$separator<a href='botanist_search.php?mode=details&id=$agentid'>$agentname</a>";
+					while ($statement_geo->fetch()) { 
+                                                $varname = "";
+                                                $sql = "select name from agentvariant where agentid = ? order by vartype desc  limit 1 ";
+                                                $stmt = $connection->prepare($sql);
+                                                if ($stmt) { 
+                                                   $stmt->bind_param('i',$agentid);
+                                                   $stmt->execute();
+                                                   $stmt->bind_result($varname);
+                                                   $stmt->store_result();
+                                                   $stmt->fetch();
+                                                }
+                                                $stmt->close();
+						$agents .= "$separator<a href='botanist_search.php?mode=details&id=$agentid'>$agentname $varname</a>";
 						$separator = "; ";
 					}
 				}
