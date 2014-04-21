@@ -261,8 +261,10 @@ function details() {
 
                                                         $images = array();
                                                         $firstimage = array();
-                                                        $query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size " .
-                                                                " from IMAGE_SET_agent c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
+                                                        $query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size, ims.caption " .
+                                                                " from IMAGE_SET_agent c " .
+                                                                " left join IMAGE_SET ims on c.imagesetid = ims.id " .
+                                                                " left join IMAGE_OBJECT o on ims.id = o.image_set_id " .
                                                                 " left join REPOSITORY r on o.repository_id = r.id " .
                                                                 " left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
                                                                 " where c.agentid = ? " .
@@ -272,15 +274,18 @@ function details() {
                                                         if ($statement_img) {
                                                                 $statement_img->bind_param("i",$agentid);
                                                                 $statement_img->execute();
-                                                                $statement_img->bind_result($url,$height,$width,$imagename,$filesize);
+                                                                $statement_img->bind_result($url,$height,$width,$imagename,$filesize,$caption);
                                                                 $statement_img->store_result();
                                                                 $fullurl = "";
+                                                                $thumb = "";
+                                                                $imnum = 0;
                                                                 while ($statement_img->fetch()) {
                                                                         if ($imagename == "Thumbnail") {
                                                                                 //$firstimage .= "<tr><td class='cap'></td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
-                                                                                $firstimage[] = "<a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a>";
+                                                                                $thumb = "<a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image $caption' ></a>";
+                                                                                $images[$imnum] .=  " $thumb";
                                                                         } elseif ($imagename=='PDS') { 
-                                                                                $images[] .= "Images: <a href='$url'>$imagename</a> [Page Turned Object]";
+                                                                                $images[] .= "Images: <a href='$url'>$imagename</a> [Page Turned Object] $caption";
                                                                         } else {
                                                                                 if ($imagename == "Full") {
                                                                                         $fullurl = $url;
@@ -288,7 +293,8 @@ function details() {
                                                                                 $size = floor($filesize / 1024);
                                                                                 $size = $size . " kb";
                                                                                 //$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
-                                                                                $images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
+                                                                                $images[] .= "Image: <a href='$url'>$imagename</a> [$size] $caption";
+                                                                                $imnum ++;
                                                                         }
                                                                 }
                                                         } else {
@@ -455,7 +461,12 @@ function details() {
 						// If internal, check for out of range collecting events: 
 						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 							
-						    $query = "select dateofbirth, startdate, dateofdeath, startdate < dateofbirth, initials as datetype " .
+                                                    // Definitions for datestype: 
+                                                    //  public static final byte                BIRTH              = 0;
+                                                    //  public static final byte                FLOURISHED         = 1;
+                                                    //  public static final byte                COLLECTED          = 2;
+                                                    //  public static final byte                RECEIVED_SPECIMENS = 3;
+						    $query = "select dateofbirth, startdate, dateofdeath, startdate < dateofbirth, datestype as datetype " .
 							    	" from agent left join collector on agent.agentid = collector.agentid " .
 								    " left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
 								    " where startdate is not null " .
@@ -469,17 +480,49 @@ function details() {
 							    $statement_qc->bind_result($dob,$startdate,$dod, $beforebirth, $datetype);
 							    $statement_qc->store_result();
 							    if ($statement_qc->num_rows()>0) { 
-									$agent .= "<tr><td class='cap'>Questionable records</td><td class='val'>Collecting Event Dates before birth or after death</td></tr>";
+                                                                    if ($datetype==0) { 
+									$agent .= "<tr><td class='cap'>Questionable records</td><td class='val'>Collecting Event Dates before birth or after death.</td></tr>";
+                                                                    } else { 
+									$agent .= "<tr><td class='cap'>Questionable records</td><td class='val'>Collecting Event Dates outside known range for collector.</td></tr>";
+                                                                    }
 							        while ($statement_qc->fetch()) {
 					                    $dod = transformDateText($dod,3);
 					                    $dob = transformDateText($dob,3);
 					                    $startdate = transformDateText($startdate,3);
 					                    if ($beforebirth==1) {
-					                    	$qc_message  = "Collected before $datetype"; 
-									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>Coll:$startdate DOB: $dob</td></tr>";
+                                                                switch ($datetype) {  
+                                                                   case 0: 
+                                                                      $datetypetext = "Birth";  $dtt = "DOB";
+                                                                      break;
+                                                                   case 1: 
+                                                                      $datetypetext = "Collector Flourished";  $dtt = "Flourished from";
+                                                                      break;
+                                                                   case 2: 
+                                                                      $datetypetext = "First Known Collection"; $dtt = "Collected from";
+                                                                      break;
+                                                                   case 3: 
+                                                                      $datetypetext = "First Recieved Material"; $dtt = "First Recieved";
+                                                                      break;
+                                                                }
+					                    	$qc_message  = "Collected before $datetypetext"; 
+									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>Coll:$startdate $dtt:$dob</td></tr>";
 					                    } else { 
-					                    	$qc_message  = "Collected after death"; 
-									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>DOD:$dod Coll:$startdate</td></tr>";
+                                                                switch ($datetype) {  
+                                                                   case 0: 
+                                                                      $datetypetext = "Death";  $dtt = "DOD";
+                                                                      break;
+                                                                   case 1: 
+                                                                      $datetypetext = "Collector Flourished"; $dtt= "Flourished to";
+                                                                      break;
+                                                                   case 2: 
+                                                                      $datetypetext = "Last Known Collection"; $dtt = "Collected to";
+                                                                      break;
+                                                                   case 3: 
+                                                                      $datetypetext = "Last Recieved Material"; $dtt = "Last Recieved";
+                                                                      break;
+                                                                }
+					                    	$qc_message  = "Collected after $datetypetext"; 
+									        $agent .= "<tr><td class='cap'>$qc_message</td><td class='val'>$dtt:$dod Coll:$startdate</td></tr>";
 					                    }
 							        }
 							    }
