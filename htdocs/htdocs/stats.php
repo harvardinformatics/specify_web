@@ -370,19 +370,23 @@ function annualreport($year,$showdetails=FALSE) {
 
    if ($showdetails) { 
 
-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   $returnvalue .= tablekey();
+
+-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+
+   $query = "select count(distinct loan.loanid), sum(itemcount), ifnull(sum(nonspecimencount),0),ifnull(sum(typecount),0), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year");
 
    $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(fragment.identifier), '', loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join fragment on loanpreparation.preparationid = fragment.preparationid left join preparation on loanpreparation.preparationid = preparation.preparationid left join taxon t on preparation.taxonid = t.taxonid left join determination on fragment.fragmentid = determination.fragmentid left join taxon t1 on determination.taxonid = t1.taxonid where loandate > '2011-05-31' and loandate < '2012-06-01' group by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber)))) order by loan.text2, concat(ifnull(if(gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber) is null, t.fullname, gethighertaxonofrank(140,t.highestchildnodenumber,t.nodenumber)),if(gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber) is null, t1.fullname, gethighertaxonofrank(140,t1.highestchildnodenumber,t1.nodenumber))));";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year by family/taxon","Loans","Taxon");
 
-   $query = "select count(distinct loan.loanid), sum(rp.itemcount), sum(rp.nonspecimencount),sum(rp.typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join loanreturnpreparation rp on loanpreparation.loanpreparationid = rp.loanpreparationid  left join fragment on loanpreparation.preparationid = fragment.preparationid where returneddate > '$datestart' and returneddate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   $query = "select count(distinct loan.loanid), sum(rp.itemcount), sum(rp.nonspecimencount),sum(rp.typecount), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid left join loanreturnpreparation rp on loanpreparation.loanpreparationid = rp.loanpreparationid  left join fragment on loanpreparation.preparationid = fragment.preparationid where returneddate > '$datestart' and returneddate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material on loan returned in fiscal year $syear-$year (loans may still be open)");
 
-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where dateclosed > '$datestart' and dateclosed < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where dateclosed > '$datestart' and dateclosed < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of all material returned in Loans that were closed in fiscal year $syear-$year (includes material returned in previous years)");
 
-   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate <= '$datestart' and isclosed = 0 group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate <= '$datestart' and isclosed = 0 group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of outstanding material in open Loans opened before fiscal year $syear-$year");
 
    for ($x=0;$x<2;$x++) { 
@@ -487,6 +491,18 @@ function annualreport($year,$showdetails=FALSE) {
    return $returnvalue;
 }
 
+function tablekey() { 
+      $returnvalue = "<h2>Interpreting the Report</h2>";
+      $returnvalue .= "<table>\n";
+                $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>Loans</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcodes</th><th>Recipient Role</th></tr>";
+                $returnvalue .= "<tr><td>FH or General</td><td>Herbarium (only known for barcoded items, 'Lot' when not known)</td><td>Number of loans</td><td>Number of sheets/packets, barcoded or not, excluding types</td><td>Number of non-specimen items</td><td>Number of types (barcoded or not)</td><td>Number of Barcodes (includes count of all barcodes on a sheet)</td><td>Loans to Student/Staff</td></tr>";
+                $returnvalue .= "<tr><td>Farlow Collection</td><td>Lot</td><td>2</td><td>10</td><td>0</td><td>6</td><td>0</td><td>student</td></tr>";
+                $returnvalue .= "<tr><td>General Collection</td><td>NEBC</td><td>4</td><td>55</td><td>0</td><td>1</td><td>56</td><td>student</td></tr>";
+                $returnvalue .= "<tr><td><strong>Total</strong></td><td></td><td>Sum of Loans</td><td>Sum of Items</td><td>Sum of non-specimens</td><td>Sum of types</td><td>Sum of Barcodes</td><td>Total: (items + non-specimens + types)</td></tr>";
+      $returnvalue .= "</table>\n";
+      return $returnvalue;
+}
+
 function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient Role") { 
    global $connection,$debug;
    $returnvalue = "";
@@ -514,7 +530,7 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                 $statement->bind_result($loancount,$itemcount,$nonspecimencount,$typecount,$barcodecount,$herbarium,$unit,$purposeofloan);
                 $statement->store_result();
                 $returnvalue .= "<table>";
-                $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcoded Items</th><th>$groupcoll</th></tr>";
+                $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcodes</th><th>$groupcoll</th></tr>";
                 while ($statement->fetch()) {
                     if ($unit=='FC') { 
                         $floancount+=$loancount;
@@ -539,11 +555,11 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                     $tnonspecimencount+=$nonspecimencount;
                     $tbarcodecount+=$barcodecount;
                 }
-                $total = $fitemcount+$fnonspecimencount+$fbarcodecount;
+                $total = $fitemcount+$fnonspecimencountr+$ftypecount;
                 $returnvalue .= "<tr><td><strong>FH Totals</strong></td><td></td><td>$floancount</td><td>$fitemcount</td><td>$fnonspecimencount</td><td>$ftypecount</td><td>$fbarcodecount</td><td><strong>FH Total=$total</td></tr>";
-                $total = $gitemcount+$gnonspecimencount+$gbarcodecount;
+                $total = $gitemcount+$gnonspecimencount+$ftypecount;
                 $returnvalue .= "<tr><td><strong>GC Totals</strong></td><td></td><td>$gloancount</td><td>$gitemcount</td><td>$gnonspecimencount</td><td>$gtypecount</td><td>$gbarcodecount</td><td><strong>GC Total=$total</td></tr>";
-                $total = $titemcount+$tnonspecimencount+$tbarcodecount;
+                $total = $titemcount+$tnonspecimencount+$ftypecount;
                 $returnvalue .= "<tr><td><strong>Totals</strong></td><td></td><td>$tloancount</td><td>$titemcount</td><td>$tnonspecimencount</td><td>$ttypecount</td><td>$tbarcodecount</td><td><strong>Total=$total</td></tr>";
                 $returnvalue .= "</table>";
         }
