@@ -555,11 +555,11 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                     $tnonspecimencount+=$nonspecimencount;
                     $tbarcodecount+=$barcodecount;
                 }
-                $total = $fitemcount+$fnonspecimencountr+$ftypecount;
+                $total = $fitemcount+$fnonspecimencount+$ftypecount;
                 $returnvalue .= "<tr><td><strong>FH Totals</strong></td><td></td><td>$floancount</td><td>$fitemcount</td><td>$fnonspecimencount</td><td>$ftypecount</td><td>$fbarcodecount</td><td><strong>FH Total=$total</td></tr>";
-                $total = $gitemcount+$gnonspecimencount+$ftypecount;
+                $total = $gitemcount+$gnonspecimencount+$gtypecount;
                 $returnvalue .= "<tr><td><strong>GC Totals</strong></td><td></td><td>$gloancount</td><td>$gitemcount</td><td>$gnonspecimencount</td><td>$gtypecount</td><td>$gbarcodecount</td><td><strong>GC Total=$total</td></tr>";
-                $total = $titemcount+$tnonspecimencount+$ftypecount;
+                $total = $titemcount+$tnonspecimencount+$ttypecount;
                 $returnvalue .= "<tr><td><strong>Totals</strong></td><td></td><td>$tloancount</td><td>$titemcount</td><td>$tnonspecimencount</td><td>$ttypecount</td><td>$tbarcodecount</td><td><strong>Total=$total</td></tr>";
                 $returnvalue .= "</table>";
         }
