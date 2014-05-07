@@ -535,7 +535,7 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                     if ($unit=='FC') { 
                         $floancount+=$loancount;
                         $fitemcount+=$itemcount;
-                        $ftypecount+=$fypecount;
+                        $ftypecount+=$typecount;
                         $fnonspecimencount+=$nonspecimencount;
                         $fbarcodecount+=$barcodecount;
                         $unit = "Farlow Collections"; 
@@ -543,7 +543,7 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                     if ($unit=='GC') { 
                         $gloancount+=$loancount;
                         $gitemcount+=$itemcount;
-                        $gtypecount+=$gypecount;
+                        $gtypecount+=$typecount;
                         $gnonspecimencount+=$nonspecimencount;
                         $gbarcodecount+=$barcodecount;
                         $unit = "General Collections"; 
