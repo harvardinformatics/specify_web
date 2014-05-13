@@ -27,6 +27,7 @@
 // set to "hwpi" to turn on new page header/footer 
 $useheader = 'old';
 // $useheader = 'hwpi';
+//$useheader = 'hwpi';
 
 // ******* this file contains only supporting functions. *****
 
@@ -434,7 +435,7 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_JaNIC6wAnhTMzh3xDSc6hSOR4a8NIi7FBl7RJnEZUF0.css' media='all' />
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_psZ8OlULY14AOoMNe2Kt39fAuijWv5aZtPwhAuX3_o8.css' media='screen' />
+<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_OEoJqj3i52VtUlF0juPadyLaGArNgdsT1lTed3vxuWQ.css' media='screen' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_TSFJaqeRCa9iy7Dzv3-P2rX74YTgfVsJXDA81TWuTRA.css' media='print' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
     ";
@@ -577,30 +578,69 @@ $result .= "
       <!--header regions end-->        
 
 				  <!--main menu region beg-->
-		  <div id='menu-bar' class='nav clearfix'><nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >  
-  
-  <ul class='nice-menu nice-menu-down' id='nice-menu-primary-menu'><li class='menu-3464 menu-path-front  first   odd  '><a href='http://hwpi.harvard.edu/herbaria' >HOME</a></li>
-<li class='menu-3564 menuparent  menu-path-node-98801   even active-trail '><a href='http://hwpi.harvard.edu/herbaria/pages/collections' class='active' title=''>Collections</a><ul><li class='menu-3600 menu-path-node-98996  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/herbaria'  title=''>Herbaria</a></li>
-<li class='menu-3601 menu-path-node-99001   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-resources'  title=''>Digital Resources</a></li>
-<li class='menu-3602 menu-path-node-99006   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/use'  title=''>Use Policies</a></li></ul></li>
-<li class='menu-3565 menuparent  menu-path-node-98811   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/research'  title=''>Research</a><ul><li class='menu-3630 menu-path-node-99711  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/taxonomy-and-floristics'  title=''>Taxonomy and Floristics</a></li>
-<li class='menu-3631 menu-path-node-99726   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/plant-phylogenetics'  title=''>Plant Phylogenetics</a></li>
-<li class='menu-5387 menu-path-node-141961   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/publication'  title=''>Publications</a></li></ul></li>
-<li class='menu-4113 menuparent  menu-path-node-110296   even '><a href='http://hwpi.harvard.edu/herbaria/libraries'  title='' >Libraries</a><ul><li class='menu-4657 menuparent  menu-path-node-134106  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/libraries-collections'  title=''>Libraries&#039; Collections</a><ul><li class='menu-4654 menu-path-libharvardedu-  first   odd  '><a href='http://lib.harvard.edu/' >Harvard&#039;s Online Library Catalog (HOLLIS)</a></li>
-<li class='menu-4662 menu-path-node-134096   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/archives-0' >Archives Collections</a></li>
-<li class='menu-4671 menu-path-node-138056   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-collections-0' >Digital Collections</a></li></ul></li>
-<li class='menu-4660 menuparent  menu-path-node-134126   even   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/use-libraries'  title='' class='active'>Use of the Library</a><ul><li class='menu-4666 menu-path-node-137936  first   odd   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/hours-directions'  title='' class='active active'>Hours</a></li>
-<li class='menu-4658 menu-path-node-134111   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/resources' >Resources</a></li>
-<li class='menu-4659 menu-path-node-134116   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/services' >Services</a></li>
-<li class='menu-4668 menu-path-node-137946   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/permission-publish'  title=''>Permissions</a></li></ul></li>
-<li class='menu-4673 menu-path-people-taxonomy-term-18916   odd  '><a href='http://hwpi.harvard.edu/herbaria/association/libraries'  title=''>Libraries Staff</a></li>
-<li class='menu-4661 menu-path-node-134136   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/line-exhibits'  title=''>Online Exhibits</a></li></ul></li>
-<li class='menu-4141 menuparent  menu-path-node-113866   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/news-events'  title=''>News &amp; Events</a><ul><li class='menu-4142 menu-path-news  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/news' >News</a></li>
-<li class='menu-5072 menu-path-node-146976   even   last '><a href='http://hwpi.harvard.edu/herbaria/events'  title=''>Events</a></li></ul></li>
+<div id='menu-bar' class='nav clearfix'>
+<nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >  
+ 
+<ul class='nice-menu nice-menu-down' id='nice-menu-primary-menu'>
+<li class='menu-3564 menuparent  menu-path-node-98801  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/collections'  title=''>Collections</a>
+<ul>
+  <li class='menu-3600 menu-path-node-98996  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/herbaria'  title=''>Herbaria</a></li>
+  <li class='menu-3601 menu-path-node-99001   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-resources'  title=''>Digital Resources</a></li>
+  <li class='menu-3602 menu-path-node-99006   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/use'  title=''>Use Policies</a></li>
+</ul>
+</li>
+<li class='menu-3565 menuparent  menu-path-node-98811   even   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/research'  title='' class='active active'>Research</a>
+<ul>
+  <li class='menu-3630 menu-path-node-99711  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/taxonomy'  title=''>Taxonomy</a></li>
+  <li class='menu-6062 menu-path-node-205581   even  '><a href='http://hwpi.harvard.edu/herbaria/floristics-and-monography'  title=''>Floristics &amp; Monography</a></li>
+  <li class='menu-3631 menu-path-node-99726   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/plant-fungal-phylogenetics'  title=''>Plant &amp; Fungal Phylogenetics</a></li>
+  <li class='menu-6061 menu-path-node-205661   even  '><a href='http://hwpi.harvard.edu/herbaria/paleobotany'  title=''>Paleobotany</a></li>
+  <li class='menu-6353 menu-path-node-229251   odd  '><a href='http://hwpi.harvard.edu/herbaria/plant-speciation-and-local-adaptation'  title=''>Plant Speciation and Local Adaptation</a></li>
+  <li class='menu-6354 menu-path-node-232531   even   last '><a href='http://hwpi.harvard.edu/herbaria/forest-ecosystem-carbon-dynamics'  title=''>Forest Ecosystem Carbon Dynamics</a></li>
+</ul>
+</li>
+<li class='menu-5387 menuparent  menu-path-node-141961   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/publications'  title=''>Publications</a>
+<ul>
+  <li class='menu-5804 menu-path-node-141986  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/publications-about'  title=''>About HPB</a></li>
+  <li class='menu-5805 menu-path-node-141976   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/orders-access'  title=''>Orders &amp; Access</a></li>
+  <li class='menu-5806 menu-path-node-141971   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/manuscript-preparation'  title=''>For Authors</a></li>
+</ul>
+</li>
+<li class='menu-4113 menuparent  menu-path-node-110296   even  '><a href='http://hwpi.harvard.edu/herbaria/libraries'  title=''>Libraries</a>
+<ul>
+  <li class='menu-4657 menuparent  menu-path-node-134106  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/libraries-collections'  title=''>Libraries&#039; Collections</a>
+ <ul>
+  <li class='menu-4654 menu-path-libharvardedu-  first   odd  '><a href='http://hwpi.harvard.eduhttp://lib.harvard.edu/' >Harvard&#039;s Online Library Catalog (HOLLIS)</a></li>
+  <li class='menu-4662 menu-path-node-134096   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/archives' >Archives Collections</a></li>
+  <li class='menu-4671 menu-path-node-138056   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-collections-0' >Digital Collections</a></li>
+  </ul>
+  </li>
+<li class='menu-4660 menuparent  menu-path-node-134126   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/use-libraries'  title=''>Use of the Libraries</a>
+  <ul>
+     <li class='menu-4666 menu-path-node-137936  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/hours-directions'  title=''>Hours</a></li>
+     <li class='menu-4658 menu-path-node-134111   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/resources' >Resources</a></li>
+     <li class='menu-4659 menu-path-node-134116   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/services' >Services</a></li>
+     <li class='menu-4668 menu-path-node-137946   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/permission-publish'  title=''>Permissions</a></li>
+ </ul>
+ </li>
+ <li class='menu-4673 menu-path-people-taxonomy-term-18916   odd  '><a href='http://hwpi.harvard.edu/herbaria/association/libraries'  title=''>Libraries Staff</a></li>
+ <li class='menu-4661 menu-path-node-134136   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/online-exhibits'  title=''>Online Exhibits</a></li>
+</ul>
+</li>
+<li class='menu-4141 menuparent  menu-path-node-113866   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/news-events'  title=''>News &amp; Events</a>
+<ul>
+  <li class='menu-4142 menu-path-news  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/news' >News</a></li>
+  <li class='menu-5072 menu-path-node-146976   even   last '><a href='http://hwpi.harvard.edu/herbaria/events'  title=''>Events</a></li>
+</ul></li>
 <li class='menu-22536 menu-path-people   even  '><a href='http://hwpi.harvard.edu/herbaria/people'  title='List of people'>People</a></li>
-<li class='menu-3610 menuparent  menu-path-node-99451   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/about'  title=''>About</a><ul><li class='menu-3621 menu-path-node-99461  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/visit' >Visit</a></li>
-<li class='menu-3622 menu-path-node-99471   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/contact' >Contact</a></li>
-<li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/history' >History</a></li></ul></li></ul>
+<li class='menu-3610 menuparent  menu-path-node-99451   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/about'  title=''>About</a>
+<ul>
+  <li class='menu-3621 menu-path-node-99461  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/visit' >Visit</a></li>
+  <li class='menu-3622 menu-path-node-99471   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/contact' >Contact</a></li>
+  <li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/history' >History</a></li>
+</ul></li>
+</ul>
+ 
 
   </nav></div>		  <!--main menu region end-->
         
@@ -652,7 +692,7 @@ function pagefooter_new() {
   <!--FLEXIBLE ADMIN FOOTER FOR USE BY SELECT GROUPS USING OS-->
   <div id="branding_footer">
         <div class="branding-container">
-        <div class="copyright"><span class="harvard-copyright">Copyright &copy; 2013 The President and Fellows of Harvard College</span> | <a href="http://www.harvard.edu/privacy-statement" >Privacy</a> | <a href="http://accessibility.harvard.edu/" >Accessibility</a></div>       </div>
+        <div class="copyright"><span class="harvard-copyright">Copyright &copy; 2013 The President and Fellows of Harvard College</span> | <a href="http://accessibility.harvard.edu/" >Accessibility</a></div>       </div>
   </div>
 
 </div> <!-- all content div tag ends -->
