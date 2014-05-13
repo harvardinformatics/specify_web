@@ -241,8 +241,8 @@ function annualreport($year,$showdetails=FALSE) {
    $year = substr(preg_replace("[^0-9]","",$year),0,4);
    if ($year=='') { $year = date('Y'); } 
    $syear = intval($year) - 1;
-   $datestart = "$syear-05-31";
-   $dateend = "$year-06-01";
+   $datestart = "$syear-06-30";
+   $dateend = "$year-07-01";
 
    if ($showdetails) { 
       $returnvalue .= "Change to: <a href='stats.php?mode=annualreport&year=$year'>Annual Report Statistics (summary)</a><br>";
@@ -252,7 +252,7 @@ function annualreport($year,$showdetails=FALSE) {
 
    // ************  Accessions   ********** 
 
-   $query = "select count(accession.accessionid), accession.text1, 
+   $query = "select count(distinct accession.accessionid), accession.text1, 
        sum(itemcount), sum(typecount), sum(nonspecimencount), 
        sum(returncount), sum(distributecount), sum(discardcount) 
    from accession left join accessionpreparation 
@@ -286,7 +286,7 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "</table>";
    }
 
-   $query = "select count(accession.accessionid), accession.text1, 
+   $query = "select count(distinct accession.accessionid), accession.text1, 
        sum(itemcount), sum(typecount), sum(nonspecimencount), 
        sum(returncount), sum(distributecount), sum(discardcount),
        accession.type
@@ -317,7 +317,7 @@ function annualreport($year,$showdetails=FALSE) {
                     $tdistributecount+=$distributecount;
                     $tdiscardcount+=$discardcount;
                 }
-                $returnvalue .= "<tr><td><strong>Totals</strong></td><td>$taccessions</td><td>$titemcount</td><td>$ttypecount</td><td>$tnonspecimencount</td><td>$treturncount</td><td>$tdistributecount</td><td>$tdiscardcount</td></tr>";
+                $returnvalue .= "<tr><td><strong>Totals</strong></td><td></td><td>$taccessions</td><td>$titemcount</td><td>$ttypecount</td><td>$tnonspecimencount</td><td>$treturncount</td><td>$tdistributecount</td><td>$tdiscardcount</td></tr>";
                 $returnvalue .= "</table>";
    }
 
