@@ -427,7 +427,7 @@ function annualreport($year,$showdetails=FALSE) {
 
    // ************  Exchanges (out) ********** 
 
-   $query = "select exchangedate, text2, descriptionofmaterial, quantityexchanged, abbreviation from exchangeout
+   $query = "select distinct exchangedate, text2, descriptionofmaterial, quantityexchanged, abbreviation from exchangeout
     left join agent on exchangeout.senttoorganizationid = agent.agentid
     where exchangedate > '$datestart' and exchangedate < '$dateend' 
     order by text2, abbreviation
@@ -470,7 +470,7 @@ function annualreport($year,$showdetails=FALSE) {
 
    // ************  QC Checks   ********** 
 
-   $query = "select country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
+   $query = "select distinct country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
 
    if ($debug) { echo "[$query]<BR>"; }
    $returnvalue .= "<h2>Data Quality issues: Loans where the borrower accronym or country was blank.</h2>";
