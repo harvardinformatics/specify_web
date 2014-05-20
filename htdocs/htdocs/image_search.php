@@ -234,7 +234,7 @@ function details() {
           
           jQuery(document).ready(function($){
           
-              $('#image1').addimagezoom({ // 
+              $('#imagedetail1').addimagezoom({ // 
                   zoomrange: [10, 20],
                   magnifiersize: [800,600],
                   magnifierpos: 'right',
@@ -251,7 +251,7 @@ function details() {
   $result .= "<br clear='All'/>";
   $result .= "<div style='background-color:#F3F3F3; width:1075px; height:625px; border-color:#939393; border-width:1; border-style:solid;' >";
 
-  $result .= "<img id='image1' border='0' src='$thumburi' style=' width:250px; height:338px; '>";
+  $result .= "<img id='imagedetail1' border='0' src='$thumburi' style=' width:250px; height:338px; '>";
   $result .= "&nbsp;&nbsp;Mouse over image to zoom.<br/>\n";
 
   $result .= "</div>";
@@ -272,7 +272,10 @@ function batch_qc() {
   if (strlen($batchid>0)) { 
      return batch_details($batchid);
   } else { 
-     return list_batches();
+     $result = "<h2><a href='image_search.php?mode=qc&batch=HUH-orchid'>Orchid Batches</a> <a href='image_search.php?mode=qc&batch=GPI-Types'>GPI/LAPI Batches</a> <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a> <a href='image_search.php?mode=qc'>All Batches</a></h2>";
+
+     $result .=  list_batches();
+     return $result;
   }
 
 }
@@ -349,13 +352,22 @@ function list_batches() {
   global $connection;
   $result = "";
 
-  $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
+  $batch = preg_replace('/[^a-zA-Z0-9\-:]/','',$_GET['batch']);
+  if (strlen($batch)>0) { 
+      $batch = "%$batch%";
+      $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.batch_name like ?  group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
+  } else { 
+     $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
+  }
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
+    if (strlen($batch)>0) { 
+       $stmt->bind_param('s',$batch);
+    }
     $stmt->execute();
     $stmt->bind_result($specimencount, $batchid, $date, $name, $remarks, $project, $lab,$filename);
     while ($stmt->fetch()) { 
-       $result .= "Batch: <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a> on $date with $specimencount sheets.  Project: $project. Lab: $lab. $remarks</br>\n";
+       $result .= "Batch: <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a> on $date with $specimencount sheets.  Project: $project. Lab: $lab. $remarks<br/>\n";
     } 
     $stmt->close();
   } else { 
