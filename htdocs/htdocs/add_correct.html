@@ -1,98 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-      	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>HUH - Databases - Additions and Corrections</title>
-				<link rel="stylesheet" type="text/css" media="print" href="http://www.huh.harvard.edu/print.css"></link>
-				<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
-				<link rel="stylesheet" type="text/css" media="print" href="cms-db.css"></link>
-</head>
+<?php
+include_once('specify_library.php');
 
-	<body>
+echo pageheader("specimen","off");
 
-	<div id="allcontent">
-	
-		<!-- header code begins -->
-		<div id="old_header">
-			<div id="top_menu">
-				<!-- SiteSearch Google begin -->
-  				<div id="google-bar">
-		 		 	<form id="searchbox_017077970885996561474:r6kigtd91vw" action="http://www.google.com/search" target="_blank">
-		    		 	<input type="hidden" name="ie" value="utf-8" />
-			 			<input type="hidden" name="oe" value="utf-8" />
-
-			 			<input type="hidden" name="sitesearch" value="http://huh.harvard.edu" />
-			    		<input type="text" name="q" size="10" maxlength="255" value="" />
-			    		<input type="submit" name="sa" value="Search HUH" />
-						<input type="hidden" name="domains" value="http://huh.harvard.edu" /><br />
-					</form>
-					<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_017077970885996561474%3Ar6kigtd91vw"></script>
-				</div>
-				<!-- SiteSearch Google end -->
-
-		
-				<div id="embed_nav">
-		  			<ul>
-						<li><a href="/">Home</a></li>
-						<li>&#124;</li>
-						<li><a href="http://zatoichi.huh.harvard.edu/people/index.php">Contact</a></li>
-						<li>&#124;</li>
-						<li><a href="/news_events/news_events.html">News &#38; Events</a></li>
-
-						<li>&#124;</li>
-						<li><a href="/news_events/calendar.html">Calendar</a></li>
-						<li>&#124;</li>
-						<li><a href="/sitemap.html">Sitemap</a></li>
-						<li>&#124;</li>
-						<li><a href="/links.html">Links</a></li>
-		  			</ul>
-
-				</div>
-			
-			</div>
-			<!-- top menu ends -->
-		
-				<div id="mid_sect">
-					<a href="http://www.huh.harvard.edu"><img width="100" src="http://www.huh.harvard.edu/images/huh_logo_bw_100.png" alt="HUH logo" title="Home page" /></a>
-				</div>
-	
-
-				<div id='topnav'>
-		 			<ul>
-			 			<li ><a href='http://www.huh.harvard.edu/collections/'>Collections</a></li>
-
-			 			<li class=active><a href='http://www.huh.harvard.edu/databases/'>Databases</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/research/'>Research</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/seminar_series/'>Seminar Series</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/libraries/'>Libraries</a></li>
-			 			<li  ><a href='http://zatoichi.huh.harvard.edu/people/'>People</a></li>
-			 			<li ><a href='http://www.huh.harvard.edu/publications/'>HPB Journal</a></li>
-
-			 			<li ><a href='http://www.huh.harvard.edu/visiting/'>Visiting</a></li>
-		   			</ul>
-		 		</div>
-		
-		</div>
-
-		<!-- header code ends -->
-		
+?>
 <div id="sidenav">
   <ul>
-    <li><a href="addenda.html">SEARCH HINTS</a></li>
-    <li><a href="addenda.html#policy">DISTRIBUTION AND USE POLICY</a></li>
+    <li><a href="addenda.html">Search Hints</a></li>
+    <li><a href="addenda.html#policy">Distribution and Use Policy</a></li>
   <hr />
-    <li><a href="botanist_index.html">BOTANISTS</a></li>
-    <li><a href="publication_index.html">PUBLICATIONS</a></li>
-    <li><a href="specimen_index.html">SPECIMENS</a></li>
-  <hr />   
+    <li><a href="botanist_index.html">Botanists</a></li>
+    <li><a href="publication_index.html">Publications</a></li>
+    <li><a href="specimen_index.html">Specimens</a></li>
+    <li><a href="image_search.php" >Images</a></li>
+  <hr />
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
     <li><a href="add_correct.html" class="active">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
-    
+
   </ul>
-</div>  <!-- sidenav ends -->		
-		
-		
+</div>  <!-- sidenav ends -->
+
 <div id="main">
 		<!-- main content begins -->
 		<div id="main_text">
@@ -166,20 +95,8 @@
 	</div>
 
 </div> <!-- all content div tag ends -->
+<?php
 
-<!--script for google analytics, must go before </body> tag -->
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-var pageTracker = _gat._getTracker("UA-2956471-1");
-pageTracker._initData();
-pageTracker._trackPageview();
-</script>
+echo pagefooter();
 
-<!--end script -->
-
-</body>
-</html>
-
+?>

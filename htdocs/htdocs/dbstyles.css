@@ -71,8 +71,9 @@
 	
 	/* mid_sect style begins */
 	#mid_sect {
-	background-image: url(http://www.huh.harvard.edu/research/seasianfloras/images/acer_banner2.jpg);
-	
+/*
+        background-image: url(http://www.huh.harvard.edu/research/seasianfloras/images/acer_banner2.jpg);
+*/	
 	margin: 0px;
 	padding: 0px;
 	clear: right;
@@ -84,7 +85,9 @@
 	}
 		/* for home page only, bigger image */
 		#home_mid_sect {
+/*
 		background-image: url(http://zatoichi.huh.harvard.edu/research/seasianfloras/images/acer_banner_home5.jpg);
+*/
 		margin: 0px;
 		padding: 0px;
 		clear: right;
@@ -155,28 +158,28 @@
 	#nav2 li {
 	display: inline;
 	text-align: center;
-	padding: 0px 5px;
+	padding: 0px 3px;
 	margin: 0px;
 	}
 	#nav2 a {
 	color: white;
 	text-decoration: none;
 	margin: 0px;
-	padding: 5px 10px;
+	padding: 5px 6px;
 	}	
 	#nav2 a.active {
 	background-color: #b8c0d2;
 	color: black;
 	text-decoration: none;
 	margin: 0px;
-	padding: 5px 10px;
+	padding: 5px 6px;
 	}
 	#nav2 a:hover {
 	background-color: #b8c0d2;
 	color: black;
 	text-decoration: none;
 	margin: 0px;
-	padding: 5px 10px;
+	padding: 5px 6px;
 	}
 	/* second navbar style ends */	
 /* header styles ends */

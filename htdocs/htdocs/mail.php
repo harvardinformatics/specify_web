@@ -54,23 +54,28 @@ if (($msgtext!="")) {
 }
 
 $majorContext = "Databases";
-require_once("../templates/header.php");
+
+include_once('specify_library.php');
+
+echo pageheader("specimen","off");
 
 ?>
-
 <div id="sidenav">
   <ul>
-    <li><a href="addenda.html#hints" >SEARCH HINTS</a></li>
+    <li><a href="addenda.html">SEARCH HINTS</a></li>
     <li><a href="addenda.html#policy">DISTRIBUTION AND USE POLICY</a></li>
   <hr />
     <li><a href="botanist_index.html">BOTANISTS</a></li>
     <li><a href="publication_index.html">PUBLICATIONS</a></li>
     <li><a href="specimen_index.html">SPECIMENS</a></li>
+    <li><a href="image_search.php" >IMAGES</a></li>
   <hr />
-    <li><a href="add_correct.html" class="active" >Contribute additions/corrections</a></li>
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+    <li><a href="add_correct.html" class="active">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
-  </ul>
 
+  </ul>
 </div>  <!-- sidenav ends -->
 
 
@@ -95,7 +100,8 @@ echo $reply;
         <!-- main content ends -->
 
 <?php
-        $theDate = "04/05/2011"; //date last updated, Paul J. Morris
-        require_once("../templates/footer.php");
+
+echo pagefooter();
+
 ?>
 

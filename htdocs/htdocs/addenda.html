@@ -1,21 +1,25 @@
 <?php
-  $majorContext = "Databases";
-  require_once("../templates/header.php");
-?>
+include_once('specify_library.php');
 
+echo pageheader("specimen","off");
+
+?>
 <div id="sidenav">
   <ul>
-    <li><a href="addenda.html#hints"class="active" >SEARCH HINTS</a></li>
-    <li><a href="addenda.html#policy">DISTRIBUTION AND USE POLICY</a></li>
+    <li><a href="addenda.html" class="active">Search Hints</a></li>
+    <li><a href="addenda.html#policy">Distribution and use policy</a></li>
   <hr />
-    <li><a href="botanist_index.html">BOTANISTS</a></li>
-    <li><a href="publication_index.html">PUBLICATIONS</a></li>
-    <li><a href="specimen_index.html">SPECIMENS</a></li>
+    <li><a href="botanist_index.html">Botanists</a></li>
+    <li><a href="publication_index.html">Publications</a></li>
+    <li><a href="specimen_index.html">Specimens</a></li>
+    <li><a href="image_search.php" >Images</a></li>
   <hr />
-    <li><a href="add_correct.html">Contribute additions/corrections</a></li>
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+    <li><a href="add_correct.html" >Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
-  </ul>
 
+  </ul>
 </div>  <!-- sidenav ends -->
 
 
@@ -114,7 +118,7 @@ Index information by staff members of the Harvard University Herbaria and others
 	<!-- main content ends -->
 
 <?php
-        $theDate = "04/05/2011"; //date last updated, Paul J. Morris
-        require_once("../templates/footer.php");
-?>
 
+echo pagefooter();
+
+?>
