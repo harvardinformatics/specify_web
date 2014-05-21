@@ -25,9 +25,8 @@
 //$debug = true;
 
 // set to "hwpi" to turn on new page header/footer 
-$useheader = 'old';
-// $useheader = 'hwpi';
-//$useheader = 'hwpi';
+// $useheader = 'old';
+$useheader = 'hwpi';
 
 // ******* this file contains only supporting functions. *****
 
@@ -129,7 +128,7 @@ function pagefooter() {
  
 function pageheader_old($mode = "specimen",$topbar = "on") {
 	$title = "Specimen Search"; 
-	$heading = "Botanical Specimens"; 
+	$heading = "Specimens"; 
         $link = "specimen_index.html";
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
@@ -143,7 +142,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
             break;
 		case "specimen":
 			$title = "Specimen Search"; 
-	        $heading = "Botanical Specimens"; 
+	        $heading = "Specimens"; 
             $link = "specimen_index.html";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
@@ -161,7 +160,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			break;
 		case "publication":
 			$title = "Publication Search"; 
-	        $heading = "Botanical Publications"; 
+	        $heading = "Publications"; 
             $link = "publication_index.html";
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
@@ -170,7 +169,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			break;
 		case "image":
 			$title = "Specimen Image Search"; 
-	        $heading = "Botanical Specimens"; 
+	        $heading = "Specimens"; 
             $link = "image_search.php";
 			$active['s'] = "";
 			$active['p'] = "";
@@ -310,8 +309,7 @@ function pagefooter_old() {
 </div>
 	<!-- main content ends -->
 
-<p>
-Disclaimer: This is a new (2011) interface over recently migrated data.  Both the interface and the data are under review.  Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.
+<p>Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.
 </p>
 
 <!-- footer include begins -->		
@@ -435,7 +433,14 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_JaNIC6wAnhTMzh3xDSc6hSOR4a8NIi7FBl7RJnEZUF0.css' media='all' />
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_OEoJqj3i52VtUlF0juPadyLaGArNgdsT1lTed3vxuWQ.css' media='screen' />
+";
+if ($mode=='imagedetails') { 
+  // line in one css file breaks the image details browser.
+  $result .= "<link type='text/css' rel='stylesheet' href='css_OE.css' media='screen' />";
+} else { 
+  $result .= "<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_OEoJqj3i52VtUlF0juPadyLaGArNgdsT1lTed3vxuWQ.css' media='screen' />";
+}
+$result .="
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_TSFJaqeRCa9iy7Dzv3-P2rX74YTgfVsJXDA81TWuTRA.css' media='print' />
 <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
     ";
@@ -560,11 +565,11 @@ $result .= "
     </p></div></div></div>
   </div></div></div></div>					  					  <div class='region region-header-third'><div class='region-inner clearfix'><div id='block-os-secondary-menu' class='block block-os no-title' ><div class='block-inner clearfix'>  
   
-  <div class='block-content content'><ul class='nice-menu nice-menu-down' id='nice-menu-secondary-menu'><li class='menu-3619 menu-path-node-99471  first   odd  '><a href='/herbaria/pages/contact' >Contact</a></li><li class='menu-3620 menu-path-node-99461   even  '><a href='/herbaria/pages/visit' >Visit</a></li><li class='menu-3604 menu-path-kikihuhharvardedu-databases-   odd   last '><a href='http://kiki.huh.harvard.edu/databases/' >Databases</a></li></ul>
+  <div class='block-content content'><ul class='nice-menu nice-menu-down' id='nice-menu-secondary-menu'><li class='menu-3619 menu-path-node-99471  first   odd  '><a href='http://huh.harvard.edu/pages/contact' >Contact</a></li><li class='menu-3620 menu-path-node-99461   even  '><a href='http://huh.harvard.edu/pages/visit' >Visit</a></li><li class='menu-3604 menu-path-kikihuhharvardedu-databases-   odd   last '><a href='http://kiki.huh.harvard.edu/databases/' >Databases</a></li></ul>
 </div>
   </div></div><div id='block-os-search-solr-site-search' class='block block-os-search-solr no-title' ><div class='block-inner clearfix'>  
   
-  <div class='block-content content'><form action='http://hwpi.harvard.edu/herbaria' method='post' id='search-block-form' accept-charset='UTF-8'><div><div class='container-inline'>
+  <div class='block-content content'><form action='http://huh.harvard.edu/search/site' method='post' id='search-block-form' accept-charset='UTF-8'><div><div class='container-inline'>
   <div class='form-item form-type-textfield form-item-search-block-form'>
   <label for='edit-search-block-form--2'>Search </label>
  <input title='Enter the terms you wish to search for.' type='search' id='edit-search-block-form--2' name='search_block_form' value='' size='15' maxlength='128' class='form-text' />
@@ -582,62 +587,62 @@ $result .= "
 <nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >  
  
 <ul class='nice-menu nice-menu-down' id='nice-menu-primary-menu'>
-<li class='menu-3564 menuparent  menu-path-node-98801  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/collections'  title=''>Collections</a>
+<li class='menu-3564 menuparent  menu-path-node-98801  first   odd  '><a href='http://huh.harvard.edu/pages/collections'  title='' class='active active'>Collections</a>
 <ul>
-  <li class='menu-3600 menu-path-node-98996  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/herbaria'  title=''>Herbaria</a></li>
-  <li class='menu-3601 menu-path-node-99001   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-resources'  title=''>Digital Resources</a></li>
-  <li class='menu-3602 menu-path-node-99006   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/use'  title=''>Use Policies</a></li>
+  <li class='menu-3600 menu-path-node-98996  first   odd  '><a href='http://huh.harvard.edu/pages/herbaria'  title=''>Herbaria</a></li>
+  <li class='menu-3601 menu-path-node-99001   even  '><a href='http://huh.harvard.edu/pages/digital-resources'  title=''>Digital Resources</a></li>
+  <li class='menu-3602 menu-path-node-99006   odd   last '><a href='http://huh.harvard.edu/pages/use'  title=''>Use Policies</a></li>
 </ul>
 </li>
-<li class='menu-3565 menuparent  menu-path-node-98811   even   active-trail'><a href='http://hwpi.harvard.edu/herbaria/pages/research'  title='' class='active active'>Research</a>
+<li class='menu-3565 menuparent  menu-path-node-98811   even   active-trail'><a href='http://huh.harvard.edu/pages/research'  title='' >Research</a>
 <ul>
-  <li class='menu-3630 menu-path-node-99711  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/taxonomy'  title=''>Taxonomy</a></li>
-  <li class='menu-6062 menu-path-node-205581   even  '><a href='http://hwpi.harvard.edu/herbaria/floristics-and-monography'  title=''>Floristics &amp; Monography</a></li>
-  <li class='menu-3631 menu-path-node-99726   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/plant-fungal-phylogenetics'  title=''>Plant &amp; Fungal Phylogenetics</a></li>
-  <li class='menu-6061 menu-path-node-205661   even  '><a href='http://hwpi.harvard.edu/herbaria/paleobotany'  title=''>Paleobotany</a></li>
-  <li class='menu-6353 menu-path-node-229251   odd  '><a href='http://hwpi.harvard.edu/herbaria/plant-speciation-and-local-adaptation'  title=''>Plant Speciation and Local Adaptation</a></li>
-  <li class='menu-6354 menu-path-node-232531   even   last '><a href='http://hwpi.harvard.edu/herbaria/forest-ecosystem-carbon-dynamics'  title=''>Forest Ecosystem Carbon Dynamics</a></li>
+  <li class='menu-3630 menu-path-node-99711  first   odd  '><a href='http://huh.harvard.edu/pages/taxonomy'  title=''>Taxonomy</a></li>
+  <li class='menu-6062 menu-path-node-205581   even  '><a href='http://huh.harvard.edu/floristics-and-monography'  title=''>Floristics &amp; Monography</a></li>
+  <li class='menu-3631 menu-path-node-99726   odd  '><a href='http://huh.harvard.edu/pages/plant-fungal-phylogenetics'  title=''>Plant &amp; Fungal Phylogenetics</a></li>
+  <li class='menu-6061 menu-path-node-205661   even  '><a href='http://huh.harvard.edu/paleobotany'  title=''>Paleobotany</a></li>
+  <li class='menu-6353 menu-path-node-229251   odd  '><a href='http://huh.harvard.edu/plant-speciation-and-local-adaptation'  title=''>Plant Speciation and Local Adaptation</a></li>
+  <li class='menu-6354 menu-path-node-232531   even   last '><a href='http://huh.harvard.edu/forest-ecosystem-carbon-dynamics'  title=''>Forest Ecosystem Carbon Dynamics</a></li>
 </ul>
 </li>
-<li class='menu-5387 menuparent  menu-path-node-141961   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/publications'  title=''>Publications</a>
+<li class='menu-5387 menuparent  menu-path-node-141961   odd  '><a href='http://huh.harvard.edu/pages/publications'  title=''>Publications</a>
 <ul>
-  <li class='menu-5804 menu-path-node-141986  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/publications-about'  title=''>About HPB</a></li>
-  <li class='menu-5805 menu-path-node-141976   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/orders-access'  title=''>Orders &amp; Access</a></li>
-  <li class='menu-5806 menu-path-node-141971   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/manuscript-preparation'  title=''>For Authors</a></li>
+  <li class='menu-5804 menu-path-node-141986  first   odd  '><a href='http://huh.harvard.edu/pages/publications-about'  title=''>About HPB</a></li>
+  <li class='menu-5805 menu-path-node-141976   even  '><a href='http://huh.harvard.edu/pages/orders-access'  title=''>Orders &amp; Access</a></li>
+  <li class='menu-5806 menu-path-node-141971   odd   last '><a href='http://huh.harvard.edu/pages/manuscript-preparation'  title=''>For Authors</a></li>
 </ul>
 </li>
-<li class='menu-4113 menuparent  menu-path-node-110296   even  '><a href='http://hwpi.harvard.edu/herbaria/libraries'  title=''>Libraries</a>
+<li class='menu-4113 menuparent  menu-path-node-110296   even  '><a href='http://huh.harvard.edu/libraries'  title=''>Libraries</a>
 <ul>
-  <li class='menu-4657 menuparent  menu-path-node-134106  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/libraries-collections'  title=''>Libraries&#039; Collections</a>
+  <li class='menu-4657 menuparent  menu-path-node-134106  first   odd  '><a href='http://huh.harvard.edu/pages/libraries-collections'  title=''>Libraries&#039; Collections</a>
  <ul>
-  <li class='menu-4654 menu-path-libharvardedu-  first   odd  '><a href='http://hwpi.harvard.eduhttp://lib.harvard.edu/' >Harvard&#039;s Online Library Catalog (HOLLIS)</a></li>
-  <li class='menu-4662 menu-path-node-134096   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/archives' >Archives Collections</a></li>
-  <li class='menu-4671 menu-path-node-138056   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/digital-collections-0' >Digital Collections</a></li>
+  <li class='menu-4654 menu-path-libharvardedu-  first   odd  '><a href='http://lib.harvard.edu/' >Harvard&#039;s Online Library Catalog (HOLLIS)</a></li>
+  <li class='menu-4662 menu-path-node-134096   even  '><a href='http://huh.harvard.edu/pages/archives' >Archives Collections</a></li>
+  <li class='menu-4671 menu-path-node-138056   odd   last '><a href='http://huh.harvard.edu/pages/digital-collections-0' >Digital Collections</a></li>
   </ul>
   </li>
-<li class='menu-4660 menuparent  menu-path-node-134126   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/use-libraries'  title=''>Use of the Libraries</a>
+<li class='menu-4660 menuparent  menu-path-node-134126   even  '><a href='http://huh.harvard.edu/pages/use-libraries'  title=''>Use of the Libraries</a>
   <ul>
-     <li class='menu-4666 menu-path-node-137936  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/hours-directions'  title=''>Hours</a></li>
-     <li class='menu-4658 menu-path-node-134111   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/resources' >Resources</a></li>
-     <li class='menu-4659 menu-path-node-134116   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/services' >Services</a></li>
-     <li class='menu-4668 menu-path-node-137946   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/permission-publish'  title=''>Permissions</a></li>
+     <li class='menu-4666 menu-path-node-137936  first   odd  '><a href='http://huh.harvard.edu/pages/hours-directions'  title=''>Hours</a></li>
+     <li class='menu-4658 menu-path-node-134111   even  '><a href='http://huh.harvard.edu/pages/resources' >Resources</a></li>
+     <li class='menu-4659 menu-path-node-134116   odd  '><a href='http://huh.harvard.edu/pages/services' >Services</a></li>
+     <li class='menu-4668 menu-path-node-137946   even   last '><a href='http://huh.harvard.edu/pages/permission-publish'  title=''>Permissions</a></li>
  </ul>
  </li>
- <li class='menu-4673 menu-path-people-taxonomy-term-18916   odd  '><a href='http://hwpi.harvard.edu/herbaria/association/libraries'  title=''>Libraries Staff</a></li>
- <li class='menu-4661 menu-path-node-134136   even   last '><a href='http://hwpi.harvard.edu/herbaria/pages/online-exhibits'  title=''>Online Exhibits</a></li>
+ <li class='menu-4673 menu-path-people-taxonomy-term-18916   odd  '><a href='http://huh.harvard.edu/association/libraries'  title=''>Libraries Staff</a></li>
+ <li class='menu-4661 menu-path-node-134136   even   last '><a href='http://huh.harvard.edu/pages/online-exhibits'  title=''>Online Exhibits</a></li>
 </ul>
 </li>
-<li class='menu-4141 menuparent  menu-path-node-113866   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/news-events'  title=''>News &amp; Events</a>
+<li class='menu-4141 menuparent  menu-path-node-113866   odd  '><a href='http://huh.harvard.edu/pages/news-events'  title=''>News &amp; Events</a>
 <ul>
-  <li class='menu-4142 menu-path-news  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/news' >News</a></li>
-  <li class='menu-5072 menu-path-node-146976   even   last '><a href='http://hwpi.harvard.edu/herbaria/events'  title=''>Events</a></li>
+  <li class='menu-4142 menu-path-news  first   odd  '><a href='http://huh.harvard.edu/news' >News</a></li>
+  <li class='menu-5072 menu-path-node-146976   even   last '><a href='http://huh.harvard.edu/events'  title=''>Events</a></li>
 </ul></li>
-<li class='menu-22536 menu-path-people   even  '><a href='http://hwpi.harvard.edu/herbaria/people'  title='List of people'>People</a></li>
-<li class='menu-3610 menuparent  menu-path-node-99451   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/about'  title=''>About</a>
+<li class='menu-22536 menu-path-people   even  '><a href='http://huh.harvard.edu/people'  title='List of people'>People</a></li>
+<li class='menu-3610 menuparent  menu-path-node-99451   odd   last '><a href='http://huh.harvard.edu/pages/about'  title=''>About</a>
 <ul>
-  <li class='menu-3621 menu-path-node-99461  first   odd  '><a href='http://hwpi.harvard.edu/herbaria/pages/visit' >Visit</a></li>
-  <li class='menu-3622 menu-path-node-99471   even  '><a href='http://hwpi.harvard.edu/herbaria/pages/contact' >Contact</a></li>
-  <li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://hwpi.harvard.edu/herbaria/pages/history' >History</a></li>
+  <li class='menu-3621 menu-path-node-99461  first   odd  '><a href='http://huh.harvard.edu/pages/visit' >Visit</a></li>
+  <li class='menu-3622 menu-path-node-99471   even  '><a href='http://huh.harvard.edu/pages/contact' >Contact</a></li>
+  <li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://huh.harvard.edu/pages/history' >History</a></li>
 </ul></li>
 </ul>
  
@@ -653,16 +658,16 @@ $result .= "
 <div id='nav2'>
   <ul>
     <li><a href='addenda.html'>Search Hints</a></li>
-    <li><a href='addenda.html#policy'>Distribution and Use Policy</a></li>
-    <li><a href='botanist_index.html' ". $active['b'].">BOTANISTS</a></li>
-    <li><a href='publication_index.html' ". $active['p'] .">PUBLICATIONS</a></li>
-    <li><a href='specimen_index.html' ". $active['s'] .">SPECIMENS</a></li>
-    <li><a href='image_search.php' ". $active['i'] .">IMAGES</a></li>
-    <li><a href='taxon_search.php' ". $active['t'] .">TAXA</a></li>
-    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='addenda.html#policy'>Use Policy</a></li>
+    <li><a href='botanist_index.html' ". $active['b'].">Botanists</a></li>
+    <li><a href='publication_index.html' ". $active['p'] .">Publications</a></li>
+    <li><a href='specimen_index.html' ". $active['s'] .">Specimens</a></li>
+    <li><a href='image_search.php' ". $active['i'] .">Images</a></li>
+    <li><a href='taxon_search.php' ". $active['t'] .">Taxa</a></li>
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Cards</a></li>
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts</a></li>
     <li><a href='add_correct.html'>Contribute</a></li>
-    <li><a href='comment.html'>Comments/questions</a></li>
+    <li><a href='comment.html'>Comments</a></li>
     
   </ul>
 </div>  <!-- nav2 ends -->		
@@ -783,6 +788,67 @@ function browse($target = 'families') {
 		$result = nameCountSearch($sql, $field);
 	} 
 	return $result; 
+}
+
+/** 
+ * Workaround for missing json_encode in old php
+ */
+function json_encode( $array ){
+
+    if( !is_array( $array ) ){
+        return false;
+    }
+
+    $associative = count( array_diff( array_keys($array), array_keys( array_keys( $array )) ));
+    if( $associative ){
+
+        $construct = array();
+        foreach( $array as $key => $value ){
+
+            // We first copy each key/value pair into a staging array,
+            // formatting each key and value properly as we go.
+
+            // Format the key:
+            if( is_numeric($key) ){
+                $key = "key_$key";
+            }
+            $key = '"'.addslashes($key).'"';
+
+            // Format the value:
+            if( is_array( $value )){
+                $value = json_encode( $value );
+            } else if( !is_numeric( $value ) || is_string( $value ) ){
+                $value = '"'.addslashes($value).'"';
+            }
+
+            // Add to staging array:
+            $construct[] = "$key: $value";
+        }
+
+        // Then we collapse the staging array into the JSON form:
+        $result = "{ " . implode( ", ", $construct ) . " }";
+
+    } else { // If the array is a vector (not associative):
+
+        $construct = array();
+        foreach( $array as $value ){
+
+            // Format the value:
+            if( is_array( $value )){
+                $value = json_encode( $value );
+            } else if( !is_numeric( $value ) || is_string( $value ) ){
+                $value = '"'.addslashes($value).'"';
+            }
+
+            // Add to staging array:
+            $construct[] = $value;
+        }
+
+        // Then we collapse the staging array into the JSON form:
+        $result = "[ " . implode( ", ", $construct ) . " ]";
+    }
+
+    return $result;
 }
 
 ?>
