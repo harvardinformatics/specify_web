@@ -82,6 +82,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="person_week_records") {
 		$mode = "person_week_records"; 
 	}
+	if ($_GET['mode']=="loan_null_role") {
+		$mode = "loan_null_role"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -136,6 +139,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 				break;
 			case "weekly_rate_modification":	
 				echo weekly_rate('modified');
+				break;
+			case "loan_null_role":	
+				echo loan_null_role();
 				break;
 			case "person_week_records":
                                 $person = 'Lewis-Gentry';
@@ -198,6 +204,10 @@ function menu() {
    $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_creation'>Collection object records created per week</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=weekly_rate_modification'>Collection object records last modified per week</a></li>";
    $returnvalue .= "</ul>";
+   $returnvalue .= "<h2>Transactions</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=loan_null_role'>Loans where the recipient role is null</a></li>";
+   $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Locks</h2>";
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=show_table_locks'>Show which tables are locked</a></li>";
@@ -206,6 +216,27 @@ function menu() {
 
    return $returnvalue;
 }
+
+
+function loan_null_role() { 
+   global $connection;
+$debug = TRUE;
+   $returnvalue = "";
+   $sql = "select year(loandate), loannumber from loan where text3 is null or text3 = '' order by year(loandate) desc;";
+   if ($debug) { echo "[$sql]<BR>"; } 
+   $stmt = $connection->stmt_init();
+   $stmt->prepare($sql);
+   $stmt->execute();
+   $stmt->bind_result($loanyear, $loannumber);
+   $returnvalue .= "<table>";
+   $returnvalue .= "<tr><th>Year of Loan</th></th><th>Loan Number</th></tr>";
+   while ($stmt->fetch()) {
+       $returnvalue .= "<tr><td>$loanyear</td><td>$loannumber</td></tr>";
+   }
+   $stmt->close();
+   $returnvalue .= "</table>";
+   return $returnvalue;
+} 
 
 function collection_out_of_date_range() { 
 	global $connection;

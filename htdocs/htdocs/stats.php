@@ -306,9 +306,12 @@ function annualreport($year,$showdetails=FALSE) {
                 $returnvalue .= "<table>";
                 $taccessions=0;$titemcount=0;$ttypecount=0;$tnonspecimencount=0;
                 $treturncount=0;$tdistributecount=0;$tdiscardcount=0;
-                $returnvalue .= "<tr><th>Type</th><th>Herbarium</th><th>Accessions</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Returned</th><th>Distributed</th><th>Discarded</th></tr>";
+                $returnvalue .= "<tr><th>Type</th><th>Herbarium</th><th>Accessions</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Returned</th><th>Distributed</th><th>Discarded</th><th>Total</th></tr>";
                 while ($statement->fetch()) {
-                    $returnvalue .= "<tr><td>$accessiontype</td><td>$herbarium</td><td>$accessions</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td>$returncount</td><td>$distributecount</td><td>$discardcount</td></tr>";
+                    if ($accessiontype =="Exchange") { $accessiontype = "Incoming Exchange"; } 
+                    if ($accessiontype =="FieldWork") { $accessiontype = "Staff Collection"; } 
+                    $sum = $itemcount + $typecount + $nonspecimencount + $distributecount;
+                    $returnvalue .= "<tr><td>$accessiontype</td><td>$herbarium</td><td>$accessions</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td>$returncount</td><td>$distributecount</td><td>$discardcount</td><td><strong>$sum</strong></td></tr>";
                     $taccessions+=$accessions;
                     $titemcount+=$itemcount;
                     $ttypecount+=$typecount;
@@ -324,11 +327,83 @@ function annualreport($year,$showdetails=FALSE) {
 
    // ************  Loans   ********** 
 
+   $query = "select count(loan.loanid), text2, text3, sum(itemcount), sum(typecount), sum(nonspecimencount) from loan 
+    left join loanpreparation p on loan.loanid = p.loanid
+    where loandate > '$datestart' and loandate < '$dateend' 
+    group by text2,  text3;";
+   if ($debug) { echo "[$query]<BR>"; } 
+      $returnvalue .= "<h2>Loans out in fiscal year $syear-$year</h2>";
+      if ($syear<1993) { 
+          $returnvalue .= "<p>Note: Then open loan records were captured in late 1991, loans that were closed at that time were not systematically captured, counts of loans prior to 1992 are progressively more incomplete in earlier years.</p>";
+      }
+	$statement = $connection->prepare($query);
+	if ($statement) {
+                $tcount = 0;
+                $titems = 0;
+                $ttypes = 0;
+                $tns = 0;
+                $grandtotal = 0;
+		$statement->execute();
+		$statement->bind_result($count,$unit,$role,$itemcount,$typecount,$nonspecimencount);
+		$statement->store_result();
+	        $returnvalue .= "<table>";
+	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Recipient Role</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Total</th></tr>";
+		while ($statement->fetch()) {
+                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
+                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    $sum = $itemcount + $typecount + $nonspecimencount;
+                    $tcount += $count;
+                    $titems += $itemcount;
+                    $ttypes += $typecount;
+                    $tns += $nonspecimencount;
+                    $grandtotal += $sum;
+	            $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$role</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td><strong>$sum</strong></td></tr>";
+                }
+	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td>$titems</td><td>$ttypes</td><td>$tns</td><td><strong>$grandtotal</strong></td></tr>";
+	        $returnvalue .= "</table>";
+	}
+   $query = "select count(loan.loanid), loan.text2, loan.text3, sum(r.itemcount), sum(r.typecount), sum(r.nonspecimencount)  from loan 
+    left join loanpreparation p on loan.loanid = p.loanid
+    left join loanreturnpreparation r on r.loanpreparationid = p.loanpreparationid
+    where dateclosed > '$datestart' and dateclosed < '$dateend' 
+    group by text2, text3;";
+   if ($debug) { echo "[$query]<BR>"; }
+      $returnvalue .= "<h2>Loans closed in fiscal year $syear-$year, counts of material returned.</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $tcount = 0;
+                $titems = 0;
+                $ttypes = 0;
+                $tns = 0;
+                $grandtotal = 0;
+		$statement->execute();
+		$statement->bind_result($count,$unit,$role,$itemcount,$typecount,$nonspecimencount);
+		$statement->store_result();
+	        $returnvalue .= "<table>";
+	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Recipient Role</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Total</th></tr>";
+		while ($statement->fetch()) {
+                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
+                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    $sum = $itemcount + $typecount + $nonspecimencount;
+                    $tcount += $count;
+                    $titems += $itemcount;
+                    $ttypes += $typecount;
+                    $tns += $nonspecimencount;
+                    $grandtotal += $sum;
+	            $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$role</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td><strong>$sum</strong></td></tr>";
+                }
+	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td>$titems</td><td>$ttypes</td><td>$tns</td><td><strong>$grandtotal</strong></td></tr>";
+	        $returnvalue .= "</table>";
+
+        }
+
+   /** By purpose **/
+
    $query = "select count(*), text2, purposeofloan, text3 from loan 
     where loandate > '$datestart' and loandate < '$dateend' 
     group by text2, purposeofloan, text3;";
    if ($debug) { echo "[$query]<BR>"; } 
-      $returnvalue .= "<h2>Loans out in fiscal year $syear-$year</h2>";
+      $returnvalue .= "<h2>Loans out in fiscal year $syear-$year by purpose</h2>";
       if ($syear<1993) { 
           $returnvalue .= "<p>Note: Then open loan records were captured in late 1991, loans that were closed at that time were not systematically captured, counts of loans prior to 1992 are progressively more incomplete in earlier years.</p>";
       }
@@ -350,7 +425,7 @@ function annualreport($year,$showdetails=FALSE) {
     where dateclosed > '$datestart' and dateclosed < '$dateend' 
     group by text2, purposeofloan, text3;";
    if ($debug) { echo "[$query]<BR>"; }
-      $returnvalue .= "<h2>Loans closed in fiscal year $syear-$year</h2>";
+      $returnvalue .= "<h2>Loans closed in fiscal year $syear-$year by purpose</h2>";
         $statement = $connection->prepare($query);
         if ($statement) {
                 $statement->execute();
@@ -365,6 +440,8 @@ function annualreport($year,$showdetails=FALSE) {
                 }
                 $returnvalue .= "</table>";
         }
+
+   $returnvalue .= "Quality Control: <a href='qc.php?mode=loan_null_role'>List loans where the recipient role is null</a></br>";
 
    // ************  Loan detailed breakdowns   ********** 
 
@@ -447,13 +524,36 @@ function annualreport($year,$showdetails=FALSE) {
                 $returnvalue .= "</table>";
         }
 
+   // ************  Exchanges (out) ********** 
+
+   $query = "select count(distinct e.exchangeoutid), sum(quantityexchanged), e.text2 from exchangeout e where exchangedate > ? and exchangedate < ? group by e.text2 order by e.text2";
+echo "[$query]";
+   if ($debug) { echo "[$query]<BR>"; }
+      $returnvalue .= "<h2>Exchanges Out sent in fiscal year $syear-$year</h2>";
+        $statement = $connection->prepare($query);
+        if ($statement) {
+                $statement->bind_param("ss",$datestart,$dateend);
+                $statement->execute();
+                $statement->bind_result($giftcount,$quantityexchanged,$unit);
+                $statement->store_result();
+                $returnvalue .= "<table>";
+                $returnvalue .= "<tr><th>From</th><th>Exchanges Out</th><th>Quantity Exchanged</th></tr>";
+                while ($statement->fetch()) {
+                    $returnvalue .= "<tr><td>$unit</td><td>$giftcount</td><td>$quantityexchanged</td></tr>";
+                }
+                $returnvalue .= "</table>";
+        }
+
+
+
    // ************  Gifts (out) ********** 
 
-   $query = "select count(distinct gift.giftid), sum(itemcount), sum(nonspecimencount),sum(typecount), purposeofgift, gift.text2 from gift left join giftpreparation on gift.giftid = giftpreparation.giftid where giftdate > '2011-05-31' and giftdate < '2012-06-01' group by gift.text2, purposeofgift order by gift.text2, purposeofgift";
+   $query = "select count(distinct gift.giftid), sum(itemcount), sum(nonspecimencount),sum(typecount), purposeofgift, gift.text2 from gift left join giftpreparation on gift.giftid = giftpreparation.giftid where giftdate > ? and giftdate < ? group by gift.text2, purposeofgift order by gift.text2, purposeofgift";
    if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Gifts Out sent in fiscal year $syear-$year</h2>";
         $statement = $connection->prepare($query);
         if ($statement) {
+                $statement->bind_param("ss",$datestart,$dateend);
                 $statement->execute();
                 $statement->bind_result($giftcount,$itemcount,$noncount,$typecount,$purpose,$unit);
                 $statement->store_result();
@@ -473,7 +573,7 @@ function annualreport($year,$showdetails=FALSE) {
    $query = "select distinct country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
 
    if ($debug) { echo "[$query]<BR>"; }
-   $returnvalue .= "<h2>Data Quality issues: Loans where the borrower accronym or country was blank.</h2>";
+   $returnvalue .= "<h2>Data Quality issues: Loans where the borrower acronym or country was blank.</h2>";
    $statement = $connection->prepare($query);
    if ($statement) {
        $statement->execute();
