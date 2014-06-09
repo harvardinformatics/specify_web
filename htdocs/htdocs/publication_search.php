@@ -131,13 +131,13 @@ function details() {
 		if ($oldid!=$id)  { 
 			if ($debug==true) { echo "[$id]"; } 
 			$wherebit = " referencework.referenceworkid = ? ";
-			$query = "select text2 as year, text1 as worktitle, title as abbreviation, placeofpublication, publisher, referenceworktype, volume, pages, url, remarks, ContainedRFParentID from referencework where $wherebit";
+			$query = "select text2 as year, text1 as worktitle, title as abbreviation, placeofpublication, publisher, referenceworktype, volume, pages, url, remarks, ContainedRFParentID, precedingworkid, succeedingworkid from referencework where $wherebit";
 			if ($debug) { echo "[$query]<BR>"; } 
 			$statement = $connection->prepare($query);
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($year, $title, $abbreviation, $placeofpublication, $publisher, $referenceworktype, $volume, $pages, $url, $remarks, $ContainedRFParentID);
+				$statement->bind_result($year, $title, $abbreviation, $placeofpublication, $publisher, $referenceworktype, $volume, $pages, $url, $remarks, $ContainedRFParentID, $precededby, $succededby);
 				$statement->store_result();
 				echo "<table>";
 				$authors = "";
@@ -171,8 +171,12 @@ function details() {
 						$statement_geo->execute();
 						$statement_geo->bind_result($identifier, $identifiertype);
 						$statement_geo->store_result();
-						while ($statement_geo->fetch()) { 
-							$identifiers .= "<tr><td class='cap'>$identifiertype</td><td class='val'>$identifier</td></tr>";
+						while ($statement_geo->fetch()) {  
+                                                        if ($identifiertype=='HOLLIS') { 
+							    $identifiers .= "<tr><td class='cap'>HOLLIS</td><td class='val'><a href='http://hollis.harvard.edu/?itemid=|library/m/aleph|$identifier'>$identifier</a></td></tr>";                             
+                                                        } else { 
+							    $identifiers .= "<tr><td class='cap'>$identifiertype</td><td class='val'>$identifier</td></tr>";                             
+                                                        }
 						}
 					} else { 
 						echo "Error: " . $connection->error;
@@ -199,19 +203,72 @@ function details() {
 						}
 					}	    
 
+                                        }
+                                        if ($precededby!=null) { 
+					   $query = "select title from referencework where referenceworkid = ? ";
+  					   if ($debug===true) {  echo "[$query]<BR>"; }
+					   $statement_pre = $connection->prepare($query);
+					   if ($statement_pre) { 
+						$statement_pre->bind_param("i",$precededby);
+						$statement_pre->execute();
+						$statement_pre->bind_result($precededbytitle);
+						$statement_pre->store_result();
+						$statement_pre->fetch();
+					   } else { 
+						echo "Error: " . $connection->error;
+					   }
+                                           $statement_pre->close();
                                         }  
+                                        if ($succededby!=null) { 
+					   $query = "select title from referencework where referenceworkid = ? ";
+  					   if ($debug===true) {  echo "[$query]<BR>"; }
+					   $statement_pre = $connection->prepare($query);
+					   if ($statement_pre) { 
+						$statement_pre->bind_param("i",$succededby);
+						$statement_pre->execute();
+						$statement_pre->bind_result($succededbytitle);
+						$statement_pre->store_result();
+						$statement_pre->fetch();
+					   } else { 
+						echo "Error: " . $connection->error;
+					   }
+                                           $statement_pre->close();
+                                        }
+
+					// Variant titles 
+                                        $variant = "";
+					$query = "select name from referenceworkvariant where referenceworkid = ? ";
+  					if ($debug===true) {  echo "[$query]<BR>"; }
+					$statement_pre = $connection->prepare($query);
+					if ($statement_pre) { 
+					   $statement_pre->bind_param("i",$id);
+					   $statement_pre->execute();
+					   $statement_pre->bind_result($varname);
+					   $statement_pre->store_result();
+					   while ($statement_pre->fetch()) { 
+					        $variant .= "<tr><td class='cap'>Variant title:</td><td class='val'>$varname</td></tr>"; 
+                                           }
+					} else { 
+					   echo "Error: " . $connection->error;
+					}
+                                        $statement_pre->close();
 					
 					echo "<tr><td class='cap'>Title</td><td class='val'>$title</td></tr>";
 					if (trim($abbreviation!=""))   { echo "<tr><td class='cap'>Abbreviation</td><td class='val'>$abbreviation</td></tr>"; }
+					if (trim($variant!=""))   { echo "$variant"; }
 					if (trim($authors!=""))   { echo "<tr><td class='cap'>Authors</td><td class='val'>$authors</td></tr>"; }
 					if (trim($year!=""))   { echo "<tr><td class='cap'>Publication Dates</td><td class='val'>$year</td></tr>"; }
 					if (trim($placeofpublication!=""))   { echo "<tr><td class='cap'>Place of publication</td><td class='val'>$placeofpublication</td></tr>"; }
-					if (trim($publisher!=""))   { echo "<tr><td class='cap'>Publisher</td><td class='val'>$publisher</td></tr>"; }
+                                        $upublisher = urlencode($publisher);
+					if (trim($publisher!=""))   { echo "<tr><td class='cap'>Publisher</td><td class='val'><a href='publication_search.php?publisher=$upublisher'>$publisher</a></td></tr>"; }
 					if (trim($referenceworktype!=""))   { echo "<tr><td class='cap'>ReferenceWorkType</td><td class='val'>$referenceworktype</td></tr>"; }
 					if (trim($volume!=""))   { echo "<tr><td class='cap'>Volume</td><td class='val'>$volume</td></tr>"; }
 					if (trim($pages!=""))   { echo "<tr><td class='cap'>Pages</td><td class='val'>$pages</td></tr>"; }
 					if (trim($url!=""))   { echo "<tr><td class='cap'>URL</td><td class='val'><a href='$url'>$url</a></td></tr>"; }
 					if (trim($identifiers!=""))   { echo "$identifiers"; }
+					if (trim($precededby!=""))   { echo "<tr><td class='cap'>Preceded By</td><td class='val'><a href='publication_search.php?mode=details&id=$precededby'>$precededbytitle</a></td></tr>"; }
+					if (trim($succededby!=""))   { echo "<tr><td class='cap'>Succeded By</td><td class='val'><a href='publication_search.php?mode=details&id=$succededby'>$succededbytitle</a></td></tr>"; }
+					if (trim($ContainedRFParentID!=""))   { echo "<tr><td class='cap'>ContainedRFParentID</td><td class='val'>$ContainedRFParentID</td></tr>"; }
 					if (trim($remarks!="")) { echo "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; } 
 					if (trim($ContainedRFParentID!=""))   { echo "<tr><td class='cap'>ContainedRFParentID</td><td class='val'>$ContainedRFParentID</td></tr>"; }
 					if (trim($specimens!=""))   { echo "<tr><td class='cap'>Specimens</td><td class='val'>$specimens</td></tr>"; }
@@ -276,11 +333,13 @@ function search() {
 	$question = "";
 	$joins = "";
 	$wherebit = " where "; 
+        $relaxedwherebit = " where " ;
 	$and = "";
 	$types = "";
 	$joins = "";
 	$order = "";
 	$parametercount = 0;
+        $relaxedparametercount = 0;
 	$hasauthor = false;
 	$publisher = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['publisher']),0,59);
 	if ($publisher!="") { 
@@ -292,8 +351,12 @@ function search() {
 		$parametercount++;
 		if (preg_match("/[%_]/",$publisher))  { $operator = " like "; }
 		$wherebit .= "$and r.publisher $operator ?  ";
-		$and = " and ";
 		$order = " order by r.text1 ";
+		$relaxedwherebit .= "$and r.publisher like ?  ";
+                $relaxedpublisher = "%$publisher%";
+		$relaxedparameters[$relaxedparametercount] = &$relaxedpublisher;
+		$relaxedparametercount++;
+		$and = " and ";
 	}
 	$place = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['place']),0,59);
 	if ($place!="") { 
@@ -305,23 +368,38 @@ function search() {
 		$parametercount++;
 		if (preg_match("/[%_]/",$place))  { $operator = " like "; }
 		$wherebit .= "$and r.placeofpublication $operator ?  ";
-		$and = " and ";
 		$order = " order by r.text1 ";
+		$relaxedwherebit .= "$and r.placeofpublication like ?  ";
+                $relaxedplace = "%$place%";
+		$relaxedparameters[$relaxedparametercount] = &$relaxedplace;
+		$relaxedparametercount++;
+		$and = " and ";
 	}
 	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['title']),0,59);
 	if ($title!="") { 
 		$hasquery = true;
 		$question .= "$and title:[$title] ";
-		$types .= "ss";
+		$types .= "sss";
 		$operator = "=";
 		$parameters[$parametercount] = &$title;
 		$parametercount++;
 		$parameters[$parametercount] = &$title;
 		$parametercount++;
+		$parameters[$parametercount] = &$title;
+		$parametercount++;
 		if (preg_match("/[%_]/",$title))  { $operator = " like "; }
-		$wherebit .= "$and ( r.text1 $operator ? or r.title $operator ? ) ";
-		$and = " and ";
+		$wherebit .= "$and ( r.text1 $operator ? or r.title $operator ? or rwv.name $operator ? ) ";
+                $joins .= " left join referenceworkvariant rwv on r.referenceworkid = rwv.referenceworkid ";
 		$order = " order by r.text1 ";
+		$relaxedwherebit .= "$and ( r.text1 like ? or r.title like ? or rwv.name like ? ) ";
+                $relaxedtitle = "%$title%";
+		$relaxedparameters[$relaxedparametercount] = &$relaxedtitle;
+		$relaxedparametercount++;
+		$relaxedparameters[$relaxedparametercount] = &$relaxedtitle;
+		$relaxedparametercount++;
+		$relaxedparameters[$relaxedparametercount] = &$relaxedtitle;
+		$relaxedparametercount++;
+		$and = " and ";
 	}
 	$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ_0-9\. %]/","", $_GET['author']),0,59);
 	if ($author!="") { 
@@ -340,6 +418,14 @@ function search() {
 		$wherebit .= "$and (agent.lastname $operator ? or agentvariant.name $operator ? or agent.lastname $operator ?)";
 		$joins .= " left join author a on r.referenceworkid = a.referenceworkid left join agentvariant on a.agentid = agentvariant.agentid left join agent on a.agentid = agent.agentid ";
 		$order = " order by agent.lastname, agent.firstname, r.text1 ";		
+		$relaxedwherebit .= "$and (agent.lastname like ? or agentvariant.name like ? or agent.lastname like ?)";
+                $realaxedauthor = "%$author%";
+		$relaxedparameters[$relaxedparametercount] = &$relaxedauthor;
+		$relaxedparametercount++;
+		$relaxedparameters[$relaxedparametercount] = &$relaxedauthor;
+		$relaxedparametercount++;
+		$relaxedparameters[$relaxedparametercount] = &$relaxedauthor;
+		$relaxedparametercount++;
 		$and = " and ";
 	} else {
 		// author or agentid search is exclusive.  
@@ -349,12 +435,14 @@ function search() {
 		$hasquery = true;
 		$question .= "$and author agentid:[$agentid] ";
 		$types .= "i";
-		$operator = "=";
 		$parameters[$parametercount] = &$agentid;
 		$parametercount++;
-		$wherebit .= "$and a.agentid $operator ? ";
+		$wherebit .= "$and a.agentid = ? ";
 		$joins .= " left join author a on r.referenceworkid = a.referenceworkid left join agent on a.agentid = agent.agentid ";
 		$order = " order by agent.lastname, agent.firstname, r.text1 ";		
+		$relaxedwherebit .= "$and a.agentid = ? ";
+		$relaxedparameters[$relaxedparametercount] = &$agentid;
+		$relaxedparametercount++;
 		$and = " and ";
 	}
 	}
@@ -372,6 +460,12 @@ function search() {
 		if (preg_match("/[%_]/",$identifier))  { $operator = " like "; }
 		$wherebit .= "$and ( ri.identifier $operator ? and ri.type = ? ) ";
 		$joins .= " left join referenceworkidentifier ri on r.referenceworkid = ri.referenceworkid  ";
+		$relaxedwherebit .= "$and ( ri.identifier like ? and ri.type = ? ) ";
+                $relaxedidentifier = "%$identifier%";
+		$relaxedparameters[$relaxedparametercount] = &$relaxedidentifier;
+		$relaxedparametercount++;
+		$relaxedparameters[$relaxedparametercount] = &$ttype;
+		$relaxedparametercount++;
 		$and = " and ";
 	}
 	if ($question!="") {
@@ -387,6 +481,9 @@ function search() {
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
+	$relaxedquery = "select distinct r.referenceworkid, r.text1 as title $third 
+		from referencework r  
+		$joins $relaxedwherebit $and r.referenceworktype <> 5 $order ";
 	if ($hasquery===true) { 
 		$statement = $connection->prepare($query);
 		if ($statement) { 
@@ -412,12 +509,41 @@ function search() {
 				$statement->bind_result($referenceid,$title);
 			}
 			$statement->store_result();
-			
+                        $resultcount = $statement->num_rows;
 			echo "<div>\n";
-			echo $statement->num_rows . " matches to query ";
+			echo $resultcount . " matches to query ";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
+
+                        if ($resultcount < 1 ) { 
+                           $statement->close();
+		           $statement = $connection->prepare($relaxedquery);
+                           if ($debug) { echo "[$relaxedquery]"; }
+			   $rarray = Array();
+  			   $rarray[] = $types;
+			   foreach($relaxedparameters as $par) {
+			      $rarray[] = $par;
+			   }
+                           if (substr(phpversion(),0,4)=="5.3.") {
+                               call_user_func_array(array($statement, 'bind_param'),make_values_referenced($rarray));
+                           } else {
+                               call_user_func_array(array($statement, 'bind_param'),$rarray);
+                           }
+		   	   $statement->execute();
+			   if ($hasauthor) { 
+				$statement->bind_result($referenceid,$title,$authorlast, $authorfirst);
+			   } else { 
+				$statement->bind_result($referenceid,$title);
+			   }
+			   $statement->store_result();
+			   echo "<div>\n";
+			   echo $statement->num_rows . " matches to wildcard query ";
+			   echo "    <span class='query'>$question</span>\n";
+			   echo "</div>\n";
+			   echo "<HR>\n";
+
+                        }
 			
 			if ($statement->num_rows > 0 ) {
 				echo "<form  action='publication_search.php' method='get'>\n";
