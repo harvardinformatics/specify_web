@@ -562,7 +562,7 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; } 
    $file = fopen($tempfilename,"w");
 
-   $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where batch_id >= 3217 and (barcodes is null or barcodes = '') and object_type_id = 4 ";
+   $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join IMAGE_BATCH b on s.batch_id = b.id left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where project = 'NEVP TCN' and (barcodes is null or barcodes not like '%;%') and object_type_id = 4 and collectioncode is not null ";
    if ($since!=null) { 
       // $query .= " and timestamplastupdated > ? ";
    }
