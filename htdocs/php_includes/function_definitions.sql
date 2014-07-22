@@ -273,3 +273,52 @@ grant execute on procedure .getHigherTaxonOfRank to 'specify_user'@'localhost';
 grant execute on procedure .getAgentName to 'specify_user'@'localhost';
 grant execute on procedure .concatPrepTypes to 'specify_user'@'localhost';
 grant execute on procedure .getCurrentDetermination to 'specify_user'@'localhost';
+
+
+
+--  Function to estimate data capture rates within projects, predicated on creating a temporary table: 
+--  create table temp_project_data_entry_times as select c.timestampcreated, a.lastname, p.projectname  from project_colobj pc left join project p on pc.projectid = p.projectid left join collectionobject c on pc.collectionobjectid = c.collectionobjectid left join agent a on c.createdbyagentid = a.agentid;
+
+drop function if exists specify.getRate;
+
+delimiter |
+create FUNCTION specify.getRate
+(
+  username VARCHAR(200),
+  project VARCHAR(50)
+) RETURNS decimal
+   READS SQL DATA
+   BEGIN
+      declare lastdate    datetime;
+      declare currentdate datetime;
+      declare diffmin decimal;
+      declare totalseconds decimal default -1;
+      declare counter decimal default 0;
+      declare done int default 0;
+      declare cur CURSOR for select timestampcreated
+                      from temp_project_data_entry_times
+                      where timestampcreated is not null
+                            and lastname = username
+                            and projectname = project
+                      order by timestampcreated;
+      DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+      OPEN cur;
+       fetch cur into lastdate;
+       readloop: loop
+           fetch cur into currentdate;
+           if DONE then
+              LEAVE readloop;
+           end if;
+              set diffmin = timestampdiff(MINUTE,lastdate,currentdate);
+              if ( diffmin < 20 ) then
+                  set totalseconds = totalseconds + timestampdiff(SECOND,lastdate,currentdate);
+                  set counter = counter + 1;
+              end if;
+              set lastdate = currentdate;
+       end loop;
+       close cur;
+
+       return totalseconds/counter;
+END |
+delimiter ;
