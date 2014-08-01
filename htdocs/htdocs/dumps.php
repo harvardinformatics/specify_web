@@ -62,6 +62,10 @@ if ($_GET['mode']!="")  {
 		$mode = "country_geo_dwc"; 
 		$country = preg_replace("/[^A-Za-z ]/","",$_GET['country']);  
 	}
+	if ($_GET['mode']=="country_dwc") {
+		$mode = "country_dwc"; 
+		$country = preg_replace("/[^A-Za-z ]/","",$_GET['country']);  
+	}
 	if ($_GET['mode']=="genus_dwc") {
 		$mode = "genus_dwc"; 
 		$genus = preg_replace("/[^A-Za-z]/","",$_GET['genus']);  
@@ -122,7 +126,12 @@ if ($_POST['mode']!="")  {
 		        echo barcode_dwc($barcode);
 		        break;
 		    case "country_geo_dwc":
-		        echo country_geo_dwc($country);
+                        $geoonly = TRUE;
+		        echo country_geo_dwc($country,$geoonly);
+		        break;
+		    case "country_dwc":
+                        $geoonly = FALSE;
+		        echo country_geo_dwc($country,$geoonly);
 		        break;
 		    case "project_dwc":
 		        echo project_dwc($projectid);
@@ -153,13 +162,19 @@ function menu() {
    $returnvalue = "";
 
    $returnvalue .= "<div>";
+   $returnvalue .= "<h2>Download data</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='http://firuta.huh.harvard.edu/ipt/resource.do?r=harvard_university_herbaria'>DarwinCore Archive of all HUH specimen records</a> via IPT</li>";
+   $returnvalue .= "<li><a href='http://webprojects.huh.harvard.edu/authority_files/'>Botanist Authority Files</a></li>";
+   $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Generate data dumps</h2>";
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='dumps.php?mode=fungilichens'>DarwinCore records for Fungi and Lichens in FH (csv file)</a> optional parameter <a href='dumps.php?mode=fungilichens&since=2012-10-19'>&since=2012-10-19</a> limits to records modified after the date provided.</li>";
    $returnvalue .= "<li><a href='dumps.php?mode=california_dwc'>DarwinCore records for Specimens in California, excluding FH (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=cultivated_dwc'>DarwinCore records for Cultivated genera, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=rock_feng_dwc'>DarwinCore records for China collected by Rock or Feng, (csv file)</a></li>";
-   $returnvalue .= "<li><a href='dumps.php?mode=country_geo_dwc&country=China'>DarwinCore records for China with georeferences, (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=country_geo_dwc&country=China'>DarwinCore records for China with georeferences, (csv file)</a> required parameter &country= selects country.</li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=country_dwc&country=China&typestatus=Any'>DarwinCore records of Types from China, (csv file)</a> required parameter &country= selects country, optional parameter &typestatus=Any limits to types (and can limit to a particular type status e.g. <a href='dumps.php?mode=country_dwc&country=China&typestatus=Holotype'>&typestatus=Holotype</a>)</li>";
    $returnvalue .= "<li><a href='dumps.php?mode=genus_dwc&genus=Carex'>Darwin core records for Carex, (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of AMES and other orchid specimens (csv file)</a></li>";
@@ -429,7 +444,7 @@ $query .= " or scientificname like 'Zea %'";
 }
 
 
-function country_geo_dwc($country) { 
+function country_geo_dwc($country,$geoonly) { 
 	global $connection,$debug;
     
 // From comments in php docs
@@ -451,8 +466,37 @@ if ( !function_exists('sys_get_temp_dir')) {
    $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
    if ($debug) { echo "[$tempfilename]<BR>"; } 
    $file = fopen($tempfilename,"w");
+   $wherebit = "";
+   if ($geoonly===TRUE) { 
+      $wherebit = " and decimallatitude is not null and decimallongitude is not null ";
+   } 
+   $typestatus = trim(preg_replace("/[^A-Za-z ]/","",$_GET['typestatus']));  
+   if ($typestatus!="") { 
+     switch ($typestatus) { 
+         case "Drawing of type": $wherebit=" and typestatus = 'Drawing of type' "; break; 
+         case "Epitype": $wherebit=" and typestatus = 'Epitype' "; break; 
+         case "Holotype": $wherebit=" and typestatus = 'Holotype' "; break; 
+         case "Isoepitype": $wherebit=" and typestatus = 'Isoepitype' "; break; 
+         case "Isolectotype": $wherebit=" and typestatus = 'Isolectotype' "; break; 
+         case "Isoneotype": $wherebit=" and typestatus = 'Isoneotype' "; break; 
+         case "Isosyntype": $wherebit=" and typestatus = 'Isosyntype' "; break; 
+         case "Isotype": $wherebit=" and typestatus = 'Isotype' "; break; 
+         case "Lectotype": $wherebit=" and typestatus = 'Lectotype' "; break; 
+         case "Neotype": $wherebit=" and typestatus = 'Neotype' "; break; 
+         case "Not a type": $wherebit=" and typestatus = 'Not a type' "; break; 
+         case "Photograph of type": $wherebit=" and typestatus = 'Photograph of type' "; break; 
+         case "Syntype": $wherebit=" and typestatus = 'Syntype' "; break; 
+         case "Type": $wherebit=" and typestatus = 'Type' "; break; 
+         case "Type material": $wherebit=" and typestatus = 'Type material' "; break; 
+         case "[Neosyntype]": $wherebit=" and typestatus = '[Neosyntype]' "; break;
+         default:
+           $wherebit = " and typestatus is not null ";
+      }
 
-   $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where country = ? and decimallatitude is not null and decimallongitude is not null ";
+
+   }
+
+   $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where country = ? $wherebit ";
 
    if ($debug) { echo "[$query]<BR>"; } 
         $linearray = array ("institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
@@ -619,7 +663,7 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; } 
    $file = fopen($tempfilename,"w");
 
-   $query = "select fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search left join project_colobj on dwc_search.collectionobjectid = project_colobj.collectionobjectid where project_colobj.projectid = ?  ";
+   $query = "select distinct fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search left join project_colobj on dwc_search.collectionobjectid = project_colobj.collectionobjectid where project_colobj.projectid = ?  ";
 
    if ($debug) { echo "[$query]<BR>"; } 
         $linearray = array ("occurrenceID","institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
