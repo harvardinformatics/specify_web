@@ -173,7 +173,25 @@ function details() {
                     }
 
 					if (trim($remarks!=""))   { $taxonresult .=  "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
-					if (trim($guid!=""))   { $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guid'>$guid</a></td></tr>"; }
+					if (trim($guid!=""))   { 
+                                                 if (substr($guid,0,8)=='urn:uuid') { 
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'>$guid</td></tr>"; 
+                                                 } elseif (substr($guid,0,23)=='urn:lsid:ipni.org:names') { 
+                                                     $guidurn = str_replace('urn:lsid:ipni.org:names:','',$guid);
+                                                     $guidurn = preg_replace('/:[0-9\.]*$/','',$guidurn);
+                                                     $guidurn = 'http://ipni.org/ipni/idPlantNameSearch.do?output_format=normal&id='.$guidurn;
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guidurn'>$guid</a></td></tr>"; 
+                                                 } elseif (substr($guid,0,32)=='urn:lsid:indexfungorum.org:names') { 
+                                                     $guidurn = str_replace('urn:lsid:indexfungorum.org:names:','',$guid);
+                                                     $guidurn = preg_replace('/:[0-9\.]*$/','',$guidurn);
+                                                     $guidurn = 'http://www.indexfungorum.org/Names/NamesRecord.asp?RecordID='.$guidurn;
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guidurn'>$guid</a></td></tr>"; 
+                                                 } elseif (substr($guid,0,4)=='http') { 
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guid'>$guid</a></td></tr>"; 
+                                                 } else { 
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'>$guid</td></tr>"; 
+                                                 }
+                                        }
                     // List citations
 					$query = "select rw.text1 as title, rw.title as abbrev, tc.text2 as date, tc.text1 as volnumpage, rw.referenceworkid from taxoncitation tc left join referencework rw on tc.referenceworkid = rw.referenceworkid where taxonid = ? ";
 					if ($debug) { echo "[$query]<BR>"; } 
