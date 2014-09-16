@@ -46,13 +46,13 @@ if ($_GET['mode']!="")  {
 	}
 }
 
-if (preg_replace("[^0-9]","",$_GET['botanistid'])!="") { 
+if (preg_replace("/[^0-9]/","",$_GET['botanistid'])!="") { 
 	$mode = "details"; 
 }
-if (preg_replace("[^0-9]","",$_GET['id'])!="") { 
+if (preg_replace("/[^0-9]/","",$_GET['id'])!="") { 
 	$mode = "details"; 
 }
-if (preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid'])!="") { 
+if (preg_replace("/[^0-9A-Za-z\-]/","",$_GET['botanistguid'])!="") { 
 	$mode = "details"; 
 }
 
@@ -98,7 +98,7 @@ function details() {
 	} else { 
 		$ids[0] = $id;
 	}
-    $uuid = preg_replace("[^0-9A-Za-z\-]","",$_GET['botanistguid']);
+    $uuid = preg_replace("/[^0-9A-Za-z\-]/","",$_GET['botanistguid']);
     if ($uuid != "") { 
         $query = "select primarykey, state from guids where tablename = 'agent' and uuid = ? ";
         if ($debug) { echo "[$uuid]"; }
@@ -117,14 +117,14 @@ function details() {
            } 
         }
     } else { 
-	    $botanistid = preg_replace("[^0-9]","",$_GET['botanistid']);
+	    $botanistid = preg_replace("/[^0-9]/","",$_GET['botanistid']);
     }
 	if ($botanistid != "") {
 		$ids[] = $botanistid;
 	}
 	$oldid = "";
 	foreach($ids as $value) { 
-		$id = substr(preg_replace("[^0-9]","",$value),0,20);
+		$id = substr(preg_replace("/[^0-9]/","",$value),0,20);
 		// skip adgacent duplicates, if any
 		if ($oldid!=$id)  { 
                         // See edu.ku.brc.specify.datamodel.Agent

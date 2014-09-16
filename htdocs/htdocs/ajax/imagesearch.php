@@ -38,12 +38,17 @@ include_once('ImageExplorer.php');
        }
     }
     $querytext = "";  // human readable description of query
+    $querylink = "";  // url to query results
     $semicolon = "";
+    $separator = "?";
     foreach ($queryArray as $key => $values) { 
         $querytext .= "$semicolon$key=";
         $comma = "";
+        $querylink .= "$separator$key=";
+        $separator="&";
         foreach ($values as $value) { 
             $querytext .= "$comma$value";
+            $querylink .= "$comma$value";  
             $comma = ",";
         } 
         $semicolon = "; ";
@@ -54,7 +59,7 @@ include_once('ImageExplorer.php');
     $imgArr = $imageExplorer->getImages($queryArray);
 
     echo '<div style="clear:both;">';
-    echo "<strong>Query for: $querytext</strong><br/>";
+    echo "<strong>Query for: $querytext</strong> <a href='image_search.php$querylink'>Link</a><br/>";
     $resultCount = $imgArr['cnt'];
     if (strlen($resultCount)==0) { $resultCount = "0"; }
     $st = $start + 1;

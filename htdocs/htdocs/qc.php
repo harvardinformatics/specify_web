@@ -85,6 +85,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="loan_null_role") {
 		$mode = "loan_null_role"; 
 	}
+	if ($_GET['mode']=="NEVP") {
+		$mode = "nevp"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -143,6 +146,11 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 			case "loan_null_role":	
 				echo loan_null_role();
 				break;
+			case "nevp":	
+                                echo "List of <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a>.<BR>";
+                                echo "List of <a href='botanist_search.php?remarks=Created+from+NEVP+Ingest'>Botanists created by NEVP Ingests</a>.<BR>";
+				echo nevp_records_without_images();
+				break;
 			case "person_week_records":
                                 $person = 'Lewis-Gentry';
                                 $year = "2010";
@@ -182,6 +190,10 @@ function menu() {
    $returnvalue = "";
 
    $returnvalue .= "<div>";
+   $returnvalue .= "<h2>NEVP Project</h2>";
+   $returnvalue .= "<ul>";
+   $returnvalue .= "<li><a href='qc.php?mode=NEVP'>NEVP QC Reports</a></li>";
+   $returnvalue .= "</ul>";
    $returnvalue .= "<h2>Find anomalous values for Collection Objects</h2>";
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_items'>Items without collection objects (likely to cause loans to fail to print)</a></li>";
@@ -670,6 +682,35 @@ function weekly_rate($type='created') {
    
    return $returnvalue;
 }
+
+
+function nevp_records_without_images() { 
+    global $connection,$debug;
+    $returnvalue = "";
+    $sql = "
+       select c.internalremarks, f.identifier, c.collectionobjectid from collectionobject c
+       left join IMAGE_SET_collectionobject i on c.collectionobjectid = i.collectionobjectid 
+       left join fragment f on c.collectionobjectid = f.collectionobjectid 
+       where internalremarks like 'NEVP Ingest%' and i.imagesetid is null
+    ";
+    if ($debug) { echo "[$sql]<BR>"; } 
+    $statement = $connection->prepare($sql);
+    if ($statement) { 
+         $returnvalue .= "The following collection object records were created by the NEVP ingest, but lack an image.<BR>";
+         $statement->execute();
+         $statement->bind_result($remark, $barcode, $collectionobjectid);
+         $statement->store_result();
+         while ($statement->fetch()) {
+            preg_match('/(NEVP Ingest from Batch )(urn:uuid:[a-z0-9\-]*)( .*)$/',$remark,$matches);
+            if (count($matches)>0) { 
+               $remark = $matches[1]." <a href='image_search.php?mode=qc&batch=".$matches[2]."'>".$matches[2]."</a> ".$matches[3] ;
+            } 
+            $returnvalue .=  "$remark <a href='specimen_search.php?mode=details&id=$collectionobjectid'>$barcode</a><br>";
+         }
+    }    
+    return $returnvalue;
+} 
+
 
 mysqli_report(MYSQLI_REPORT_OFF);
  

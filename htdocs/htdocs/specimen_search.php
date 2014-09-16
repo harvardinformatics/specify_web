@@ -103,10 +103,10 @@ if ($_GET['mode']!="")  {
 
 // Set up for special cases of requests for specific collection objects
 // Where an identifier is given for a single collection object
-if (preg_replace("[^0-9]","",$_GET['barcode'])!="") { 
+if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") { 
 	$mode = "details"; 
 }
-if (preg_replace("[^0-9]","",$_GET['fragmentid'])!="") { 
+if (preg_replace("/[^0-9]/","",$_GET['fragmentid'])!="") { 
 	$mode = "details"; 
 }
 
@@ -173,7 +173,7 @@ echo pagefooter();   // defined in function_lib.php
  */
 function details() { 
 	global $connection, $errormessage, $debug;
-	$id = preg_replace("[^0-9]","",$_GET['id']);
+	$id = preg_replace("/[^0-9]/","",$_GET['id']);
 	if ($id!="") { 
 		if (is_array($id)) { 
 			$ids = $id;
@@ -181,7 +181,7 @@ function details() {
 			$ids[0] = $id;
 		}
 	}
-	$barcode = preg_replace("[^0-9]","",$_GET['barcode']);
+	$barcode = preg_replace("/[^0-9]/","",$_GET['barcode']);
 	if ($barcode != "") {
 		// Barcode number most likely in fragment.identifier, may also be in preparation.identifier.
 		$sql = "select collectionobjectid from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
@@ -197,7 +197,7 @@ function details() {
 			}
 		}
 	}
-	$fragmentid = preg_replace("[^0-9]","",$_GET['fragmentid']);
+	$fragmentid = preg_replace("/[^0-9]/","",$_GET['fragmentid']);
 	if ($fragmentid != "") {
 		$sql = "select collectionobjectid from fragment where fragmentid = ? ";
 		$statement = $connection->prepare($sql);
@@ -224,7 +224,7 @@ function details() {
 		$oldid = "";
 		// Retrieve collectionobject records by the collectionobjectid values.
 		foreach($ids as $value) { 
-			$id = substr(preg_replace("[^0-9]","",$value),0,20);
+			$id = substr(preg_replace("/[^0-9]/","",$value),0,20);
 			
 			// There might be duplicates next to each other in list of checkbox records from search results 
 			// (from there being more than one current determination/typification for a specimen, or
@@ -261,6 +261,8 @@ function details() {
 						echo "<h2>collectionobjectid [$id] not found.</h2>";
 					} else { 
 						while ($statement->fetch()) {
+                                                        $otheritems = "";
+                                                        $itemList = "";
 							// Retrieve  each collection object
 							if ($debug) { echo "[$CollectionObjectID]"; }
 							
@@ -1088,7 +1090,7 @@ function search() {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
-		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected, c.collectornumber, c.collector " .
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
 			" where match (searchable) against (?) limit 100";
@@ -1368,7 +1370,7 @@ function search() {
 		// Note: Changes to select field list need to be synchronized with query on web_quicksearch above, and bind_result below. 
 		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
-			" i.imagesetid, web_search.datecollected, web_search.collectornumber, web_search.collector " . 
+			" i.imagesetid, web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " . 
 			" from collectionobject c 
 			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country ";
@@ -1383,6 +1385,10 @@ function search() {
 	
 	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) { 
+	        $redactlocality = true; 
+		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
+			$redactlocality = false; 
+		}
 		$statement = $connection->prepare($query);
 		$ctstatement = $connection->prepare($ctquery);
 		if ($statement) { 
@@ -1421,7 +1427,7 @@ function search() {
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
 		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
-			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector);
+			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector, $sensitive_flag);
 			$statement->store_result();
 			
 			echo "<div>\n";
@@ -1447,6 +1453,7 @@ function search() {
 						 echo "$familylink<BR>"; 
 					}
 					$oldfamilylink = $familylink;
+                                        if ($redactlocality===true && $sensitive_flag==1 && strlen($locality>0)) { $locality = '[Redacted]'; }
 					if (strlen($locality) > 45) { 
 						$locality = substr($locality,0,44) . "...";
 					}

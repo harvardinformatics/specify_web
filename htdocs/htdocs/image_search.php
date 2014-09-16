@@ -85,6 +85,31 @@ function search() {
    global $connection;
    $returnvalue = "";
    $start = preg_replace('/[^0-9]/','',$_GET['start']);
+ 
+   $query = "";
+   $genus = preg_replace('/[^A-Za-z,]/','',$_GET['genus']);
+   if (strlen($genus)>0) { 
+     $bits = explode(",",$genus);
+     foreach($bits as $bit) { 
+       $query .= "genus: $bit ";
+     }
+   } 
+   $family = preg_replace('/[^A-Za-z,]/','',$_GET['family']);
+   if (strlen($family)>0) { $query .= "family: $family "; } 
+   $typestatus = preg_replace('/[^A-Za-z,]/','',$_GET['typestatus']);
+   if (strlen($typestatus)>0) { 
+     $bits = explode(",",$typestatus);
+     foreach($bits as $bit) { 
+       $query .= "typestatus: $bit ";
+     }
+   } 
+   $country = preg_replace('/[^A-Za-z,]/','',$_GET['country']);
+   if (strlen($country)>0) { $query .= "country: $country "; } 
+   $state = preg_replace('/[^A-Za-z,]/','',$_GET['state']);
+   if (strlen($state)>0) { $query .= "state: $state "; } 
+   
+   if ($query=="" ) {  $query = "genus: Croton"; } 
+
    if (strlen($start)==0) { $start = 0; }
 
    $dataexplorer = new DataExplorer(); 
@@ -129,7 +154,7 @@ function search() {
                      $(document).ready(function() {
                        var visualSearch = VS.init({
                          container : $('.visual_search'),
-                         query     : 'genus: Croton',
+                         query     : '$query',
                          callbacks : {
                            search       : ( function(query, searchCollection) {
                               var \$focused = $(':focus');
@@ -181,7 +206,7 @@ function details() {
 
 
   $sql = 'SELECT DISTINCT concat(ifnull(r.url_prefix,\'\'),iot.uri), '.
-  ' concat(ifnull(rf.url_prefix,\'\'),iof.uri) '.
+  ' concat(ifnull(rf.url_prefix,\'\'),iof.uri), iot.pixel_width, iot.pixel_height, iof.pixel_width, iof.pixel_height '.
   'FROM IMAGE_SET i '.
   'LEFT JOIN IMAGE_OBJECT iot ON i.id = iot.image_set_id  ' .
   'LEFT JOIN REPOSITORY r on iot.repository_id = r.id ' .
@@ -193,7 +218,7 @@ function details() {
   if ($stmt->prepare($sql)) { 
      $stmt->bind_param('i',$imagesetid);
      $stmt->execute();
-     $stmt->bind_result($thumburi,$fulluri);
+     $stmt->bind_result($thumburi,$fulluri,$thumbwidth,$thumbheight, $fullwidth, $fullheight);
      $stmt->fetch();
      $stmt->close();
   }
@@ -210,7 +235,7 @@ function details() {
      $stmt->fetch();
      $stmt->close();
   }
-  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid, typestatus " .
+  $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid, typestatus, collectornumber, collector, eventdate, verbatimdate, habitat, verbatimelevation, preparations, temp_prepmethod, identifiedby, dateidentified, identificationqualifier " .
          "from dwc_search where fragmentguid = ? ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) { 
@@ -218,7 +243,7 @@ function details() {
      $guid = "http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid";
      $stmt->bind_param('s',$guid);
      $stmt->execute();
-     $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid, $typestatus);
+     $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid, $typestatus,$collectornumber, $collector, $eventdate, $verbatimdate, $habitat,$verbatimelevation,$preparations,$prepmethod,$identifiedby, $dateidentified, $identificationqualifier);
      $stmt->fetch();
      $stmt->close();
   } else {  
@@ -251,15 +276,25 @@ function details() {
   $result .= "<br clear='All'/>";
   $result .= "<div style='background-color:#F3F3F3; width:1075px; height:625px; border-color:#939393; border-width:1; border-style:solid;' >";
 
-  $result .= "<img id='imagedetail1' border='0' src='$thumburi' style=' width:250px; height:338px; '>";
+  $result .= "<img id='imagedetail1' border='0' src='$thumburi' style=' width:".$thumbwidth."px; height:".$thumbheight."px; '>";
   $result .= "&nbsp;&nbsp;Mouse over image to zoom.<br/>\n";
 
   $result .= "</div>";
-  //$result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a><br/>";
-  $result .= "$collectioncode $catalognumber <strong style='color:RED; '>$typestatus</strong><br/>";
-  $result .= "<em>$scientificname</em> $authorship<br/>";
+  $result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a>";
+  $result .= " <strong style='color:RED; '>$typestatus</strong><br/>";
+  $result .= trim("$identificationqualifier <em>$scientificname</em> $authorship<br/>");
+  if ($identifiedby!="") { 
+     $result .= "Determiner: $identifiedby $dateidentified<br/>";
+  }
+  $result .= "Collector: $collector $collectornumber<br/>";
+  if ($verbatimdate != "") { $verbatimdate = "(".trim($verbatimdate).")"; } 
+  $result .= "Date Collected: $eventdate $verbatimdate<br/>";
   $result .= "$country $stateprovince<br/>";
   $result .= "$locality<br/>";
+  if (trim($habitat.$verbatimelevation)!="") { 
+     $result .= "$habitat $verbatimelevation<br/>";
+  }
+  $result .= "Format: $preparations $prepmethod<br/>";
   $result .= "<br clear='All'/>";
 
   return $result;

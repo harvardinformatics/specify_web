@@ -140,6 +140,9 @@ class ImageExplorer{
         $result = new PreparedSQL();
 		// build clause for type status
 		if(isset($searchCriteria['typestatus']) && $searchCriteria['typestatus']){
+                    if (in_array("AnyType",$searchCriteria['typestatus'])) { 
+			$sqlWhere .= $and.' dwc.typestatus is not null ';
+                    } else { 
 			$sqlWhere .= $and.' dwc.typestatus IN( ';
             $comma = "";
             foreach ($searchCriteria['typestatus'] as $term) {  
@@ -149,6 +152,7 @@ class ImageExplorer{
                $comma = ",";
             }
 			$sqlWhere .= ' ) ';
+                     }
             $and = " AND ";
 		}
 		// build clause for genus 
@@ -179,7 +183,6 @@ class ImageExplorer{
 		}
 		// build clause for state/province
 		if(isset($searchCriteria['state']) && $searchCriteria['state']){
-			$sqlWhere .= $and.' dwc.stateprovince IN( ';
             $comma = "";
             foreach ($searchCriteria['state'] as $term) {  
                $types .= 's';

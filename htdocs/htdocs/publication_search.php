@@ -48,7 +48,7 @@ if ($_GET['mode']!="")  {
 	}
 }
 
-if (preg_replace("[^0-9]","",$_GET['barcode'])!="") { 
+if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") { 
 	$mode = "details"; 
 }
 
@@ -108,7 +108,7 @@ function details() {
 	} else { 
 		$ids[0] = $id;
 	}
-	$guid = preg_replace("[^0-9]","",$_GET['guid']);
+	$guid = preg_replace("/[^0-9a-zA-Z\-]/","",$_GET['guid']);
 	if ($guid != "") {
 		$sql = "select referenceworkid from referencework where guid = ? ";
 		$statement = $connection->prepare($sql);
@@ -124,7 +124,7 @@ function details() {
 	}
 	$oldid = "";
 	foreach($ids as $value) { 
-		$id = substr(preg_replace("[^0-9]","",$value),0,20);
+		$id = substr(preg_replace("/[^0-9]/","",$value),0,20);
 		// Might be duplicates next to each other in list of checkbox records from search results 
 		// (from there being more than one current determination/typification for a specimen, or
 		// from there being two specimens on one sheet).  

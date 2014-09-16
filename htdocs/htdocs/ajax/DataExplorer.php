@@ -13,12 +13,19 @@ class DataExplorer {
            @$stmt->execute();
            $stmt->bind_result($count,$typestatus);
            $row = 0;
+           $sum = 0;
            while($stmt->fetch()){
-              if ($typestatus==null) { $typestatus = "none"; }
+              if ($typestatus==null) { 
+                 $typestatus = "none";
+              } else { 
+                 $sum += $count;
+              }
               $retArr[$row]['value'] = $typestatus;
               $retArr[$row]['label'] = "$typestatus ($count)";
               $row++;
            }
+           $retArr[$row]['value'] = 'AnyType';
+           $retArr[$row]['label'] = "Any Type ($sum)";
         $stmt->close();
         }
 
