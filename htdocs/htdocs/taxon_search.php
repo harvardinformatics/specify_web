@@ -140,15 +140,38 @@ function details() {
 			if ($statement) {
 				$statement->bind_param("i",$id);
 				$statement->execute();
-				$statement->bind_result($author, $citesstatus, $fullname, $groupnumber, $guid, $isaccepted, $isybrid, $name, $rankid, $remarks, $source, $status, $parentid, $stdauthorid, $stdexauthorid, $parauthorid, $parexauthorid, $sanctauthorid, $parsanctauthorid, $citinauthorid, $rank, $isinfullname, $parentname, $parentauthor);
+				$statement->bind_result($author, $citesstatus, $fullname, $groupnumber, $guid, $isaccepted, $ishybrid, $name, $rankid, $remarks, $source, $status, $parentid, $stdauthorid, $stdexauthorid, $parauthorid, $parexauthorid, $sanctauthorid, $parsanctauthorid, $citinauthorid, $rank, $isinfullname, $parentname, $parentauthor);
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
 					$taxonresult .=  "<tr><td class='cap'>Name</td><td class='val'><em>$fullname</em> $author</td></tr>";
+					$taxonresult .=  "<tr><td class='cap'>Authorship</td><td class='val'>";
+					if ($parauthorid>0) { 
+                                              $taxonresult .= "(";
+					      $taxonresult .=  "<a href='botanist_search.php?mode=details&id=$parauthorid'>".lookupBotanist($parauthorid)."</a>";
+					      if ($parsanctauthorid>0) { 
+					          $taxonresult .=  ": <a href='botanist_search.php?mode=details&id=$parsanctauthorid'>".lookupBotanist($parsanctauthorid)."</a>";
+                                              }
+					      if ($parexauthorid>0) { 
+					          $taxonresult .=  " ex <a href='botanist_search.php?mode=details&id=$parexauthorid'>".lookupBotanist($parexauthorid)."</a>";
+                                              }
+                                              $taxonresult .= ") ";
+                                        }
+					if ($stdauthorid>0) { 
+					      $taxonresult .=  "<a href='botanist_search.php?mode=details&id=$stdauthorid'>".lookupBotanist($stdauthorid)."</a>";
+					      if ($sanctauthorid>0) { 
+					          $taxonresult .=  ": <a href='botanist_search.php?mode=details&id=$sanctauthorid'>".lookupBotanist($sanctauthorid)."</a>";
+                                              }
+					      if ($stdexauthorid>0) { 
+					          $taxonresult .=  " ex <a href='botanist_search.php?mode=details&id=$stdexauthorid'>".lookupBotanist($stdexauthorid)."</a>";
+                                              }
+                                        }
+					$taxonresult .=  "</td></tr>";
 					if ($isaccepted=="0") { 
 					      $is_group = true;
 					      $taxonresult .=  "<tr><td class='cap'>Taxonomic Status</td><td class='val'>Not Accepted Name</td></tr>";
 					}
+					$taxonresult .=  "<tr><td class='cap'>Rank</td><td class='val'>$rank</td></tr>";
 					
 					if (trim($status!=""))   { $taxonresult .=  "<tr><td class='cap'>NomenclaturalStatus</td><td class='val'>$status</td></tr>"; }
 					if (trim($parentname!=""))   { $taxonresult .=  "<tr><td class='cap'>Placed in</td><td class='val'><a href='taxon_search.php?mode=details&id=$parentid'><em>$parentname</em> $parentauthor</a></td></tr>"; }
@@ -276,12 +299,65 @@ function details() {
 
 
 function search() {  
-  // Not implemented yet	
-  $_GET['id']=1;
-  details();
+  global $connection, $errormessage, $debug;
+  $name = preg_replace("[^A-Za-z %*]","",$_GET['name']);
+
+  form ($name);  
+
+  if (strlen($name) > 0 ) { 
+        $name = str_replace("*","%",$name);
+        $query = "select taxonid from taxon where fullname like ? ";
+        if ($debug) { echo "[$name]"; }
+        $statement = $connection->prepare($query);
+        $taxonresult = "";
+        if ($statement) {
+           $statement->bind_param("s",$name);
+           $statement->execute();
+           $statement->bind_result($taxonid);
+           $statement->store_result();
+           $results = 0;
+           while ($statement->fetch()) {
+               $_GET['id']=$taxonid;
+               details();
+               $results++;
+           }
+           $statement->close();
+        }
+
+     
+  } else { 
+     $_GET['id']=1;
+     details();
+  }
 }
 
+function form($name) { 
+   echo "<form method='GET' action='taxon_search.php'><input type='hidden' name='mode' value='search' /><input type=text name=name value='$name'/><input type='submit' value='Search' /></td></form";
+}
 
+function lookupBotanist($botanistid) { 
+  global $connection, $errormessage, $debug;
+  $name = "";
+  if (strlen($botanistid) > 0 ) {
+        $name = $botanistid;
+        $query = "select name from agentvariant where agentid = ?  and (vartype = 4 or vartype = 3 or vartype = 2) order by vartype  ";
+        if ($debug) { echo "[$botanistid]"; }
+        $statement = $connection->prepare($query);
+        $taxonresult = "";
+        if ($statement) {
+           $statement->bind_param("i",$botanistid);
+           $statement->execute();
+           $statement->bind_result($taxonid);
+           $statement->store_result();
+           $results = 0;
+           if ($statement->fetch()) {
+               $name=$taxonid;
+           }
+           $statement->close();
+        }
+  }
+  return $name;
+}
 
 
 mysqli_report(MYSQLI_REPORT_OFF);
