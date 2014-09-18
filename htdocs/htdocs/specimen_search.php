@@ -826,8 +826,9 @@ function details() {
 
 									$query = "select fragment.sex, fragment.phenology, preptype.name, fragment.identifier, preparation.identifier, " .
 										" fragment.remarks, preparation.remarks, fragment.prepmethod, fragment.description, " .
-										" fragment.text1 as herbarium, fragment.accessionnumber " .
+										" fragment.text1 as herbarium, fragment.accessionnumber, storage.name " .
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
+										" left join storage on preparation.storageid = storage.storageid " .
 										" left join preptype on preparation.preptypeid = preptype.preptypeid where fragment.fragmentid = ?";
 									if ($debug===true) {  echo "[$query]<BR>"; }
 									$statement_det = $connection->prepare($query);
@@ -835,13 +836,16 @@ function details() {
 									if ($statement_det) { 
 										$statement_det->bind_param("i",$fragmentid);
 										$statement_det->execute();
-										$statement_det->bind_result($sex, $phenology, $preptype, $fbarcode, $pbarcode, $fremarks, $premarks, $prepmethod, $description, $institution, $accessionnumber);
+										$statement_det->bind_result($sex, $phenology, $preptype, $fbarcode, $pbarcode, $fremarks, $premarks, $prepmethod, $description, $institution, $accessionnumber, $subcollection);
 										$statement_det->store_result();
 										$separator = "";
 										while ($statement_det->fetch()) { 
 											if (trim($accessionnumber)!="") { 
 												//$attributes.= "<tr class='item_row'><td class='cap'>Accession Number</td><td class='val'>$institution $accessionnumber</td></tr>";
 												$attributes['Accession Number'] = "$institution $accessionnumber";
+											}
+											if (trim($subcollection)!="") { 
+												$attributes['Subcollection'] = $subcollection;
 											}
 											if (trim($sex)!="") { 
 												//$attributes.= "<tr class='item_row'><td class='cap'>Sex</td><td class='val'>$sex</td></tr>";
