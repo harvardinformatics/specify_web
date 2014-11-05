@@ -91,7 +91,8 @@ create table if not exists temp_web_search (
     taxon_highestchild int,
     taxon_nodenumber int,
     geo_highestchild int,
-    geo_nodenumber int
+    geo_nodenumber int,
+    sensitive_flag int default 0
 ) ENGINE MyISAM CHARACTER SET utf8;
 
 delete from temp_web_search;
@@ -183,12 +184,13 @@ create index idx_websearch_taxon_nodenumber on temp_web_search(taxon_nodenumber)
 -- create temporary copy of taxonomy tree in a myisam table.
 drop table if exists temp_taxon;
 -- 2 sec
-create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid, parentid from taxon;
+create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid, parentid, citesstatus from taxon;
 -- about 3-5 sec each 
 create unique index idx_temp_taxon_taxonid on temp_taxon(taxonid);
 create index temp_taxon_hc on temp_taxon(highestchildnodenumber);
 create index temp_taxon_node on temp_taxon(nodenumber);
 create index temp_taxon_rank on temp_taxon(rankid);
+create index temp_taxon_sens on temp_taxon(citesstatus);
 -- 5 sec
 alter table temp_taxon add column family varchar(64);
 
@@ -299,7 +301,12 @@ insert into temp_web_search (taxon_highestchild,taxon_nodenumber,family,genus,au
         left join preparation p on f.preparationid = p.preparationid 
         left join collectionobject c on f.collectionobjectid = c.collectionobjectid  
         where t.rankid < 180;        
-        
+
+--  now set sensitive flag
+update temp_web_search left join temp_taxon on temp_web_search.taxon_nodenumber = temp_taxon.nodenumber 
+   set temp_web_search.sensitive_flag = 1
+ where temp_taxon.citesstatus != 'None';
+
 -- Denormalize geography 
 -- locality, append geo name if geo is not a country, state, or county.
 -- 44 sec
@@ -848,6 +855,18 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 --       datageneralizations = 'Latitude and longitude rounded to 0.1 degrees.  Cites Listed Taxon.'
 --       where hasCitesParent(determination.taxonid) and decimallatitude is not null and decimallongitude is not null;
 
+-- Redact other sensitive information
+-- esastatus = 'controlled' = on DEA controlled substance list.
+delete from temp_web_search where taxon_nodenumber in (select nodenumber from taxon where esastatus is not null);
+
+update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
+       left join taxon on determination.taxonid = taxon.taxonid
+       set scientificname = 'Redacted'
+       where taxon.esastatus is not null;
+
+delete from temp_dwc_search where scientificname = 'Redacted';
+
+
 -- othercatalognumbers  only providing accession number if present.  
 -- Do other identifiers go here as well, or does their project based nature put them elsewhere? 
 -- 5 sec
@@ -866,6 +885,25 @@ rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search;
 
 -- Clean up.  Remove the previous copies of the tables. 
 drop table old_dwc_search;
+
+
+--  Tables to support pages built from slow group by searches.
+--  These tables cache the results of the group by queries.  See: function browse() in specify_library.php
+
+
+--  Create a cache for the family page:
+create table temp_cache_family as select count(distinct w.collectionobjectid) as cocount, family, count(distinct i.imagesetid) as imcount from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid  group by family;
+
+create table if not exists cache_family (id int);
+rename table cache_family to old_cache_family, temp_cache_family to cache_family;
+drop table old_cache_family;
+
+--  Create a cache for the country page:
+create table temp_cache_country as select count(distinct w.collectionobjectid) as cocount, country, count(distinct i.imagesetid) as imcount from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid  group by country;
+
+create table if not exists cache_country (id int);
+rename table cache_country to old_cache_country, temp_cache_country to cache_country;
+drop table old_cache_country;
 
 
 -- Some things that don't work.

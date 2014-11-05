@@ -428,21 +428,22 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 	<title>HUH - Databases - $title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
 ";
-    // Potentially unstable style sheets coming from hwpi 
+    // unstable style sheets coming from hwpi 
+    // moved to local copies.
     $result .= "
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_JaNIC6wAnhTMzh3xDSc6hSOR4a8NIi7FBl7RJnEZUF0.css' media='all' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/css_autocomplete_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/css_booknavigation_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/css__colorbox_4Cnbcv58osyNmwlNq65lb2j10SUGgMy5GBI44Cs5cko.css' media='all' />
 ";
 if ($mode=='imagedetails') { 
   // line in one css file breaks the image details browser.
   $result .= "<link type='text/css' rel='stylesheet' href='css_OE.css' media='screen' />";
 } else { 
-  $result .= "<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_OEoJqj3i52VtUlF0juPadyLaGArNgdsT1lTed3vxuWQ.css' media='screen' />";
+  $result .= "<link type='text/css' rel='stylesheet' href='/css/hwpi/css__screen_ZA-CzvgM_hYQAxV3p2e2blh0OdJfEF_EIJ2yEh_Z9dU.css' media='screen' />";
 }
 $result .="
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_TSFJaqeRCa9iy7Dzv3-P2rX74YTgfVsJXDA81TWuTRA.css' media='print' />
-<link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/files/css/css_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/css__print_qTBhov6j81VXwPEf5guTmDNsXK37qC0IaPAFtyW71lk.css' media='print' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/css_messages_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
     ";
 // Original hwpi test website styles
 /*
@@ -494,8 +495,8 @@ $result .= "
 <style media='print'>@import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/print.css');</style>
     <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/ivy_accents.css' media='all' />
     <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/responsive.ivy.css' media='all' />
-        <script type='text/javascript' src='http://hwpi.harvard.edu/files/js/js_-z-2lAhufzBeVjYseT6cTzSICUy9vnoLBpu1sF_zZrs.js'></script>
-        <script type='text/javascript' src='http://hwpi.harvard.edu/files/js/js_x18b6ZdKNvVeV4maLWsqLcgg3HQjlk5sC6vrF6FbIlk.js'></script>
+        <script type='text/javascript' src='/js/hwpi/jquery_from_hwpi.js'></script>
+        <script type='text/javascript' src='/js/hwpi/js__rhiSuayLbtRqMHYTNEz5cOkIfup7XMCy0XrxzyE6zOI.js'></script>
         <script type='text/javascript'>
         </script>
 ";
@@ -714,19 +715,30 @@ function pagefooter_new() {
             mode of this application (mode=search&$field=valueOfFieldName) 
  * @returns a list of <a href=  href='specimen_search.php?mode=search&$field={value}'>{value}</a> ({count}) <BR>
 **/
-function nameCountSearch($query, $field) {
+function nameCountSearch($query, $field, $cachequery) {
     global $connection, $errormessage;
 	
-    $result = "";
-    $statement = $connection->prepare($query);
-	if ($statement) { 
+       $result = "";
+       if (strlen($cachequery)>0) { 
+           $statement = $connection->prepare($cachequery);
+           if (!$statement) { 
+               $statement = $connection->prepare($query);
+           }
+       } else { 
+            $statement = $connection->prepare($query);
+       }
+       if ($statement) { 
 		$statement->execute();
-		$statement->bind_result($ct, $name);
+		$statement->bind_result($ct, $name, $imct);
 		$statement->store_result();
 		if ($statement->num_rows > 0 ) {
 			while ($statement->fetch()) { 
 			    if ($name!="") { 
-				    $result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) <BR>";
+                                    $im = "";
+                                    if ($imct>0) { 
+                                       $im = " <a href='image_search.php?$field=$name'>($imct Images)</a>";
+                                    }
+				    $result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) $im<BR>";
 				}
 			}
 			
@@ -772,20 +784,23 @@ function browse($target = 'families') {
 	$field = "";
 	switch ($target) { 
 		case 'types':
-			$sql = 'select count(collectionobjectid), typestatus from web_search group by typestatus ';
+                        $cachequery = "";
+			$sql = 'select count(collectionobjectid), typestatus, 0 from web_search group by typestatus ';
 			$field = 'typestatus';
 			break;	
 		case 'countries':
-			$sql = 'select count(collectionobjectid), country from web_search group by country ';
+                        $cachequery = "select cocount, country, imcount from cache_country ";
+			$sql = 'select count(distinct w.collectionobjectid), country, count(distinct i.imagesetid) from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid group by country ';
 			$field = 'country';
 			break;	
 		case 'families':
 		default: 
-			$sql = 'select count(collectionobjectid), family from web_search group by family ';
+                        $cachequery = "select cocount, family, imcount from cache_family ";
+			$sql = 'select count(distinct w.collectionobjectid), family, count(distinct i.imagesetid) from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid  group by family ';
 			$field = 'family';
 	}
 	if ($sql!="") { 
-		$result = nameCountSearch($sql, $field);
+		$result = nameCountSearch($sql, $field, $cachequery);
 	} 
 	return $result; 
 }
