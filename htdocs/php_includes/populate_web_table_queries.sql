@@ -627,9 +627,11 @@ delete from temp_dwc_search;
 insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
 -- make the fragment guid resolvable
+-- 10 sec
 update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
 
 -- Index on the catalog number to speed later operations.
+-- 28 sec
 create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 
 -- 00220822 has prepmethod = 'Protolog' ???
@@ -638,49 +640,54 @@ update temp_dwc_search set dc_type = 'StillImage' where temp_prepmethod = 'Photo
 -- (using the non-resolvable lsid per AppleCore guidance)
 -- Prepend http://biocol.org/ to make resolvable: 
 -- e.g. http://biocol.org/urn:lsid:biocol.org:col:15631
+-- about 5 sec each
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15406' where collectioncode = 'A';
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15631' where collectioncode = 'GH';
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15408' where collectioncode = 'AMES';
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15407' where collectioncode = 'ECON';
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:13199' where collectioncode = 'FH';
--- ?? Is NEBC under the institution Harvard University?  ??
 update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15868' where collectioncode = 'NEBC';
 
 -- collectornumber
+-- 25 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.collectornumber = collectingevent.stationfieldnumber where collectingevent.stationfieldnumber is not null;
 -- collector, assumes currently true state of one collector per collecting event, thus concatenation of list of collectors
 -- ordered by isprimary and ordernumber are not needed.
--- 35 sec.
+-- 1 min 7sec.
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join collector on collectingevent.collectingeventid = collector.collectingeventid left join agentvariant on collector.agentid = agentvariant.agentid set temp_dwc_search.collector = trim(concat(agentvariant.name,' ',ifnull(collector.etal,''))) where agentvariant.vartype = 4;
 
 -- sex
+-- 25 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier set temp_dwc_search.sex = fragment.sex;
 -- fit terms to googlecode DarwinCore recommended list http://code.google.com/p/darwincore/wiki/Occurrence
+-- 18 sec
 update temp_dwc_search set sex = 'undetermined' where sex = 'not determined';
 -- phenology, mapped to dwc:reproductiveStatus
+-- 29 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier set temp_dwc_search.reproductivestatus = fragment.phenology;
 -- Preparation Types for all preparations associated with collection object.
--- 1 min 30 sec.
+-- 2 min 10 sec.
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier set temp_dwc_search.preparations = concatPrepTypes(fragment.collectionobjectid);
 
 -- Date Collected
 -- Verbatim date
+-- 50 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.verbatimdate = collectingevent.verbatimdate where collectingevent.verbatimdate is not null;
 -- Date function queries are slow on joins, copy fields to temp table to run functions there rather than on join
--- 10 sec.
+-- 1 min 44 sec.
 update temp_dwc_search t left join fragment on t.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent ce on collectionobject.collectingeventid = ce.collectingeventid set t.temp_startdate = ce.startdate, t.temp_enddate = ce.enddate, t.temp_startdateprecision = ce.startdateprecision, t.temp_enddateprecision = ce.enddateprecision;
 -- Start date only, year (precision=3)
--- 2 sec.
+-- 15 sec.
 update temp_dwc_search set temp_dwc_search.eventdate = year(temp_startdate), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 12 month)  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 3;
 -- Start date only, month (precision=2)
--- 3 sec.
+-- 13 sec.
 update temp_dwc_search set temp_dwc_search.eventdate = date_format(temp_startdate,'%Y-%m'), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.month = month(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 1 month)  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 2;
 -- Start date only, day (precision=1)
--- 5 sec.
+-- 20 sec.
 update temp_dwc_search set temp_dwc_search.eventdate = date_format(temp_startdate,'%Y-%m-%d'), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.month = month(temp_startdate), temp_dwc_search.day = day(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = temp_startdate  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 1;
 -- Start and end dates
 -- Current apple core guidance: don't provide year,month,day for ranges
--- 3 sec.
+-- 12 sec.
 update temp_dwc_search 
    set temp_dwc_search.eventdate = concat(
                date_format(temp_startdate,
@@ -700,6 +707,7 @@ update temp_dwc_search
    where temp_startdate is not null and temp_enddate is not null;
 
 -- Habitat 
+-- 23 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.habitat = collectingevent.remarks where collectingevent.remarks is not null;
 
 -- higher geography
@@ -709,9 +717,9 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
 -- update temp_dwc_search set temp_dwc_search.highergeography = concatHigherGeography(temp_geonodenumber,temp_geohighestchildnodenumber) where temp_geographyid is not null;
 
 -- Depends on fields added to temp_geography above.
--- 24 sec.
+-- 1 min.
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid left join geography g on locality.geographyid = g.geographyid set temp_dwc_search.temp_geographyid = g.geographyid where g.geographyid is not null;
--- 10 sec.
+-- 46 sec.
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
 set 
    d.continent = g.continent, 
@@ -735,27 +743,32 @@ set
    ifnull(concat(g.county,';'),'')
  ) where d.temp_geographyid is not null;
 
+-- 25 sec
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
 set d.municipality = g.name where d.temp_geographyid is not null and g.rankid = 500 or g.rankid = 510;
-
+-- 8 sec
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
 set d.island = concat(d.island,'; ', g.name) where d.temp_geographyid is not null and g.rankid = 450 and d.island is not null;
-
+-- 21 sec
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
 set d.island = g.name where d.temp_geographyid is not null and g.rankid = 450 and d.island is null;
 
 -- Locality
+-- 1 min 10 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.locality = locality.localityname, temp_dwc_search.unredacted_locality = locality.localityname where locality.localityid is not null;
 -- Verbatim locality, not available in HUH data.
 
 -- elevation. 
+-- 38 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.verbatimelevation = locality.verbatimelevation, temp_dwc_search.minimumelevationmeters = locality.minelevation, temp_dwc_search.maximumelevationmeters = locality.maxelevation where locality.localityid is not null;
 
 -- georeference
+-- 36 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.decimallongitude = locality.longitude1, temp_dwc_search.decimallatitude = locality.latitude1, temp_dwc_search.geodeticdatum = locality.datum, temp_dwc_search.unredacted_decimallongitude = locality.longitude1, temp_dwc_search.unredacted_decimallatitude = locality.latitude1 where locality.localityid is not null;
 
 -- Per darwincore google code recomendations, use EPSG codes for datum.
 -- This doesn't sound right, as EPSG codes specify the entire coordinate reference system, not just the datum.
+-- 15 to 35 sec each
 update temp_dwc_search set geodeticdatum = 'EPSG:4326' where geodeticdatum = 'WGS84';
 update temp_dwc_search set geodeticdatum = 'EPSG:4269' where geodeticdatum = 'NAD83';
 update temp_dwc_search set geodeticdatum = 'EPSG:4267' where geodeticdatum = 'NAD27';
@@ -763,10 +776,11 @@ update temp_dwc_search set geodeticdatum = 'unknown' where geodeticdatum is null
 
 -- Typification or most recent determination.
 -- Get the id of a typification or the most recent determination
--- 46 sec.
+-- 2 min 
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier set temp_dwc_search.temp_determinationid = getCurrentDetermination(fragment.fragmentid);
+-- 53 sec
 create index temp_dwc_search_tempdetid on temp_dwc_search(temp_determinationid);
-
+-- 11 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
   set temp_dwc_search.dateidentified = 
       date_format(determination.determineddate,
@@ -797,7 +811,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
   where temp_dwc_search.temp_determinationid is not null and determination.qualifier is not null;
 
 -- determination remarks
--- 4 sec
+-- 12 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
   set temp_dwc_search.identificationremarks
        = case when (determination.typestatusname is null) 
@@ -808,6 +822,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
   where temp_dwc_search.temp_determinationid is not null;
 
 -- determination references 
+-- 3 sec
 update temp_dwc_search t left join determinationcitation dc on t.temp_determinationid = dc.determinationid 
          left join referencework crw on dc.referenceworkid = crw.referenceworkid 
   set identificationreferences = trim(concat( concatAuthors(crw.referenceworkid), ' ',  ifnull(concat(dc.Text2, '. '), ''), ifnull(concat(crw.title,' '),''),  ifnull(concat(dc.Text1, ".  "), "") ))
@@ -815,7 +830,7 @@ update temp_dwc_search t left join determinationcitation dc on t.temp_determinat
 
 -- scientificname
 -- scientificnameauthorship
--- 58 sec
+-- 4 min 16 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid
        set temp_dwc_search.scientificname = trim(concat(taxon.fullname,' ',ifnull(taxon.author,''))),
@@ -823,7 +838,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
        where taxon.taxonid is not null;
 
 -- family, from temp taxon table
--- 2 min 
+-- 5 min 
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid
        left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
@@ -834,7 +849,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 -- Run setCitesChildren(); to make sure that all children of cites genera/families are also marked as cites listed, then queries can run 
 -- on the children without having to look up the parents.
 -- information witheld
--- 31 sec
+-- 2 sec
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid 
        set locality = '[Redacted]', informationwitheld = 'Locality redacted.  CITES Listed Taxon.'
@@ -844,7 +859,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 --       where hasCitesParent(determination.taxonid) and locality is not null;
 
 -- data generalizations
--- <1 sec.
+-- 1 sec.
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid 
        set decimallatitude = floor(decimallatitude*10)/10, decimallongitude = floor(decimallongitude*10)/10, 
@@ -869,13 +884,15 @@ delete from temp_dwc_search where scientificname = 'Redacted';
 
 -- othercatalognumbers  only providing accession number if present.  
 -- Do other identifiers go here as well, or does their project based nature put them elsewhere? 
--- 5 sec
+-- 18 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier 
    set temp_dwc_search.othercatalognumbers = concat(fragment.text1,'-accession-',fragment.accessionnumber)
    where fragment.accessionnumber is not null;
 
 -- Add indexes to dwc_search (but on temp_ not table, as there isn't an if not exists yet in MySQL
+-- 40 sec
 create index dwc_country on temp_dwc_search(country);
+-- 40 sec
 create index dwc_search_collobjectid on temp_dwc_search(collectionobjectid);
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
