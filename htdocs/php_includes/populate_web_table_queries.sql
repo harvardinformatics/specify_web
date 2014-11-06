@@ -38,7 +38,7 @@
 -- Comment out the next 4 lines and the last two lines to run queries directly.
 DROP PROCEDURE IF EXISTS specify.populate_web_tables;
 DELIMITER | 
-create procedure specify.populate_web_tables ()
+create  DEFINER=`specify_web_adm`@`localhost` procedure specify.populate_web_tables ()
 BEGIN
 
 -- clean up if rerunning after incomplete run.
