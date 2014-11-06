@@ -45,7 +45,9 @@
    grant all on specify.temp_cache_country to 'specify_web_adm'@'localhost' identified by 'password';
    grant all on specify.old_cache_family to 'specify_web_adm'@'localhost' identified by 'password';
    grant all on specify.old_cache_country to 'specify_web_adm'@'localhost' identified by 'password';
-   grant execute on procedure specify.populate_web_tables to 'specify_web_adm'@'localhost' identified by 'password';
+  
+   grant execute on procedure specify.populate_web_tables to 'specify_web_adm'@'kiki.huh.harvard.edu' identified by 'password';
+
  *
  */
  

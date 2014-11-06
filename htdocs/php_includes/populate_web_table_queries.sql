@@ -2,6 +2,7 @@
 -- tables for searching the database over the web.
 
 -- Requires grant execute after firing against database.
+-- Note: This grant must specify servername, not localhost.
 -- grant execute on procedure specify.populate_web_tables to 'specify_web_adm'@'kiki.huh.harvard.edu';
 
 -- Time benchmarks are on a laptop with a dual core 2GHz intel processor and 3GB ram.
