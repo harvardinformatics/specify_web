@@ -27,14 +27,25 @@
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  *
  *The following grants will be needed:
-   grant select  on specify.* to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.web_search to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.temp_web_search to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.web_quicksearch to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.temp_web_quicksearch to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.temp_geography to 'specify_web_admi'@'localhost' identified by 'password';
-   grant all on specify.temp_taxon to 'specify_web_admi'@'localhost' identified by 'password';
-   grant execute on procedure specify.populate_web_tables to 'specify_web_admi'@'localhost' identified by 'password';
+   grant select  on specify.* to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.web_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.dwc_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_web_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_dwc_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.web_quicksearch to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_web_quicksearch to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_geography to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_taxon to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.old_web_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.old_dwc_search to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.old_web_quicksearch to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.cache_family to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.cache_country to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_cache_family to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.temp_cache_country to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.old_cache_family to 'specify_web_adm'@'localhost' identified by 'password';
+   grant all on specify.old_cache_country to 'specify_web_adm'@'localhost' identified by 'password';
+   grant execute on procedure specify.populate_web_tables to 'specify_web_adm'@'localhost' identified by 'password';
  *
  */
  
