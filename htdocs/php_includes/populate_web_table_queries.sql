@@ -545,6 +545,8 @@ delete from temp_web_search where taxon_nodenumber in (select nodenumber from ta
 
 create table if not exists web_search (id int); 
 create table if not exists web_quicksearch (id int); 
+drop table if exists old_web_search;
+drop table if exists old_web_quicksearch;
 -- switch out the web_search tables for the newly build temp_web_search tables
 rename table web_search to old_web_search, temp_web_search to web_search, web_quicksearch to old_web_quicksearch, temp_web_quicksearch to web_quicksearch;
 
@@ -910,6 +912,7 @@ create index dwc_search_collobjectid on temp_dwc_search(collectionobjectid);
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
 create table if not exists dwc_search (id int); 
+drop table if exists old_dwc_search;
 rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search;
 
 -- Clean up.  Remove the previous copies of the tables. 
