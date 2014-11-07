@@ -539,6 +539,10 @@ insert into temp_web_quicksearch (collectionobjectid, searchable) (
 -- 1 min 4 sec   
 create fulltext index i_temp_web_quicksearch on temp_web_quicksearch(searchable);
 
+-- Redact other sensitive information
+-- esastatus = 'controlled' = on DEA controlled substance list.
+delete from temp_web_search where taxon_nodenumber in (select nodenumber from taxon where esastatus is not null);
+
 create table if not exists web_search (id int); 
 create table if not exists web_quicksearch (id int); 
 -- switch out the web_search tables for the newly build temp_web_search tables
@@ -615,6 +619,7 @@ create table if not exists temp_dwc_search (
   temp_geographyid int,
   temp_determinationid bigint,
   temp_fragmentid bigint,
+  temp_projectid int, 
   unredacted_locality text,
   unredacted_decimallatitude decimal(12,10),
   unredacted_decimallongitude decimal(13,10)
@@ -656,6 +661,13 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
 -- ordered by isprimary and ordernumber are not needed.
 -- 1 min 7sec.
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join collector on collectingevent.collectingeventid = collector.collectingeventid left join agentvariant on collector.agentid = agentvariant.agentid set temp_dwc_search.collector = trim(concat(agentvariant.name,' ',ifnull(collector.etal,''))) where agentvariant.vartype = 4;
+
+-- Project
+-- Works currently, will have problems if a specimen is involved in more than one project.  Should replace with a function.
+-- 21 sec
+update temp_dwc_search left join project_colobj p on temp_dwc_search.collectionobjectid = p.collectionobjectid set temp_dwc_search.temp_projectid = p.projectid;
+-- 1 min 48 sec.
+create index temp_dwc_search_projid on temp_dwc_search(temp_projectid);
 
 -- sex
 -- 25 sec
@@ -771,9 +783,10 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = f
 -- This doesn't sound right, as EPSG codes specify the entire coordinate reference system, not just the datum.
 -- 15 to 35 sec each
 update temp_dwc_search set geodeticdatum = 'EPSG:4326' where geodeticdatum = 'WGS84';
+update temp_dwc_search set geodeticdatum = 'EPSG:4326' where geodeticdatum = 'WGS 84';
 update temp_dwc_search set geodeticdatum = 'EPSG:4269' where geodeticdatum = 'NAD83';
 update temp_dwc_search set geodeticdatum = 'EPSG:4267' where geodeticdatum = 'NAD27';
-update temp_dwc_search set geodeticdatum = 'unknown' where geodeticdatum is null and decimallatitude is not null;
+update temp_dwc_search set geodeticdatum = 'unknown' where (geodeticdatum is null or geodeticdatum = '') and decimallatitude is not null;
 
 -- Typification or most recent determination.
 -- Get the id of a typification or the most recent determination
@@ -873,8 +886,6 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 
 -- Redact other sensitive information
 -- esastatus = 'controlled' = on DEA controlled substance list.
-delete from temp_web_search where taxon_nodenumber in (select nodenumber from taxon where esastatus is not null);
-
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
        left join taxon on determination.taxonid = taxon.taxonid
        set scientificname = 'Redacted'
@@ -885,15 +896,15 @@ delete from temp_dwc_search where scientificname = 'Redacted';
 
 -- othercatalognumbers  only providing accession number if present.  
 -- Do other identifiers go here as well, or does their project based nature put them elsewhere? 
--- 18 sec
+-- 45 sec
 update temp_dwc_search left join fragment on temp_dwc_search.temp_identifier = fragment.identifier 
    set temp_dwc_search.othercatalognumbers = concat(fragment.text1,'-accession-',fragment.accessionnumber)
    where fragment.accessionnumber is not null;
 
 -- Add indexes to dwc_search (but on temp_ not table, as there isn't an if not exists yet in MySQL
--- 40 sec
+-- 1 min 45 sec
 create index dwc_country on temp_dwc_search(country);
--- 40 sec
+-- 1 min 40 sec
 create index dwc_search_collobjectid on temp_dwc_search(collectionobjectid);
 
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
