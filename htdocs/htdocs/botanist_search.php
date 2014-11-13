@@ -355,16 +355,16 @@ function details() {
 								$agent .= "<tr><td class='cap'>Specialty $role</td><td class='val'>$specialty</td></tr>";
 							}
 						}
-						$query = "select remarks, role from agentcitation where agentid = ? ";
+						$query = "select c.remarks, c.role, w.text1 from agentcitation c left join referencework w on c.referenceworkid = w.referenceworkid where c.agentid = ? ";
 						if ($debug) { echo "[$query]<BR>"; } 
 						$statement_geo = $connection->prepare($query);
 						if ($statement_geo) {
 							$statement_geo->bind_param("i",$agentid);
 							$statement_geo->execute();
-							$statement_geo->bind_result($citation,$role);
+							$statement_geo->bind_result($citation,$role,$citationtitle);
 							$statement_geo->store_result();
 							while ($statement_geo->fetch()) {
-								$agent .= "<tr><td class='cap'>Citation as $role</td><td class='val'>$citation</td></tr>";
+								$agent .= "<tr><td class='cap'>Citation as $role</td><td class='val'>$citation $citationtitle</td></tr>";
 							}
 						}
 						$query = "select lastname, agentid from groupperson left join agent on groupperson.groupid = agent.agentid where groupperson.memberid = ? order by ordernumber ";
