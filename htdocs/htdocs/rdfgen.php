@@ -1,5 +1,6 @@
 <?php 
 
+// TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
 if (strpos($_SERVER['HTTP_ACCEPT'],"application/rdf+xml")!==false || strpos($_SERVER['HTTP_USER_AGENT'],'Firefox')!==false) {
     // If firefox, or specifically requested, provide correct content type for response.
     header('Content-type: application/rdf+xml');
@@ -85,10 +86,10 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
    	         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
               }
               if ($request_barcode!='') { 
-                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
 
               } else { 
-                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
               }
 	      echo '<rdf:RDF
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -110,7 +111,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
          }
       }
       $statement->execute();
-      $statement->bind_result($collectionCode, $catalogNumber, $collectionobjectid, $continent, $country, $stateProvince, $locality, $scientificname, $authorship, $modified );
+      $statement->bind_result($collectionCode, $catalogNumber, $collectionobjectid, $continent, $country, $stateProvince, $locality, $scientificname, $authorship, $modified, $uuid );
       $statement->store_result();
       while ($statement->fetch()) {
          $row = "";
