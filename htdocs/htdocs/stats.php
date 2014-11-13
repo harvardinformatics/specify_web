@@ -327,7 +327,7 @@ function annualreport($year,$showdetails=FALSE) {
 
    // ************  Loans   ********** 
 
-   $query = "select count(loan.loanid), text2, text3, sum(itemcount), sum(typecount), sum(nonspecimencount) from loan 
+   $query = "select count(distinct loan.loanid), text2, text3, sum(itemcount), sum(typecount), sum(nonspecimencount) from loan 
     left join loanpreparation p on loan.loanid = p.loanid
     where loandate > '$datestart' and loandate < '$dateend' 
     group by text2,  text3;";
@@ -362,7 +362,7 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td>$titems</td><td>$ttypes</td><td>$tns</td><td><strong>$grandtotal</strong></td></tr>";
 	        $returnvalue .= "</table>";
 	}
-   $query = "select count(loan.loanid), loan.text2, loan.text3, sum(r.itemcount), sum(r.typecount), sum(r.nonspecimencount)  from loan 
+   $query = "select count(distinct loan.loanid), loan.text2, loan.text3, sum(r.itemcount), sum(r.typecount), sum(r.nonspecimencount)  from loan 
     left join loanpreparation p on loan.loanid = p.loanid
     left join loanreturnpreparation r on r.loanpreparationid = p.loanpreparationid
     where dateclosed > '$datestart' and dateclosed < '$dateend' 
@@ -414,11 +414,14 @@ function annualreport($year,$showdetails=FALSE) {
 		$statement->store_result();
 	        $returnvalue .= "<table>";
 	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Purpose</th><th>Recipient Role</th></tr>";
+                $tcount = 0;
 		while ($statement->fetch()) {
                     if ($unit=='FC') { $unit = "Farlow Collections"; } 
                     if ($unit=='GC') { $unit = "General Collections"; } 
 	            $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$purposeofloan</td><td>$role</td></tr>";
+                    $tcount += $count;
                 }
+	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td></td></tr>";
 	        $returnvalue .= "</table>";
 	}
    $query = "select count(*), text2, purposeofloan, text3 from loan 
@@ -433,11 +436,14 @@ function annualreport($year,$showdetails=FALSE) {
                 $statement->store_result();
                 $returnvalue .= "<table>";
                 $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Purpose</th><th>Recipient Role</th></tr>";
+                $tcount = 0;
                 while ($statement->fetch()) {
                     if ($unit=='FC') { $unit = "Farlow Collections"; } 
                     if ($unit=='GC') { $unit = "General Collections"; } 
                     $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$purposeofloan</td><td>$role</td></tr>";
+                    $tcount += $count;
                 }
+                $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td></td></tr>";
                 $returnvalue .= "</table>";
         }
 
@@ -527,7 +533,6 @@ function annualreport($year,$showdetails=FALSE) {
    // ************  Exchanges (out) ********** 
 
    $query = "select count(distinct e.exchangeoutid), sum(quantityexchanged), e.text2 from exchangeout e where exchangedate > ? and exchangedate < ? group by e.text2 order by e.text2";
-echo "[$query]";
    if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Exchanges Out sent in fiscal year $syear-$year</h2>";
         $statement = $connection->prepare($query);
