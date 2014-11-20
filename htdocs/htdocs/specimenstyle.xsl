@@ -5,6 +5,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
 xmlns:dwc="http://rs.tdwg.org/dwc/terms/"
+xmlns:dwciri="http://rs.tdwg.org/dwc/iri/"
 xmlns:dcterms="http://purl.org/dc/terms/"
 >
 
@@ -27,6 +28,7 @@ xmlns:dcterms="http://purl.org/dc/terms/"
       <th>ScientificName</th>
       <th>ScientificNameAuthorship</th>
       <th>Modified</th>
+      <th>Collector</th>
     </tr>
     <xsl:for-each select="dwc:Occurrence">
     <tr>
@@ -40,6 +42,14 @@ xmlns:dcterms="http://purl.org/dc/terms/"
       <td><xsl:value-of select="dwc:scientificName"/></td>
       <td><xsl:value-of select="dwc:scientificNameAuthorship"/></td>
       <td><xsl:value-of select="dcterms:modified"/></td>
+      <td>
+         <a>
+            <xsl:attribute name="href">
+              <xsl:value-of select="dwciri:recordedBy/attribute::rdf:resource"/>
+            </xsl:attribute>
+            <xsl:value-of select="dwc:recordedBy"/>
+         </a>
+      </td>
     </tr>
     </xsl:for-each>
   </table>

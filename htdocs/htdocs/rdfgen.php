@@ -1,16 +1,39 @@
 <?php 
 
 // TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
-if (strpos($_SERVER['HTTP_ACCEPT'],"application/rdf+xml")!==false || strpos($_SERVER['HTTP_USER_AGENT'],'Firefox')!==false) {
-    // If firefox, or specifically requested, provide correct content type for response.
-    header('Content-type: application/rdf+xml');
-} else { 
-    // Tell chrome/IE/Opera, other browsers that response is html
-    header('Content-type: text/html');
+$accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT']);
+$delivery = "text/html";
+$stylesheet = TRUE;
+while (!$done && list($key, $mediarange) = each($accept)) {
+    if ($mediarange=='text/turtle') {
+       // TODO: Implement turtle.
+       // $delivery = $mediarange;
+       // $done = TRUE;
+       //$stylesheet = FALSE;
+    }
+    if ($mediarange=='application/rdf+xml') {
+       $delivery=$mediarange;
+       $done = TRUE;
+       $stylesheet = FALSE;
+    }
+    if ($mediarange=='text/html') {
+       $delivery=$mediarange;
+       $done = TRUE;
+       $stylesheet = TRUE;
+    }
+    if ($mediarange=='text/xml') {
+       $delivery=$mediarange;
+       $done = TRUE;
+       $stylesheet = TRUE;
+    }
+}
+$force = array_key_exists("force",$_REQUEST)?$_REQUEST["force"]:"";
+if ($force=="rdfxml"||$force=="rdf/xml"||$force=="rdf+xml") { 
+  $delivery = "application/rdf+xml";
+  $stylesheet = FALSE;
 }
 
-/*   <?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>
-*/
+header('Content-type: '.$delivery);
 
 // Resolves to "http://kiki.huh.harvard.edu/databases/rdfgen.php?uuid=$uuid";
 // Maintaned at purl.oclc.org
@@ -34,7 +57,7 @@ include_once('connection_library.php');
 include_once('specify_library.php');
 
 $connection = specify_connect();
-$debug = TRUE;
+$debug = array_key_exists("debug",$_REQUEST);
 
 @$request_uuid = preg_replace('[^a-zA-Z0-9\-]','',$_GET['uuid']);
 @$request_query = preg_replace('[a-z]','',$_GET['query']);
@@ -79,22 +102,25 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
 
       case "fragment": 
 	   if ($request_uuid!='' || $request_barcode!='') { 
-	      echo '<?xml-stylesheet type="text/xsl" href="specimenstyle.xsl"?>'."\n";
+              if ($stylesheet) { 
+	         echo '<?xml-stylesheet type="text/xsl" href="specimenstyle.xsl"?>'."\n";
+              }
 	      echo "<!-- request: $request_uuid -->\n";
 	      if ($debug) { 
 	         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
    	         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
               }
               if ($request_barcode!='') { 
-                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
 
               } else { 
-                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
+                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
               }
 	      echo '<rdf:RDF
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
   xmlns:dwc="http://rs.tdwg.org/dwc/terms/"
+  xmlns:dwciri="http://rs.tdwg.org/dwc/iri/"
   xmlns:dcterms="http://purl.org/dc/terms/"
   >
 ';
@@ -111,7 +137,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
          }
       }
       $statement->execute();
-      $statement->bind_result($collectionCode, $catalogNumber, $collectionobjectid, $continent, $country, $stateProvince, $locality, $scientificname, $authorship, $modified, $uuid );
+      $statement->bind_result($collectionCode, $catalogNumber, $collectionobjectid, $continent, $country, $stateProvince, $locality, $scientificname, $authorship, $modified, $uuid, $fragmentid, $collector );
       $statement->store_result();
       while ($statement->fetch()) {
          $row = "";
@@ -125,7 +151,9 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
              if ($scientificname!='') { $scientificname = "   <dwc:scientificName>$scientificname</dwc:scientificName>\n"; } 
              if ($authorship!='') { $authorship = "   <dwc:scientificNameAuthorship>$authorship</dwc:scientificNameAuthorship>\n"; } 
              if ($modified!='') { $modified = "   <dcterms:modified>$modified</dcterms:modified>\n"; } 
-         $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified</dwc:Occurrence>\n";
+             if ($collector!='') { $collector = "   <dwc:recordedBy>$collector</dwc:recordedBy>\n"; } 
+             $col = getAgentIRI($fragmentid);
+         $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified$collector$col</dwc:Occurrence>\n";
          echo $row;
 	   } // end while  
       } // end if statement 
@@ -140,7 +168,9 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
       default;
 
    if ($request_uuid!='') { 
-      echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
+      if ($stylesheet) { 
+         echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
+      }
       echo "<!-- request: $request_uuid -->\n";
       if ($debug) { 
          echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
@@ -341,6 +371,56 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
 
 } // end is cli or has uuid parameter
 
+function getAgentIRI($fragmentid) { 
+  global $connection,$baseuri;
+  $result = '';
+  $sql = "select c.agentid, uuid  from fragment f left join collectionobject co on f.collectionobjectid = co.collectionobjectid left join collector c on co.collectingeventid = c.collectingeventid left join guids on c.agentid = guids.primarykey where f.fragmentid = ? and guids.tablename = 'agent' limit 1";
+  $statement = $connection->prepare($sql);
+  if ($statement) {
+     $statement->bind_param("i",$fragmentid);
+     $statement->execute();
+     $statement->bind_result($agentid,$agentuuid);
+     $statement->store_result();
+     if ($statement->fetch()) {
+        $result .= "   <dwciri:recordedBy rdf:resource=\"$baseuri$agentuuid\" />\n";
+     }
+  }
+  return $result;
+} 
+
+/* To support parseHTTPAcceptHeader() */
+class AcceptElement {
+   public $q;
+   public $position;
+   public $mediarange;
+}
+
+function parseHTTPAcceptHeader($header) {
+      $result = array();
+      $accept = array();
+      // Spit the listed mime types in the header into an array
+      foreach (preg_split('/\s*,\s*/', $header) as $pos => $mime) {
+        $element = new AcceptElement;
+        $element->position = $pos;
+        // extract the media range, and if provided, the q value.
+        if (preg_match(",^(\S+)\s*;\s*(?:q)=([0-9\.]+),i", $mime, $rangeparams)) {
+          // a q value was specified, extract the q and mime type
+          $element->mediarange = $rangeparams[1];
+          $element->q = (double)$rangeparams[2];
+        } else {
+          // If no q value was specified, the default value is q=1. 
+          $element->mediarange = $mime;
+          $element->q = 1;
+        }
+        $accept[] = $element;
+      }
+
+      // sort the array on q value and position, return the ordered list of mime types
+      usort($accept, "compareQ");
+      foreach ($accept as $sorted) {
+        $result[$sorted->mediarange] = $sorted->mediarange;
+      }
+      return $result;
+}
 
 ?>
-
