@@ -174,4 +174,19 @@ function sendheader($mimetype,$filename) {
         header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 }
 
+function writeToLog($imageFile) { 
+  global $connection;
+
+  $server = preg_replace("/[^A-Za-z0-9\.]/","",getenv('SERVER_NAME'));
+  $sql = "insert into log (server, file, resource, resourcetype, recordcount, logtime) values ($server,'image.php',?,?,1,now()) ";
+  $stmt = $connection->stmt_init();
+  if ($stmt->prepare($sql)) {
+      $mimetype = $imageFile->mimetype; 
+      $filename = $imageFile->filename;
+      $stmt->bind_param("sss",$server,$filename, $mimetype);
+      $stmt->execute();
+      $stmt->close();
+  }
+} 
+
 ?>

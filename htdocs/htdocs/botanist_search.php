@@ -46,6 +46,12 @@ if ($_GET['mode']!="")  {
 	}
 }
 
+$json = FALSE;
+if (preg_replace("/[^a-z]/","",$_GET['json'])!="") { 
+    if ($_GET['json']=='y') { 
+	   $json=TRUE; 
+    }
+}
 if (preg_replace("/[^0-9]/","",$_GET['botanistid'])!="") { 
 	$mode = "details"; 
 }
@@ -56,7 +62,9 @@ if (preg_replace("/[^0-9A-Za-z\-]/","",$_GET['botanistguid'])!="") {
 	$mode = "details"; 
 }
 
-echo pageheader('agent'); 
+if (!$json) { 
+   echo pageheader('agent'); 
+}
 
 if ($connection) { 
 	
@@ -84,7 +92,9 @@ if ($errormessage!="") {
 	echo "<strong>Error: $errormessage</strong>";
 }
 
-echo pagefooter1();
+if (!$json) { 
+   echo pagefooter1();
+}
 
 // ******* main code block ends here, supporting functions follow. *****
 
@@ -602,7 +612,7 @@ function details() {
 
 
 function search() {  
-	global $connection, $errormessage, $debug;
+	global $connection, $errormessage, $debug, $json;
 	$question = "";
 	$country = "";
 	$joins = "";
@@ -749,17 +759,23 @@ function search() {
 			$statement->execute();
 			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
-			echo "<div>\n";
-			echo $statement->num_rows . " matches to query ";
-			echo "    <span class='query'>$question</span>\n";
-			echo "</div>\n";
-			echo "<HR>\n";
-			
+            if (!$json) { 
+			   echo "<div>\n";
+			   echo $statement->num_rows . " matches to query ";
+			   echo "    <span class='query'>$question</span>\n";
+			   echo "</div>\n";
+			   echo "<HR>\n";
+			}
 			if ($statement->num_rows > 0 ) {
-				echo "<form  action='botanist_search.php' method='get'>\n";
-				echo "<input type='hidden' name='mode' value='details'>\n";
-				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
-				echo "<BR><div>\n";
+                if (!$json) { 
+				   echo "<form  action='botanist_search.php' method='get'>\n";
+				   echo "<input type='hidden' name='mode' value='details'>\n";
+				   echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
+				   echo "<BR><div>\n";
+                } else { 
+                   echo "{ \"botanists\" : [";
+                   $comma = "";
+                } 
 				$lastpair = "";
 				while ($statement->fetch()) {
 					if ($lastpair != "$agentid$fullname")  {
@@ -778,14 +794,24 @@ function search() {
                                             if ($datestype==3) { $datemod = "rec. "; } 
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; } 
-					    echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-					    echo "<BR>\n";
+                        if (!$json) { 
+					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
+					       echo "<BR>\n";
+                        } else { 
+                           if ($datemod=="") { $datemod = "life"; } 
+					       echo "$comma { \"name\" : \"$fullname\", \"type\" : \"$datemod\", \"start\" : \"$yearofbirth\", \"end\" : \"$yearofdeath\" }";
+                           $comma = ",";
+                        }
 					}
 					$lastpair = "$agentid$fullname";
 				}
-				echo "</div>\n";
-				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
-				echo "</form>\n";
+                if (!$json) { 
+				   echo "</div>\n";
+				   echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
+   				   echo "</form>\n";
+                } else { 
+                   echo "] }";
+                }
 			} else {
 				$errormessage .= "No matching results. ";
 			}
@@ -794,11 +820,15 @@ function search() {
 			echo $connection->error;
 		}
 	} else { 
-		echo "<div>\n";
+        if (!$json) { 
+	       echo "<div>\n";
+        }
 		echo "No query parameters provided.";
-		echo "</div>\n";
-		echo "<HR>\n";
-		echo stats();	
+        if (!$json) { 
+		   echo "</div>\n";
+		   echo "<HR>\n";
+  		   echo stats();	
+        }
 	} 
 	
 }
