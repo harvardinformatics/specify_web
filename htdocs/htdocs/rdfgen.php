@@ -1,4 +1,29 @@
 <?php 
+/* rdfgen.php generates TDWG DarwinCore RDF Guide compliant RDF for 
+*  Occurrence data (and botanists) from Specify-HUH.  Inherits code
+* and license from Symbiota.
+*
+* Copyright © 2014 President and Fellows of Harvard College
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of Version 2 of the GNU General Public License
+* as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Author: Paul J. Morris
+*/
 
 // TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
 $accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT']);
@@ -142,6 +167,9 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
       while ($statement->fetch()) {
          $row = "";
          $occuri = "$baseuri$uuid";
+         $scientificname = htmlspecialchars($scientificname);
+         $authorship = htmlspecialchars($authorship);
+         $collector = htmlspecialchars($collector);
          $row = "<dwc:Occurrence rdf:about=\"$occuri\" >\n";
              if ($collectionCode!='') { $collectionCode = "   <dwc:collectionCode>$collectionCode</dwc:collectionCode>\n"; } 
              if ($catalogNumber!='') { $catalogNumber = "   <dwc:catalogNumber>$catalogNumber</dwc:catalogNumber>\n"; } 
