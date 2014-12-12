@@ -1374,7 +1374,7 @@ function search() {
 		// Note: Changes to select field list need to be synchronized with query on web_quicksearch above, and bind_result below. 
 		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
-			" i.imagesetid, web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " . 
+			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " . 
 			" from collectionobject c 
 			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country ";
@@ -1464,7 +1464,7 @@ function search() {
 					if (strlen($collector) > 35) { 
 						$collector = substr($collector,0,34) . "...";
 					}
-					if (strlen($imagesetid)>0) { 
+					if ($imagesetid==0) {  // isnull(imagesetid)
 						$imageicon = "<img src='images/leaf.gif'>";
 					} else {
 						$imageicon = "";
