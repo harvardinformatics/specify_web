@@ -34,7 +34,14 @@ xmlns:dcterms="http://purl.org/dc/terms/"
     <tr>
       <td>Harvard University</td>
       <td><xsl:value-of select="dwc:collectionCode"/></td>
-      <td><xsl:value-of select="dwc:catalogNumber"/></td>
+      <td>
+         <a>
+            <xsl:attribute name="href">
+              <xsl:value-of select="dcterms:references/attribute::rdf:resource"/>
+            </xsl:attribute>
+            <xsl:value-of select="dwc:catalogNumber"/>
+         </a>
+      </td>
       <td><xsl:value-of select="dwc:continent"/></td>
       <td><xsl:value-of select="dwc:country"/></td>
       <td><xsl:value-of select="dwc:stateProvince"/></td>

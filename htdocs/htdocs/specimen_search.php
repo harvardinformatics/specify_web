@@ -265,6 +265,7 @@ function details() {
                                                         $itemList = "";
 							// Retrieve  each collection object
 							if ($debug) { echo "[$CollectionObjectID]"; }
+
 							
 							// Determine if this is a simple collection object (one collectionobject, one fragment, one preparation) or not. 
 							$objectcomplexity = array();
@@ -545,6 +546,23 @@ function details() {
                                                                         }
 									
 									// **** HUH Specific *****
+                                                                        // obtain the guid
+                                                                        $query = "select uuid from guids where tablename = 'fragment' and primarykey = ? ";
+									$statement_guid = $connection->prepare($query);
+									if ($statement_guid) { 
+										$statement_guid->bind_param("i",$fragmentid);
+										$statement_guid->execute();
+										$statement_guid->bind_result($uuid);
+										$statement_guid->store_result();
+										while ($statement_guid->fetch()) { 
+											$itemguid['GUID'] = "<a href='http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid'>http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid</a>" ;
+										}
+                                                                                $item[] = $itemguid;
+                                                                                $statement_guid->close();
+									} else { 
+										echo "Error: " . $connection->error;
+									}
+									if ($debug===true) {  echo "[$query]<BR>"; }
 									// Acronym for herbarium is stored in fragment.text1
 									$acronym = "";
 									$query = "select text1 from fragment where fragment.fragmentid = ? ";

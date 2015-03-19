@@ -169,6 +169,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
          $occuri = "$baseuri$uuid";
          $scientificname = htmlspecialchars($scientificname);
          $authorship = htmlspecialchars($authorship);
+         $locality = htmlspecialchars($locality);
          $collector = htmlspecialchars($collector);
          $row = "<dwc:Occurrence rdf:about=\"$occuri\" >\n";
              if ($collectionCode!='') { $collectionCode = "   <dwc:collectionCode>$collectionCode</dwc:collectionCode>\n"; } 
@@ -180,8 +181,9 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
              if ($authorship!='') { $authorship = "   <dwc:scientificNameAuthorship>$authorship</dwc:scientificNameAuthorship>\n"; } 
              if ($modified!='') { $modified = "   <dcterms:modified>$modified</dcterms:modified>\n"; } 
              if ($collector!='') { $collector = "   <dwc:recordedBy>$collector</dwc:recordedBy>\n"; } 
+             if ($collectionobjectid!='') { $references = "   <dcterms:references rdf:resource=\"http://kiki.huh.harvard.edu/databases/specimen_search.php?mode=details&amp;id=$collectionobjectid\" />\n"; } 
              $col = getAgentIRI($fragmentid);
-         $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified$collector$col</dwc:Occurrence>\n";
+         $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified$collector$col$references</dwc:Occurrence>\n";
          echo $row;
 	   } // end while  
       } // end if statement 
