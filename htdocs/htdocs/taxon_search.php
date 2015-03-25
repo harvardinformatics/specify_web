@@ -209,6 +209,11 @@ function details() {
                                                      $guidurn = preg_replace('/:[0-9\.]*$/','',$guidurn);
                                                      $guidurn = 'http://www.indexfungorum.org/Names/NamesRecord.asp?RecordID='.$guidurn;
                                                      $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guidurn'>$guid</a></td></tr>"; 
+                                                 } elseif (substr($guid,0,34)=='urn:lsid:marinespecies.org:taxname') { 
+                                                     $guidurn = str_replace('urn:lsid:marinespecies.org:taxname:','',$guid);
+                                                     $guidurn = preg_replace('/:[0-9\.]*$/','',$guidurn);
+                                                     $guidurn = 'http://marinespecies.org/aphia.php?p=taxdetails&id='.$guidurn;
+                                                     $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guidurn'>$guid</a></td></tr>"; 
                                                  } elseif (substr($guid,0,4)=='http') { 
                                                      $taxonresult .=  "<tr><td class='cap'>GUID</td><td class='val'><a href='$guid'>$guid</a></td></tr>"; 
                                                  } else { 
