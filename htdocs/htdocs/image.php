@@ -62,8 +62,9 @@ if (strlen($id==0)) {
 } else { 
    $imagefile = lookup_image($id);
    if ($imagefile->success===TRUE) { 
-      if ($imagefile->mimetype=="image/tiff" && ($convert=="jpeg" || $convert=="jpg")) { 
-         convert_file($imagefile,"jpeg");
+      if ($imagefile->mimetype=="image/tiff" || ($convert=="jpeg" || $convert=="jpg")) { 
+         echo "That image is currently unavailable.";
+         // convert_file($imagefile,"jpeg");
       } else { 
          fetch_file($imagefile);
       }
@@ -150,6 +151,9 @@ function fetch_file($imagefile) {
 }
 
 function return_error_image($message) { 
+   echo($message);
+}
+/*
    sendheader("image/png","errormessage.png");
    $draw = new ImagickDraw();
    $draw->setFillColor('black');
@@ -162,6 +166,7 @@ function return_error_image($message) {
    $im->setImageFormat('png');
    echo $im;
 }
+*/
 
 /**
  * Send http headers for this file, providing content type 

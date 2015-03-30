@@ -25,6 +25,7 @@
 * Author: Paul J. Morris
 */
 
+
 // TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
 $accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT']);
 $delivery = "text/html";
@@ -139,7 +140,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
                    $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
 
               } else { 
-                   $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where uuid = ? limit 1 '; 
+                   $sql = 'select distinct fragment.text1, concat(\'barcode-\',ifnull(fragment.identifier,prep.identifier)), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid left join preparation prep on fragment.preparationid = prep.preparationid  where uuid = ? limit 1 '; 
               }
 	      echo '<rdf:RDF
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
