@@ -1280,6 +1280,33 @@ function search() {
 			$wherebit .= "$and web_search.country $operator ? ";
 			$and = " and ";
 		}
+		$state = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['state']),0,59);
+		$state = str_replace("*","%",$state);
+		if ($state!="") { 
+			$hasquery = true;
+			$question .= "$and state:[$state] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$state;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$state))  { $operator = " like "; }
+			$wherebit .= "$and web_search.state $operator ? ";
+			$and = " and ";
+		}
+		$county = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['county']),0,59);
+		$county = str_replace("*","%",$county);
+		if ($county!="") { 
+                        $county = "$county%";
+			$hasquery = true;
+			$question .= "$and county:[$county] ";
+			$types .= "s";
+			$parameters[$parametercount] = &$county;
+			$parametercount++;
+			$operator = "=";
+			if (preg_match("/[%_]/",$county))  { $operator = " like "; }
+			$wherebit .= "$and web_search.county $operator ? ";
+			$and = " and ";
+		}
 		$species = substr(preg_replace("/[^A-Za-z\- _%*]/","", $_GET['sp']),0,59);
 		$species = str_replace("*","%",$species);
 		if ($species!="") { 
