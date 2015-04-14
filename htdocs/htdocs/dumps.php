@@ -137,7 +137,7 @@ if ($_POST['mode']!="")  {
 		        echo project_dwc($projectid);
 		        break;
 		    case "imagefeed":
-		        echo image_feed();
+		        echo image_feed($since);
 		        break;
 		    case "menu": 	
 		    default:
@@ -179,7 +179,7 @@ function menu() {
    $returnvalue .= "<li><a href='dumps.php?mode=barcode_dwc&barcode=00267379'>Darwin core record for a barcode (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=ames_orchid_list'>List of AMES and other orchid specimens (csv file)</a></li>";
    $returnvalue .= "<li><a href='dumps.php?mode=project&projectid=4'>List of Metropolitan Flora Project Material (csv file)</a></li>";
-   $returnvalue .= "<li><a href='dumps.php?mode=imagefeed'>NEVP Image Feed (csv file)</a></li>";
+   $returnvalue .= "<li><a href='dumps.php?mode=imagefeed'>NEVP Image Feed (csv file)</a> optional parameter <a href='dumps.php?mode=imagefeed&since=2015-01-15'>&since=2015-01-15</a> limits to records modified after the date provided.</li></li>";
    $returnvalue .= "</ul>";
    $returnvalue .= "</div>";
 
@@ -606,24 +606,26 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; } 
    $file = fopen($tempfilename,"w");
 
-   $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join IMAGE_BATCH b on s.batch_id = b.id left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where project = 'NEVP TCN' and (barcodes is null or barcodes not like '%;%') and object_type_id = 4 and collectioncode is not null ";
+   $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate, d.fragmentguid from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join IMAGE_BATCH b on s.batch_id = b.id left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where project = 'NEVP TCN' and (barcodes is null or barcodes not like '%;%') and object_type_id = 4 and collectioncode is not null ";
    if ($since!=null) { 
-      // $query .= " and timestamplastupdated > ? ";
+      $query .= " and timestamplastupdated > ? ";
    }
    if ($debug) { echo "[$query]<BR>"; } 
-        $linearray = array ("iPlantGUID","ImageURI","ThumbnailURI","collectionCode","catalogNumber","scientificName","higherGeography","locality","collectorNumber","collector","eventDate");
+        $linearray = array ("iPlantGUID","ImageURI","ThumbnailURI","collectionCode","catalogNumber","scientificName","higherGeography","locality","collectorNumber","collector","eventDate","occurrenceId");
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
-        $genus = $genus . ' %';
+        if ($since!=null) { 
+           $statement->bind_param('s',$since);
+        }
 	if ($statement) {
 		$statement->execute();
-		$statement->bind_result($imageuri, $collectioncode, $catalognumber, $scientificname, $highergeography, $locality, $collectornumber, $collector, $eventdate);
+		$statement->bind_result($imageuri, $collectioncode, $catalognumber, $scientificname, $highergeography, $locality, $collectornumber, $collector, $eventdate,$occurrenceid);
 		$statement->store_result();
 		while ($statement->fetch()) {
                     $iplantguid = str_replace('http://bovary.iplantcollaborative.org/image_service/image/','',$imageuri);
                     $iplantguid = str_replace('?rotate=guess&format=jpeg,quality,100','',$iplantguid);
                     $thumburi = str_replace('?rotate=guess&format=jpeg,quality,100',"?rotate=guess&resize=$thumbwidth&format=jpeg,quality,100",$imageuri);
-	            $linearray = array("$iplantguid","$imageuri","$thumburi","$collectioncode","$catalognumber","$scientificname","$highergeography","$locality","$collectornumber","$collector","$eventdate");
+	            $linearray = array("$iplantguid","$imageuri","$thumburi","$collectioncode","$catalognumber","$scientificname","$highergeography","$locality","$collectornumber","$collector","$eventdate","$occurrenceid");
                     fputcsv($file,$linearray);
                 } 
 	}
@@ -631,7 +633,7 @@ if ( !function_exists('sys_get_temp_dir')) {
 
         // write header and send file to browser
         header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
+        header("Content-Disposition: attachment;Filename=HUH_dwc_images.csv");
         header("Cache-Control: no-cache, must-revalidate"); 
         header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
         readfile($tempfilename);
