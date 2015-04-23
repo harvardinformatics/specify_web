@@ -3,6 +3,8 @@ include_once('specify_library.php');
 
 echo pageheader("specimen","off");
 
+echo '<script src="https://www.google.com/recaptcha/api.js" async defer></script>';
+
 ?>
 <div id="sidenav">
   <ul>
@@ -48,8 +50,11 @@ echo pageheader("specimen","off");
 
 <br>
 	<table align="center" border="0" cellpadding="3" cellspacing="0" summary="">
-	<tr><td width="10"><input type="submit" value="Submit"></td>
-	<td width="10"><input type="reset" value="Clear"></td></tr>
+	<tr>
+        <td><div class="g-recaptcha" data-sitekey="6LcDywUTAAAAAB12KBckf5NzcHPhvgUDZxB2iBXp"></div></td>
+        <td width="10"><input type="submit" value="Submit"></td>
+	<td width="10"><input type="reset" value="Clear"></td>
+        </tr>
 	</table>
 
 </form>
