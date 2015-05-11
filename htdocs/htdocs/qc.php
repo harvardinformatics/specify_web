@@ -88,6 +88,9 @@ if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="NEVP") {
 		$mode = "nevp"; 
 	}
+	if ($_GET['mode']=="items_with_no_preparation") {
+		$mode = "items_with_no_preparation"; 
+	}
 } 
 	
 echo pageheader('qc'); 
@@ -146,6 +149,9 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 			case "loan_null_role":	
 				echo loan_null_role();
 				break;
+			case "items_with_no_preparation":	
+				echo items_with_no_preparation();
+				break;
 			case "nevp":	
                                 echo "List of <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a>.<BR>";
                                 echo "List of <a href='botanist_search.php?remarks=Created+from+NEVP+Ingest'>Botanists created by NEVP Ingests</a>.<BR>";
@@ -198,6 +204,7 @@ function menu() {
    $returnvalue .= "<ul>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_items'>Items without collection objects (likely to cause loans to fail to print)</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_collectionobjects'>Collection objects without Items</a></li>";
+   $returnvalue .= "<li><a href='qc.php?mode=items_with_no_preparation'>Items without Preparations</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=unlinked_preparations'>Preparations without Items</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=collectionobjects_without_barcodes'>Collection objects without barcodes</a></li>";
    $returnvalue .= "<li><a href='qc.php?mode=list_entry_for_collectingevents_without_locality'>Collecting Events without Localities</a></li>";
@@ -473,6 +480,30 @@ function unlinked_preparations() {
 	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Preparation Barcode</th><th>Type</th></tr>";
 		while ($statement->fetch()) {
 	        $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td>$barcode</td><td>$preptype</td></tr>";
+		}
+	    $returnvalue .= "</table>";
+	}
+   return $returnvalue;
+} 
+function items_with_no_preparation() { 
+	global $connection;
+   $returnvalue = "";
+   $query = "select fragment.text1, fragment.identifier, fragment.timestampcreated, lastname " .
+   		" from fragment " .
+   		" left join agent on fragment.createdbyagentid = agent.agentid " .
+   		" where fragment.preparationid is null order by fragment.timestampcreated desc ";
+	if ($debug) { echo "[$query]<BR>"; } 
+    $returnvalue .= "<h2>Cases where an Item is not linked to a Preparation.  These are errors and need to be fixed.</h2>";
+	$statement = $connection->prepare($query);
+	if ($statement) {
+		$statement->execute();
+		$statement->bind_result($herb,$barcode, $datecreated, $createdby);
+		$statement->store_result();
+        $returnvalue .= "<h2>There are ". $statement->num_rows() . " items without a preparation.</h2>";
+	    $returnvalue .= "<table>";
+	    $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Barcode</th><th></th></tr>";
+		while ($statement->fetch()) {
+	        $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td>$herb-$barcode</td><td></td></tr>";
 		}
 	    $returnvalue .= "</table>";
 	}

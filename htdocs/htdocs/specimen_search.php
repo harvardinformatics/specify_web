@@ -1062,13 +1062,18 @@ function details() {
 							}
 							echo "</table></td>\n";
 							echo "<td><table class='images'>\n";
-							foreach ($firstimage as $value) { 
-							      if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-							}
-							foreach ($images as $value) { 
-							      if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-							}
-							echo "</table></td></tr>\n";
+							   foreach ($firstimage as $value) { 
+						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) { 
+							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+                                                              }
+							   }
+							   foreach ($images as $value) { 
+						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) { 
+							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+                                                              }
+						 	   }
+							echo "</table></td>";
+                                                        echo "</tr>\n";
 							if (trim($specimenRemarks!="")) { 
 								echo "<tr><td colspan='2'><table class='remarks'>";
 								echo "<td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
