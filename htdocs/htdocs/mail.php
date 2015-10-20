@@ -3,7 +3,7 @@
 include_once("ReCaptcha.php");
 
 $add_correct_addressee = "gandhi@oeb.harvard.edu";
-$comment_addressee = "cms-comments@oeb.harvard.edu";
+$comment_addressee = "cms-comments@oeb.harvard.edu,huh-requests@oeb.harvard.edu";
 $smtp_address = "smtp.lsdiv.harvard.edu";
 $init_address = "huh_it@oeb.harvard.edu";
 

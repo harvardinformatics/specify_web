@@ -1486,8 +1486,10 @@ function search() {
 			
 			echo "<div>\n";
 			$count = $statement->num_rows;
+                        $notice = "";
+                        if ($count==0) { $notice = "PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. If your search here does not return any results, please <a href='/databases/comment.html'>contact us</a>."; }
 			if ($count==1) { $s = ""; } else { $s = "es"; }
-			echo "$count match$s to query $specimen_count <BR>";
+			echo "$count match$s to query $specimen_count $notice <BR>";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";

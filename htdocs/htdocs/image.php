@@ -63,7 +63,7 @@ if (strlen($id==0)) {
    $imagefile = lookup_image($id);
    if ($imagefile->success===TRUE) { 
       if ($imagefile->mimetype=="image/tiff" || ($convert=="jpeg" || $convert=="jpg")) { 
-         echo "That image is currently unavailable.";
+         echo "The Harvard University Herbaria are working on improving specimen image availability for our web-based database and actively continue to digitize and present JPEG files. We are converting previously available high resolution TIFF files into more accessible JPEG files better suited for web presentation, and they will become available as they are processed. We apologize for any inconvenience. If you require a file sooner, or require a high resolution TIFF file, please contact us at huh-requests@oeb.harvard.edu. Thank you.";
          // convert_file($imagefile,"jpeg");
       } else { 
          fetch_file($imagefile);
