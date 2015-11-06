@@ -28,7 +28,7 @@ echo pageheader("specimen","off");
 		<div id="main_text">
            <h3>Index of Specimens</h3>
 
-<p>Of the over 5 million specimens in the Harvard University Herbaria, 
+<!-- <p>Of the over 5 million specimens in the Harvard University Herbaria, 
 <?php 
   $result = " over 350,000 ";
   include_once("connection_library.php");
@@ -51,7 +51,15 @@ echo pageheader("specimen","off");
 ?>
 have records in the <a href="http://www.specifysoftware.org">Specify 6</a> database system
 of which about 100,000 correspond to type specimens of vascular plants and mosses.  Also included are fungi, lichens, bryophytes, and algae. </p>
-<p>Please report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p>
+<p>Please report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p> Section Edited Out by AMC 10/21/15 -->
+
+<p>
+PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. Of the over 5 million specimens in the Harvard University Herbaria, 656,020 have records in the Specify 6 database system of which about 100,000 correspond to type specimens of vascular plants and mosses. Also included are fungi, lichens, bryophytes, and algae. If your search here does not return any results, please contact us through our <a href='comment.html'> comments and questions form</a>.
+</p>
+<p>
+When you observe any issues with the data, please report them through our <a href='add_correct.html'>additions and corrections form</a>.
+</p>
+
 <h1>Databases</h1>
 <form action="specimen_search.php" method="GET">
    <input type="hidden" name="start" value="1">

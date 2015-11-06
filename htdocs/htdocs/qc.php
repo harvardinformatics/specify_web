@@ -155,7 +155,8 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_
 			case "nevp":	
                                 echo "List of <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a>.<BR>";
                                 echo "List of <a href='botanist_search.php?remarks=Created+from+NEVP+Ingest'>Botanists created by NEVP Ingests</a>.<BR>";
-				echo nevp_records_without_images();
+			        $batch = preg_replace("/[^A-Za-z\-0-9]/","",$_GET['batch']);
+				echo nevp_records_without_images($batch);
 				break;
 			case "person_week_records":
                                 $person = 'Lewis-Gentry';
@@ -715,19 +716,35 @@ function weekly_rate($type='created') {
 }
 
 
-function nevp_records_without_images() { 
+function nevp_records_without_images($batch = "") { 
     global $connection,$debug;
     $returnvalue = "";
+    if ($batch!="") { 
+       $wherebit = " and internalremarks like ? ";
+    }
     $sql = "
        select c.internalremarks, f.identifier, c.collectionobjectid from collectionobject c
        left join IMAGE_SET_collectionobject i on c.collectionobjectid = i.collectionobjectid 
        left join fragment f on c.collectionobjectid = f.collectionobjectid 
-       where internalremarks like 'NEVP Ingest%' and i.imagesetid is null
+       where internalremarks like 'NEVP Ingest%' and i.imagesetid is null $wherebit
+       order by c.internalremarks
     ";
     if ($debug) { echo "[$sql]<BR>"; } 
     $statement = $connection->prepare($sql);
     if ($statement) { 
          $returnvalue .= "The following collection object records were created by the NEVP ingest, but lack an image.<BR>";
+         $returnvalue .= "<ul>";
+         $returnvalue .= "<li><a href='qc.php?mode=NEVP&batch=2013-'>Records without images in 2013 batches</a></li>";
+         $returnvalue .= "<li><a href='qc.php?mode=NEVP&batch=2014-'>Records without images in 2014 batches</a></li>";
+         $returnvalue .= "<li><a href='qc.php?mode=NEVP&batch=2015-'>Records without images in 2015 batches</a></li>";
+         $returnvalue .= "<li><a href='qc.php?mode=NEVP&batch=2016-'>Records without images in 2016 batches</a></li>";
+         $returnvalue .= "<li><a href='qc.php?mode=NEVP&batch=2017-'>Records without images in 2017 batches</a></li>";
+         $returnvalue .= "</ul>";
+         if ($batch!="") { 
+            $batch = '%' . $batch . '%';
+            if ($debug) { echo "[$batch]<BR>"; } 
+            $statement->bind_param('s',$batch);
+         }
          $statement->execute();
          $statement->bind_result($remark, $barcode, $collectionobjectid);
          $statement->store_result();
