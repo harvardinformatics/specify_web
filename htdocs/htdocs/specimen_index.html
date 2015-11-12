@@ -54,7 +54,28 @@ of which about 100,000 correspond to type specimens of vascular plants and mosse
 <p>Please report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p> Section Edited Out by AMC 10/21/15 -->
 
 <p>
-PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. Of the over 5 million specimens in the Harvard University Herbaria, 656,020 have records in the Specify 6 database system of which about 100,000 correspond to type specimens of vascular plants and mosses. Also included are fungi, lichens, bryophytes, and algae. If your search here does not return any results, please contact us through our <a href='comment.html'> comments and questions form</a>.
+PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. Of the over 5 million specimens in the Harvard University Herbaria, 
+<?php 
+  $result = " over 675,000 ";
+  include_once("connection_library.php");
+  $connection = "";
+  $connection = specify_connect();
+  if ($connection) { 
+    $sql = "select count(*) from fragment";
+    $stmt = $connection->stmt_init();
+    if ($stmt->prepare($sql)) { 
+       $stmt->execute();
+       $stmt->bind_result($count);
+       $stmt->execute();
+       if ($stmt->fetch()) { 
+          $result = " ".number_format($count)." ";
+       }
+       $stmt->close();
+    } 
+  }
+  echo $result;
+?>
+have records in the Specify 6 database system of which about 100,000 correspond to type specimens of vascular plants and mosses. Also included are fungi, lichens, bryophytes, and algae. If your search here does not return any results, please contact us through our <a href='comment.html'> comments and questions form</a>.
 </p>
 <p>
 When you observe any issues with the data, please report them through our <a href='add_correct.html'>additions and corrections form</a>.
