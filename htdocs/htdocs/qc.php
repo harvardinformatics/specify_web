@@ -432,26 +432,29 @@ function unlinked_collectionobjects() {
 function unlinked_items() {
         global $connection;
    $returnvalue = "";
-   $query = " select fragment.identifier, preparation.identifier, loan.loannumber, " .
-            "        fragment.timestampcreated, agent.lastname " . 
+   $query = " select distinct fragment.identifier, preparation.identifier, loan.loannumber, " .
+            "        fragment.timestampcreated, agent.lastname, taxon.fullname, fragment.text1 " . 
             " from fragment left join preparation on fragment.preparationid = preparation.preparationid "  .
             "     left join loanpreparation on preparation.preparationid = loanpreparation.preparationid ". 
             "     left join loan on loanpreparation.loanid = loan.loanid ". 
    	    "     left join agent on fragment.createdbyagentid = agent.agentid " .
+   	    "     left join determination on fragment.fragmentid = determination.fragmentid " .
+   	    "     left join taxon on determination.taxonid = taxon.taxonid " .
             "  where fragment.collectionobjectid is null " . 
+   	    "     and (determination.taxonid is null or determination.iscurrent = 1) " .
             "  order by loan.loannumber desc, fragment.identifier asc ";
         if ($debug) { echo "[$query]<BR>"; }
     $returnvalue .= "<h2>Cases where an Item is not linked to a CollectionObject.  All of these are errors and need to be corrected.  This is a likely cause of loan paperwork failing to print, so loan numbers are included when preparations are involved in loans.</h2>";
         $statement = $connection->prepare($query);
         if ($statement) {
                 $statement->execute();
-                $statement->bind_result($fragbarcode,$prepbarcode,$loannumber,$datecreated,$createdby);
+                $statement->bind_result($fragbarcode,$prepbarcode,$loannumber,$datecreated,$createdby,$fullname,$herb);
                 $statement->store_result();
         $returnvalue .= "<h2>There are ". $statement->num_rows() . " orphan collection objects.</h2>";
             $returnvalue .= "<table>";
-            $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Barcode</th><th>Loan Number</th></tr>";
+            $returnvalue .= "<tr><th>Record Created By</th><th>Date Created</th><th>Barcode</th><th>Loan Number</th><th>Current Det.</th></tr>";
                 while ($statement->fetch()) {
-                $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td><a href='specimen_search.php?mode=details&barcode=$fragbarcode'>$fragbarcode $prepbarcode</a></td><td>$loannumber</td></tr>";
+                $returnvalue .= "<tr><td>$createdby</td><td>$datecreated</td><td>$herb <a href='specimen_search.php?mode=details&barcode=$fragbarcode'>$fragbarcode $prepbarcode</a></td><td>$loannumber</td><td>$fullname</td></tr>";
                 }
             $returnvalue .= "</table>";
         }
