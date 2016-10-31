@@ -25,7 +25,6 @@
 * Author: Paul J. Morris
 */
 
-
 // TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
 $accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT']);
 $delivery = "text/html";
@@ -95,9 +94,10 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
    // dump only from command line call.
 
 
-   echo '<?xml version="1.0"?>
+   echo '<?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE rdf:RDF [
   <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+  <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 ]>
 ';
 
@@ -210,8 +210,13 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, state from guids left join agent on agent.agentid = guids.primarykey where tablename = 'agent' and (agenttype > 0 or agenttype is null) and uuid = ? order by agenttype asc ";
    } else { 
        if ($request_name!='') { 
+           if ($debug) { echo "<!-- [$request_name] -->"; }
            echo '<?xml-stylesheet type="text/xsl" href="botaniststyle.xsl"?>'."\n";
-           $sql = "select distinct uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey left join agentvariant on agent.agentid = agentvariant.agentid where tablename = 'agent' and agenttype > 0 and agentvariant.name = ? order by agenttype asc ";
+           if (strpos($request_name,'%')!==false && strlen(trim($request_name))>2) { 
+              $sql = "select distinct uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey left join agentvariant on agent.agentid = agentvariant.agentid where tablename = 'agent' and agenttype > 0 and agentvariant.name like ? order by agenttype asc ";
+           } else { 
+              $sql = "select distinct uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey left join agentvariant on agent.agentid = agentvariant.agentid where tablename = 'agent' and agenttype > 0 and agentvariant.name = ? order by agenttype asc ";
+           }
        } else { 
            $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, '' as state from agent left join guids on agent.agentid = guids.primarykey where tablename = 'agent' and agenttype > 0 order by agenttype asc ";
        }
