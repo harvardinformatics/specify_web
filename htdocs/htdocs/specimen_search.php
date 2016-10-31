@@ -1350,7 +1350,7 @@ function search() {
 			$wherebit .= "$and web_search.infraspecific $operator ? ";
 			$and = " and ";
 		}
-		$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*]/","", $_GET['author']),0,59);
+		$author = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*]/","", $_GET['author']),0,59);
 		$author = str_replace("*","%",$author);
 		if ($author!="") { 
 			$hasquery = true;
@@ -1363,7 +1363,7 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,\]\[]/","", urldecode($_GET['cltr'])),0,59);
+		$collector = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,\]\[]/","", urldecode($_GET['cltr'])),0,59);
 		$collector = str_replace("*","%",$collector);
 		if ($collector!="") { 
 			$hasquery = true;
@@ -1560,7 +1560,7 @@ function search() {
 							if ($collector != "") {  
 					$statement->close();
 					// Look for possibly related collectors
-					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid) " .
+					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid), collector.agentid " .
 						" from collector left join agent on collector.agentid = agent.agentid " .
 						" left join agentvariant on agent.agentid = agentvariant.agentid " .
                                                 " where agentvariant.agentid in " .
@@ -1589,7 +1589,7 @@ function search() {
 						$array[] = $par;
 						call_user_func_array(array($statement, 'bind_param'),$array);
 						$statement->execute();
-						$statement->bind_result($collector, $count);
+						$statement->bind_result($collector, $count, $collectornumber);
 						$statement->store_result();
 						if ($statement->num_rows > 0 ) {
                                                         if ($errormessage!="") { 
