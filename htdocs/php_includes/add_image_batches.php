@@ -44,7 +44,10 @@ define('THUMBNAIL_WIDTH',250);
 $PREFIXPATTERN = "^(GH|AMES|ECON|FH|A|NEBC)";  // note, contains () affects array index in $matches
 $BARCODEPATTERN = "([0-9]{8})";  // note, contains () affects array index in $matches
 $EXTENSIONPATTERN = "\.(TIFF|tiff|tif|TIF|JPG|jpg|JPEG|JPG|DNG|dng)$"; // note, contains () affects array index in $matches
-$SUFFIXPATTERN = "(_[a-z]){0,1}"; // note, contains () affects array index in $matches
+$SUFFIXPATTERN = "(_{0,1}[a-z]){0,1}"; // note, contains () affects array index in $matches
+
+// Example of a file to skip.
+$skip['GH00053156.tif']=1;  
 
 /*  *************  End Configuration  *********** */
 
@@ -75,13 +78,14 @@ if ($connection) {
  * @param path Path below base (below mount point parent).
  */
 function checkDirectory($base, $path)  {
-global $debug;
+global $debug, $skip;
   
    if (!(preg_match("/\/$/",$path)==1)) { 
        $path = $path . '/';
    }
  
    if ($debug) { echo "PATH: $path\n"; } 
+   echo "PATH: $path\n"; 
 
    @$files = scandir($base.$path);
    for ($i=0; $i<count($files); $i++) { 
@@ -89,7 +93,15 @@ global $debug;
         if (is_dir($base.$path . $files[$i])) { 
           checkDirectory($base, $path . $files[$i]);
         } else { 
-          checkFile($base, $path, $files[$i]);
+          if (!array_key_exists($files[$i],$skip)) { 
+              if (filesize($base.$path.$files[$i])>0 ) { 
+                  checkFile($base, $path, $files[$i]);
+              } else { 
+                  echo "Error: file with size of zero: " . $files[$i] . "\n"; 
+              }
+          } else {  
+             echo "Skipping: " . $files[$i] . "\n"; 
+          }
         }
      }
    } 
@@ -193,6 +205,9 @@ global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EX
               if (preg_match("/^half_/",$filename)) { 
                   $objecttypeid = 3;
               }
+              if (preg_match("/^full_/",$filename)) { 
+                  $objecttypeid = 4;
+              }
            } 
            $objectid = findOrCreateObject($setid, $objecttypeid, $imagelocalfileid,$barcode,$path,$filename);
 
@@ -208,11 +223,15 @@ global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EX
 
            if ($generate_jpeg) { 
                // if requested, create a fullsize jpeg, create an image object record, and link it to the image_set 
+              $fullfileid = createJpeg($base,$path,$filename,$fragmentid,$barcode);
+              if ($fullfileid!==FALSE) { 
+                 $fullfilename = preg_replace("/(TIFF|TIF|tiff|tif)$/",'jpg',$filename);
+                 $objectid = findOrCreateObject($setid, 4, $fullfileid,$barcode,$path."full/","full_$fullfilename");
+              }
 
            } else { 
                // otherwise create an image object record for a generated on the fly jpeg and link it to the image_set 
                $objectid = findOrCreateObject($setid, 4, $imagelocalfileid,$barcode,$path,$filename,"&convert=jpeg");
-
            } 
 
            // make sure there is a link between the image_set and the collection object.
@@ -253,7 +272,7 @@ global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EX
 }
 
 /**
- * If the provided file is a tiff file, create a thumbnail image and
+ * If the provided file is a tiff or jpeg file, create a thumbnail image and
  * a record in IMAGE_LOCAL_FILE for the thumbnail.
  * Thumbnail will be named thumb_{filename}.jpg, and placed into 
  * path/thumbs/.  For example from batch/A123456789.tif, a thumbnail
@@ -271,12 +290,16 @@ global $debug, $connection, $PREFIXPATTERN, $BARCODEPATTERN, $SUFFIXPATTERN, $EX
 function createThumbnail($base,$path,$filename,$fragmentid,$barcode) { 
    global $debug, $connection;
    $result = FALSE;
-   if (preg_match("/(TIFF|TIF|tiff|tif)$/",$filename)) { 
-      // only create thumbnails for tiff files
+   if (preg_match("/(TIFF|TIF|tiff|tif)$/",$filename) || (preg_match("/(JPEG|JPG|jpeg|jpg)$/",$filename) && strpos($path,'thumbs')===FALSE && strpos($filename,'thumb')===FALSE)) { 
+      // only create thumbnails for tiff files (or jpegs that aren't thumbnails
       if (!file_exists("$base$path/thumbs")) { 
           mkdir("$base$path/thumbs");
       }
-      $thumbfilename = preg_replace("/(TIFF|TIF|tiff|tif)$/",'jpg',$filename);
+      if (preg_match("/(TIFF|TIF|tiff|tif)$/",$filename)) { 
+         $thumbfilename = preg_replace("/(TIFF|TIF|tiff|tif)$/",'jpg',$filename);
+      } else if (preg_match("/(JPEG|JPG|jpeg|jpg)$/",$filename)) { 
+         $thumbfilename = preg_replace("/(JPEG|JPG|jpeg)$/",'jpg',$filename);
+      }
       if (!file_exists("$base$path/thumbs/thumb_$thumbfilename")) { 
          //? try to obtain the thumbnail from the exif
          // $thumb = exif_thumbnail("$base$path$filename");
@@ -292,7 +315,7 @@ function createThumbnail($base,$path,$filename,$fragmentid,$barcode) {
       if (file_exists("$base$path/thumbs/thumb_$thumbfilename")) { 
          // check to see if the thumbnail is databased
          $sql = "select id from IMAGE_LOCAL_FILE where path = ? and filename = ? and fragmentid = ? ";
-         if ($debug) { echo "$sql [$tpath][$tfile][$fragementid]\n"; } 
+         if ($debug) { echo "$sql [$tpath][$tfile][$fragmentid]\n"; } 
          $stmt = $connection->stmt_init();
          $stmt->prepare($sql);
          $stmt->bind_param('ssi',$tpath,$tfile,$fragmentid);
@@ -366,7 +389,7 @@ function createJpeg($base,$path,$filename,$fragmentid,$barcode) {
          $tfile = "full_$jpegfilename";
          // check to see if the thumbnail is databased
          $sql = "select id from IMAGE_LOCAL_FILE where path = ? and filename = ? and fragmentid = ? ";
-         if ($debug) { echo "$sql [$tpath][$tfile][$fragementid]\n"; } 
+         if ($debug) { echo "$sql [$tpath][$tfile][$fragmentid]\n"; } 
          $stmt = $connection->stmt_init();
          $stmt->prepare($sql);
          $stmt->bind_param('ssi',$tpath,$tfile,$fragmentid);
@@ -379,11 +402,11 @@ function createJpeg($base,$path,$filename,$fragmentid,$barcode) {
                $result = $ifid;
             } else { 
                $insert = "insert into IMAGE_LOCAL_FILE (fragmentid,base,path,filename,barcode,extension,mimetype) values (?,?,?,?,?,?,?)";
-               if ($debug) { echo "$insert [$fragmentid][$tpath][$tfile][$barcode][$extension][$mimetype]\n"; } 
                $statement2 = $connection->stmt_init();
                $statement2->prepare($insert);
                $extension = "jpg";
                $mimetype = "image/jpeg";
+               if ($debug) { echo "$insert [$fragmentid][$tpath][$tfile][$barcode][$extension][$mimetype]\n"; } 
                $statement2->bind_param("issssss",$fragmentid,$base,$tpath,$tfile,$barcode,$extension,$mimetype);
                if ($statement2->execute()) { 
                   if ($statement2->affected_rows==1) { 
@@ -584,7 +607,7 @@ function findOrCreateObject($imagesetid,$objecttypeid, $imagelocalfileid, $barco
               }
               // check the exif of the file to find filesize and other parameters
               $exif = exif_read_data($fullpath.$filename,"FILE");
-              if ($exif!==FALSE) { 
+              if ($exif!==FALSE && array_key_exists('ImageWidth',$exif)) { 
                  $timestamp = $exif['DateTime'];
                  $filesize = $exif['FileSize'];
                  if (array_key_exists('MimeType',$exif)) { 
