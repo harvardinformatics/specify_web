@@ -1013,7 +1013,7 @@ function details() {
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>$typeStatus</td></tr>"; }
 							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
 							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$fieldnumber</td></tr>"; } 
-							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Station number</td><td class='val'>$stationfieldnumber</td></tr>"; } 
+							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$stationfieldnumber</td></tr>"; } 
 							if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>$country</td></tr>"; } 
 							if (trim($state!=""))   { echo "<tr><td class='cap'>State</td><td class='val'>$state</td></tr>"; }
 							echo "<tr><td class='cap'>Geography</td><td class='val'>$geography</td></tr>";
@@ -1129,7 +1129,7 @@ function search() {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
-		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, i.imagesetid, c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
 			" where match (searchable) against (?) limit 100";
@@ -1434,19 +1434,18 @@ function search() {
 			$question = "No search criteria provided.";
 		}
 		// Note: Changes to select field list need to be synchronized with query on web_quicksearch above, and bind_result below. 
-		$query = "select distinct c.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
+
+		$query = "select distinct web_search.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
 			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " . 
-			" from collectionobject c 
-			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
+			" from web_search " .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country ";
-		$ctquery = "select count(distinct web_search.barcode)" .
-			" from collectionobject c 
-			left join web_search on c.collectionobjectid = web_search.collectionobjectid" .
-			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit  ";
+
+
+
 	} 
 	if ($debug===true  && $hasquery===true) {
-		echo "[$query][$ctquery]<BR>\n";
+		echo "[$query]<BR>\n";
 	}
 	
 	// ***** Step 2: Run the query and assemble the results ***********
@@ -1456,39 +1455,23 @@ function search() {
 			$redactlocality = false; 
 		}
 		$statement = $connection->prepare($query);
-		$ctstatement = $connection->prepare($ctquery);
 		if ($statement) { 
 			if ($quick!="") { 
 				$statement->bind_param("s",$quick);
-				$ctstatement->bind_param("s",$quick);
 			} else { 
 				$array = Array();
 				$array[] = $types;
 				foreach($parameters as $par)
 				   $array[] = $par;
-				$ctarray = Array();
-				$ctarray[] = $types;
-				foreach($parameters as $ctpar)
-				   $ctarray[] = $ctpar;
                 		if (substr(phpversion(),0,4)=="5.3.") {
 		                	// work around for bug in __call, or is it? 
                    			// http://bugs.php.net/bug.php?id=50394
                    			// http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
                    			call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
-                   			call_user_func_array(array($ctstatement, 'bind_param'),make_values_referenced($ctarray));
                 		} else {
                    			call_user_func_array(array($statement, 'bind_param'),$array);
-                   			call_user_func_array(array($ctstatement, 'bind_param'),$ctarray);
                 		}
 			}
-                        $ctstatement->execute();
-                        $ctstatement->bind_result($sp_count);
-                        $ctstatement->store_result();
-                        $specimen_count = "";
-                        while ($ctstatement->fetch()) { 
-                           $specimen_count = " finding $sp_count distinct specimens ";
-                        } 
-                        $ctstatement->close();
 			$statement->execute();
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above. 
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
@@ -1501,7 +1484,7 @@ function search() {
                         $notice = "";
                         if ($count==0) { $notice = "<b>PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. If your search here does not return any results, please <a href='/databases/comment.html'>contact us</a>.</b>"; }
 			if ($count==1) { $s = ""; } else { $s = "es"; }
-			echo "$count match$s to query $specimen_count $notice <BR>";
+			echo "$count records found. $notice <BR>";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
@@ -1557,7 +1540,7 @@ function search() {
 				$errormessage .= "No matching results. ";
 			}
 	            // ***** Step 3: Optionally look for alternate possible search terms ***********
-							if ($collector != "") {  
+		if (false) { //					if ($collector != "") {  
 					$statement->close();
 					// Look for possibly related collectors
 					$query = " select  trim(ifnull(agentvariant.name,'')), count(collector.collectingeventid), collector.agentid " .
@@ -1607,7 +1590,7 @@ function search() {
 					}
 					
 				}
-				if ($host!= "" && preg_match('/[%_]/',$host)==0) {  
+if (false) { //				if ($host!= "" && preg_match('/[%_]/',$host)==0) {  
 					// Look for possibly related hosts
 					$query = " select text1 as host, count(collectionobjectid) " .
 						" from collectionobject  " .
@@ -1647,7 +1630,7 @@ function search() {
 					}
 					
 				}
-				if ($substrate!= "" && preg_match('/[%_]/',$substrate)==0) {  
+if (false) { //				if ($substrate!= "" && preg_match('/[%_]/',$substrate)==0) {  
 					// Look for possibly related substrates
 					$query = " select text2 as substrate, count(collectionobjectid) " .
 						" from collectionobject  " .
@@ -1687,7 +1670,7 @@ function search() {
 					}
 					
 				}
-                if ($habitat!= "" && preg_match('/[%_]/',$habitat)==0) {  
+if (false) { //                if ($habitat!= "" && preg_match('/[%_]/',$habitat)==0) {  
 					// Look for possibly related habitats
 					$query = " select habitat, count(collectionobjectid) " .
 						" from web_search  " .
