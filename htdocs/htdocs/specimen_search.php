@@ -376,7 +376,7 @@ function details() {
 								" left join REPOSITORY r on o.repository_id = r.id " .
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
 								" where c.collectionobjectid = ? and hidden_flag = 0 and active_flag = 1 " .
-								" order by o.image_set_id, object_type_id desc ";
+								" order by o.image_set_id, right(o.object_name,5), object_type_id desc ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
 							if ($statement_img) { 
