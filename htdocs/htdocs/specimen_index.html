@@ -16,6 +16,7 @@ echo pageheader("specimen","off");
   <hr />   
     <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+<!-- <li><a href='http://kiki.huh.harvard.edu/databases/diatoms/'>Diatoms Database</a></li> -->
     <li><a href="add_correct.html">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
     
@@ -28,54 +29,8 @@ echo pageheader("specimen","off");
 		<div id="main_text">
            <h3>Index of Specimens</h3>
 
-<!-- <p>Of the over 5 million specimens in the Harvard University Herbaria, 
-<?php 
-  $result = " over 350,000 ";
-  include_once("connection_library.php");
-  $connection = "";
-  $connection = specify_connect();
-  if ($connection) { 
-    $sql = "select count(*) from fragment";
-    $stmt = $connection->stmt_init();
-    if ($stmt->prepare($sql)) { 
-       $stmt->execute();
-       $stmt->bind_result($count);
-       $stmt->execute();
-       if ($stmt->fetch()) { 
-          $result = " ".number_format($count)." ";
-       }
-       $stmt->close();
-    } 
-  }
-  echo $result;
-?>
-have records in the <a href="http://www.specifysoftware.org">Specify 6</a> database system
-of which about 100,000 correspond to type specimens of vascular plants and mosses.  Also included are fungi, lichens, bryophytes, and algae. </p>
-<p>Please report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p> Section Edited Out by AMC 10/21/15 -->
-
 <p>
-PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. Of the over 5 million specimens in the Harvard University Herbaria, 
-<?php 
-  $result = " over 675,000 ";
-  include_once("connection_library.php");
-  $connection = "";
-  $connection = specify_connect();
-  if ($connection) { 
-    $sql = "select count(*) from fragment";
-    $stmt = $connection->stmt_init();
-    if ($stmt->prepare($sql)) { 
-       $stmt->execute();
-       $stmt->bind_result($count);
-       $stmt->execute();
-       if ($stmt->fetch()) { 
-          $result = " ".number_format($count)." ";
-       }
-       $stmt->close();
-    } 
-  }
-  echo $result;
-?>
-have records in the Specify 6 database system of which about 100,000 correspond to type specimens of vascular plants and mosses. Also included are fungi, lichens, bryophytes, and algae. If your search here does not return any results, please contact us through our <a href='comment.html'> comments and questions form</a>.
+PLEASE NOTE: There are over 5 million specimens at the Harvard Herbaria, but only a small portion are cataloged and searchable online.  If you need assistance using our physical collections or have difficulty with our website, please contact us through our <a href='comment.html'> comments and questions form</a>.
 </p>
 <p>
 When you observe any issues with the data, please report them through our <a href='add_correct.html'>additions and corrections form</a>.
@@ -152,25 +107,27 @@ When you observe any issues with the data, please report them through our <a hre
     			<td><a href="specimen_search.php?browsemode=countries">Country</a></td>
     			<td colspan="2"><select name="country" size=1>
                                 <option value="">any</option>
+
 <?php
 
   @include_once("connection_library.php");
   //$query = "select name from geography where rankid = 200 order by name "; 
   //$query = "select country, count(*) from web_search where country is not null group by country order by country "; 
-  $query = "select country, count(*) from dwc_search where country is not null group by country order by country "; 
+  $query = "select distinct country from dwc_search where country is not null order by country "; 
   @$connection = specify_connect();
   if ($connection) {
 		@$statement = $connection->prepare($query);
 		if ($statement) {
 			@$statement->execute();
-			@$statement->bind_result($country, $ct);
+			@$statement->bind_result($country);
 			@$statement->store_result();
 			while (@$statement->fetch()) {
-                echo "<option value = '$country'>$country ($ct)</option>\n";
+                echo "<option value = '$country'>$country</option>\n";
             }
         }
   } 
 ?>
+
 
                     </select></td>
     			<td>Year Collected</td>
