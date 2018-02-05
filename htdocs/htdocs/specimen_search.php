@@ -1125,18 +1125,21 @@ function search() {
 	
 	// ***** Step 1: Obtain query parameters and assemble query ***********
 	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
+	$start = substr(preg_replace("/\D/", "", $_GET['start']), 0, 5);
+	if ($start == "")
+		$start = "0";
 	if ($quick!="") { 
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
-		$question .= "Quick Search :[$quick] (limit 100 records)<BR>";
+		$question .= "Quick Search :[$quick] <BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below. 
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where match (searchable) against (?) limit 100";
+			" where match (searchable) against (?) limit $start, 100";
 		$ctquery = "select count(distinct c.barcode) " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where match (searchable) against (?) limit 100 ";
+			" where match (searchable) against (?) limit $start, 100 ";
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
@@ -1376,7 +1379,7 @@ function search() {
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
-		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*]/","", $_GET['collectornumber']),0,59);
+		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*\-]/","", $_GET['collectornumber']),0,59);
 		$collectornumber = str_replace("*","%",$collectornumber);
 		if ($collectornumber!="") { 
 			$hasquery = true;
@@ -1484,17 +1487,42 @@ function search() {
                         $notice = "";
                         if ($count==0) { $notice = "<b>PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. If your search here does not return any results, please <a href='/databases/comment.html'>contact us</a>.</b>"; }
 			if ($count==1) { $s = ""; } else { $s = "es"; }
-			echo "$count records found. $notice <BR>";
+			//already limiting to 100: echo "$count records found. $notice <BR>";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
 			
 			if ($count > 0 ) {
+
 				echo "<div id='image-key'><img height='16' alt='has image' src='images/leaf.gif' /> = with images</div>\n";
 				echo "<form  action='specimen_search.php' method='get'>\n";
 				echo "<input type='hidden' name='mode' value='details'>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
-				echo "<BR><div>\n";
+
+				$paging_links = "";
+                                parse_str($_SERVER['QUERY_STRING'], $query_string);
+                                if ($start > 0) {
+                                        $prevstart = $start - 100;
+                                        if ($prevstart < 0)
+                                                $prevstart = 0;
+                                                $query_string['start'] = $prevstart;
+                                                $uri_prev = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+                                                $query_string['start'] = 0;                       
+                                                $uri_first = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+
+
+                                        $paging_links .= "<a href='$uri_first'>&lt;&lt;</a>&nbsp;&nbsp;<a href='$uri_prev'>&lt; Previous</a> ";
+                                }
+                                if ($count > 99) {
+                                        $nextstart = $start + 100;
+                                        $query_string['start'] = $nextstart;
+                                        $uri_next = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+                                        $paging_links .= "| <a href='$uri_next'>Next page &gt;</a>";
+                                }
+                                $paging_links .= "<br>";
+				
+				echo "<br><div>\n";
+				echo $paging_links;
 				$oldfamilylink = "";
                                 $comma = "";
                                 $CollectionObjectIDs = "";
@@ -1527,6 +1555,9 @@ function search() {
 					echo "<BR>\n";
 				}
 				echo "</div>\n";
+				
+				echo $paging_links;
+				
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "</form>\n";
 				$dumpform = "<form  action='dumps.php' method='post'>\n";
