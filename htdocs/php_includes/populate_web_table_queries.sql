@@ -563,7 +563,7 @@ create table if not exists temp_dwc_search (
   institution varchar(25) default 'Harvard University',
   collectioncode varchar(5),
   collectionid varchar(50),
-  catalognumber varchar(32) not null unique,
+  catalognumber varchar(32) not null,
   catalognumbernumeric int,
   dc_type varchar(30) default 'PhysicalObject',
   basisofrecord varchar(30) default 'PreservedSpecimen',
@@ -610,7 +610,7 @@ create table if not exists temp_dwc_search (
   informationwitheld varchar(255),
   datageneralizations varchar(255),
   othercatalognumbers text,
-  fragmentguid char(100),
+  fragmentguid char(100) not null unique,
   timestamplastupdated datetime,
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
@@ -629,10 +629,13 @@ create table if not exists temp_dwc_search (
 
 delete from temp_dwc_search;
 
--- ignore will cause duplicate catalognumbers to be skipped.
+-- ignore will cause duplicate guids to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
 insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+
+-- add barcoded preparations
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, fragment.text1, concat('barcode-', p.identifier), p.identifier, p.identifier, prepmethod, uuid, ifnull(fragment.timestampmodified,fragment.timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey left join preparation p on fragment.preparationid = p.preparationid where p.identifier is not null and guids.tablename = 'fragment';
 
 -- make the fragment guid resolvable
 -- 10 sec
