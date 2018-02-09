@@ -278,6 +278,7 @@ function details() {
 								$statement_cmp->bind_result($fragmentcount,$preparationcount );
 								$statement_cmp->store_result();
 								while ($statement_cmp->fetch()) { 
+									$showBarcodeLink = false;
 									if ($fragmentcount==1 && $preparationcount==1) { 
 										//$objectcomplexity = "<tr><td class='cap'>Simple Object</td><td class='val'>This is a simple collection object (one sheet-item-preparation)</td></tr>";
 										// $objectcomplexity['Simple Object'] = "This is a simple collection object (one sheet-item-preparation)";
@@ -288,6 +289,7 @@ function details() {
                                                                                 if ($fragmentcount>1) { $fs="s"; } 
                                                                                 if ($preparationcount>1) { $ps="s"; } 
 										$objectcomplexity['Complex Object'] = "This is a complex collection object ($fragmentcount item$fs with $preparationcount preparation$ps)";
+										if ($fragmentcount>$preparationcount) { $showBarcodeLink = true; } 
                                         if ($fragmentcount>1) { 
                                         // obtain a full list of barcodes directly associated with this collection object
                                     $query = "select distinct fragment.identifier, preparation.identifier " .
@@ -311,7 +313,11 @@ function details() {
                                             }
 
                                         }
-                                        $barcodelist .= $barcodelistseparator.$CatalogNumber;
+ 					if ($showBarcodeLink) { 
+                                            $barcodelist .= $barcodelistseparator."<a ref='specimen_search.php?barcode=$CatalogNumber'>".$CatalogNumber."</a>";
+					} else {
+                                            $barcodelist .= $barcodelistseparator.$CatalogNumber;
+					}
                                         $barcodelistseparator = "; ";
                                     } else {
                                         echo "Error: " . $connection->error;
@@ -612,6 +618,16 @@ function details() {
 										$statement_bar->store_result();
 										$separator = "";
 										while ($statement_bar->fetch()) { 
+ 										    if ($showBarcodeLink) { 
+											if ($identifierf!="") { 
+												$CatalogNumber .= "$separator<a href='specimen_search.php?barcode=$identifeirf'>$identifierf</a>";
+												$separator="; ";
+											}  
+											if ($identifierp!="") { 
+												$CatalogNumber .= "$separator<a href='specimen_search.php?barcode=$identifierp'>$identifierp</a>";
+												$separator="; ";  
+											}
+										    } else { 
 											if ($identifierf!="") { 
 												$CatalogNumber .= "$separator$identifierf";
 												$separator="; ";
@@ -620,7 +636,7 @@ function details() {
 												$CatalogNumber .= "$separator$identifierp";
 												$separator="; ";  
 											}
-											
+										    }											
 										}
 										// obtain a full list of barcodes associated with this collection object
 										$barcodelist .= $barcodelistseparator.$CatalogNumber;
