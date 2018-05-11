@@ -1,0 +1,135 @@
+/* home page styles begins*/
+
+	/* news section begins */
+	#news {
+	float: left;
+    background: white;
+	margin: 0px;
+	padding: 10px 0px 0px 0px;
+	margin-left: 10px;
+	margin-right: 25px;
+	padding-bottom: 20px;
+	text-align: left;
+	padding-top: 0px;
+    }
+    #news ul {
+    width: 275px;
+    font-size: 90%;
+    margin-top: 20px;
+    }
+    #news li {
+    list-style: none;
+    padding: 5px 0px 5px 0px;
+    }
+    #news h1 {
+    text-align: center;
+    }
+    #news h4 {
+    padding: 0px;
+    margin: 10px 0px 0px 0px;
+    font-size: 120%;
+    color: #990000;
+    text-decoration: underline;
+    }
+    #news img {
+    margin: 0px 0px 0px 15px;
+    border: solid black 1px;
+    }
+    #news li.none img {
+    margin: 0px 0px 0px 15px;
+    border: none;
+    }
+    #news a {
+	color: #89201b;
+	text-decoration: none;
+	}
+	#news a:hover {
+	text-decoration: underline;
+	}
+    #caption {
+    text-align: center;
+    font-size: 70%;
+    }
+    span.small {
+    font-size: 80%;
+    }
+    /* news section ends */
+    
+    /* stable blue box section begins */
+    #home {
+    background-color: #b8c0d2;
+    margin: 20px 65px 20px 450px;
+    padding: 5px;
+    }
+    #home ul {
+    list-style: none;
+    padding: 0px 5px 0px 5px;
+    }
+    #home ul li {
+    text-align: center;
+	font-size: 95%;
+	line-height: 1.5em;
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px 5px 0px 5px;
+	}
+	.inline {
+	background-color: #b8c0d2;
+	text-align: center;
+	margin: 0px;
+	padding: 0px;
+	}
+	.inline li {
+	white-space: nowrap;
+	display: inline;
+	}
+	#home ul.inline li a {
+	color: #89201b;
+	text-decoration: underline;
+	}
+	#home ul.inline li a:hover {
+	color: #89201b;
+	text-decoration: none;
+	}
+	#home a {
+	color: #89201b;
+	text-decoration: none;
+	}
+	#home a:hover {
+	text-decoration: underline;
+	}
+	/* stable blue box section ends */
+	
+	/* highlight section begins */
+	#highlight {
+	padding: 5px;
+	margin: 20px 0px 20px 450px;
+    padding: 0px;
+    width: 375px;
+	}
+	#highlight img {
+	border: solid black 1px;
+	margin: 5px 0px 20px 45px;
+	}
+	#highlight h3 p {
+	text-align: left;
+	padding: 0px;
+	margin: 0px;
+	}
+	#highlight h3 {
+	color: #336633;
+	font-size: 100%;
+	}
+	#highlight p {
+	font-size: 90%;
+	}
+	#highlight a {
+	color: #89201b;
+	text-decoration: none;
+	}
+	#highlight a:hover {
+	text-decoration: underline;
+	}
+	/* highlight section begins */
+	
+/* home page styles ends*/
