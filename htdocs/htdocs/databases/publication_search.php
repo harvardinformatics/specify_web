@@ -1,23 +1,23 @@
 <?php
 /*
  * Created on Dec 3, 2009
- * 
+ *
  * Copyright © 2010 President and Fellows of Harvard College
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
- * 
+ *
+ *
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  */
 $debug=false;
@@ -25,9 +25,9 @@ $debug=false;
 include_once('connection_library.php');
 include_once('specify_library.php');
 
-if ($debug) { 
+if ($debug) {
    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
-} else { 
+} else {
    mysqli_report(MYSQLI_REPORT_OFF);
 }
 
@@ -38,57 +38,57 @@ $mode = "search";
 
 if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="details") {
-		$mode = "details"; 
+		$mode = "details";
 	}
 	if ($_GET['mode']=="stats") {
-		$mode = "stats"; 
+		$mode = "stats";
 	}
 	if ($_GET['mode']=="exsiccatae") {
-		$mode = "exsiccatae"; 
+		$mode = "exsiccatae";
 	}
 }
 
-if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") { 
-	$mode = "details"; 
+if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") {
+	$mode = "details";
 }
 
-echo pageheader('publication'); 
+echo pageheader('publication');
 
-if ($connection) { 
-	
+if ($connection) {
+
 	switch ($mode) {
-	
+
 		case "browse_families":
 			browse("families");
 			break;
-			
+
 		case "browse_countries":
 			browse("countries");
 			break;
-			
+
 		case "details":
 			details();
 			break;
-			
-		case "stats": 
+
+		case "stats":
 			echo stats();
 			break;
-			
+
 		case "search":
-			search();	   
+			search();
 			break;
 
                 case "exsiccatae":
                         browse_exsiccatae();
                         break;
-			
+
 		default:
-			$errormessage = "Undefined search mode"; 
+			$errormessage = "Undefined search mode";
 	}
-	
+
 	$connection->close();
-	
-} else { 
+
+} else {
 	$errormessage .= "Unable to connect to database. ";
 }
 
@@ -100,12 +100,12 @@ echo pagefooter();
 
 // ******* main code block ends here, supporting functions follow. *****
 
-function details() { 
+function details() {
 	global $connection, $errormessage, $debug;
 	$id = $_GET['id'];
-	if (is_array($id)) { 
+	if (is_array($id)) {
 		$ids = $id;
-	} else { 
+	} else {
 		$ids[0] = $id;
 	}
 	$guid = preg_replace("/[^0-9a-zA-Z\-]/","",$_GET['guid']);
@@ -123,16 +123,16 @@ function details() {
 		}
 	}
 	$oldid = "";
-	foreach($ids as $value) { 
+	foreach($ids as $value) {
 		$id = substr(preg_replace("/[^0-9]/","",$value),0,20);
-		// Might be duplicates next to each other in list of checkbox records from search results 
+		// Might be duplicates next to each other in list of checkbox records from search results
 		// (from there being more than one current determination/typification for a specimen, or
-		// from there being two specimens on one sheet).  
-		if ($oldid!=$id)  { 
-			if ($debug==true) { echo "[$id]"; } 
+		// from there being two specimens on one sheet).
+		if ($oldid!=$id)  {
+			if ($debug==true) { echo "[$id]"; }
 			$wherebit = " referencework.referenceworkid = ? ";
 			$query = "select text2 as year, text1 as worktitle, title as abbreviation, placeofpublication, publisher, referenceworktype, volume, pages, url, remarks, ContainedRFParentID, precedingworkid, succeedingworkid from referencework where $wherebit";
-			if ($debug) { echo "[$query]<BR>"; } 
+			if ($debug) { echo "[$query]<BR>"; }
 			$statement = $connection->prepare($query);
 			if ($statement) {
 				$statement->bind_param("i",$id);
@@ -145,10 +145,10 @@ function details() {
 					// referenceworktype = 0 normal reference works.
 					// referenceworktype = 5 an import generated citation in a work.
 					// referenceworktype = 6 Excicatii.
-					if ( $referenceworktype=="0") { $referenceworktype = ""; }  
-					if ( $referenceworktype=="6")  { $referenceworktype = "Exsiccata"; }  
+					if ( $referenceworktype=="0") { $referenceworktype = ""; }
+					if ( $referenceworktype=="6")  { $referenceworktype = "Exsiccata"; }
 					$query = " select agentvariant.name, agentvariant.agentid from referencework r left join author a on r.referenceworkid = a.referenceworkid left join agentvariant on a.agentid = agentvariant.agentid where r.referenceworkid = ? and vartype = 4 ";
-					if ($debug) { echo "[$query]<BR>"; } 
+					if ($debug) { echo "[$query]<BR>"; }
 					$statement_hg = $connection->prepare($query);
 					if ($statement_hg) {
 						$statement_hg->bind_param("i",$id);
@@ -157,35 +157,35 @@ function details() {
 						$statement_hg->store_result();
 						$separator = "";
 						while ($statement_hg->fetch()) {
-							$authors .= "$separator<a href=botanist_search.php?mode=details&botanistid=$agentid>$authorname</a>"; 
+							$authors .= "$separator<a href=botanist_search.php?mode=details&botanistid=$agentid>$authorname</a>";
 							$separator = ": ";
 						}
-					}	    
-					
+					}
+
 					$identifiers = "";
 					$query = "select identifier,type from referenceworkidentifier where referenceworkid = ? ";
 					if ($debug===true) {  echo "[$query]<BR>"; }
 					$statement_geo = $connection->prepare($query);
-					if ($statement_geo) { 
+					if ($statement_geo) {
 						$statement_geo->bind_param("i",$id);
 						$statement_geo->execute();
 						$statement_geo->bind_result($identifier, $identifiertype);
 						$statement_geo->store_result();
-						while ($statement_geo->fetch()) {  
-                                                        if ($identifiertype=='HOLLIS') { 
-							    $identifiers .= "<tr><td class='cap'>HOLLIS</td><td class='val'><a href='http://hollis.harvard.edu/?itemid=|library/m/aleph|$identifier'>$identifier</a></td></tr>";                             
-                                                        } else { 
-							    $identifiers .= "<tr><td class='cap'>$identifiertype</td><td class='val'>$identifier</td></tr>";                             
+						while ($statement_geo->fetch()) {
+                                                        if ($identifiertype=='HOLLIS') {
+							    $identifiers .= "<tr><td class='cap'>HOLLIS</td><td class='val'><a href='http://hollis.harvard.edu/?itemid=|library/m/aleph|$identifier'>$identifier</a></td></tr>";
+                                                        } else {
+							    $identifiers .= "<tr><td class='cap'>$identifiertype</td><td class='val'>$identifier</td></tr>";
                                                         }
 						}
-					} else { 
+					} else {
 						echo "Error: " . $connection->error;
 					}
- 
+
                                         $specimens = "";
-					if ( $referenceworktype=="Exsiccata")  { 
+					if ( $referenceworktype=="Exsiccata")  {
 					$query = " select f.collectionobjectid, fc.text1, fc.text2, f.text1, f.identifier, t.fullname, t.author from referencework r left join fragmentcitation fc on r.referenceworkid = fc.referenceworkid left join fragment f on fc.fragmentid = f.fragmentid left join determination d on f.fragmentid = d.fragmentid left join taxon t on d.taxonid = t.taxonid where r.referenceworkid = ? and (d.iscurrent=true or d.iscurrent is null) ";
-					if ($debug) { echo "[$query]<BR>"; } 
+					if ($debug) { echo "[$query]<BR>"; }
 					$statement_fc = $connection->prepare($query);
 					if ($statement_fc) {
 						$statement_fc->bind_param("i",$id);
@@ -194,65 +194,65 @@ function details() {
 						$statement_fc->store_result();
 						$separator = "";
 						while ($statement_fc->fetch()) {
-                                                    if ($collobjid!=null) { 
-                                                        if ($fascicle != "") { $fascicle = "Fasicle $fascicle"; } 
-                                                        if ($fnumber!= "") { $fnumber = "Number $fnumber"; } 
-							$specimens .= "$separator$fascicle $fnumber <em>$taxon</em> $authorship <a href=specimen_search.php?mode=details&id=$collobjid>$herbarium $barcode</a>"; 
+                                                    if ($collobjid!=null) {
+                                                        if ($fascicle != "") { $fascicle = "Fasicle $fascicle"; }
+                                                        if ($fnumber!= "") { $fnumber = "Number $fnumber"; }
+							$specimens .= "$separator$fascicle $fnumber <em>$taxon</em> $authorship <a href=specimen_search.php?mode=details&id=$collobjid>$herbarium $barcode</a>";
 							$separator = "<BR>";
                                                     }
 						}
-					}	    
+					}
 
                                         }
-                                        if ($precededby!=null) { 
+                                        if ($precededby!=null) {
 					   $query = "select title from referencework where referenceworkid = ? ";
   					   if ($debug===true) {  echo "[$query]<BR>"; }
 					   $statement_pre = $connection->prepare($query);
-					   if ($statement_pre) { 
+					   if ($statement_pre) {
 						$statement_pre->bind_param("i",$precededby);
 						$statement_pre->execute();
 						$statement_pre->bind_result($precededbytitle);
 						$statement_pre->store_result();
 						$statement_pre->fetch();
-					   } else { 
+					   } else {
 						echo "Error: " . $connection->error;
 					   }
                                            $statement_pre->close();
-                                        }  
-                                        if ($succededby!=null) { 
+                                        }
+                                        if ($succededby!=null) {
 					   $query = "select title from referencework where referenceworkid = ? ";
   					   if ($debug===true) {  echo "[$query]<BR>"; }
 					   $statement_pre = $connection->prepare($query);
-					   if ($statement_pre) { 
+					   if ($statement_pre) {
 						$statement_pre->bind_param("i",$succededby);
 						$statement_pre->execute();
 						$statement_pre->bind_result($succededbytitle);
 						$statement_pre->store_result();
 						$statement_pre->fetch();
-					   } else { 
+					   } else {
 						echo "Error: " . $connection->error;
 					   }
                                            $statement_pre->close();
                                         }
 
-					// Variant titles 
+					// Variant titles
                                         $variant = "";
 					$query = "select name from referenceworkvariant where referenceworkid = ? ";
   					if ($debug===true) {  echo "[$query]<BR>"; }
 					$statement_pre = $connection->prepare($query);
-					if ($statement_pre) { 
+					if ($statement_pre) {
 					   $statement_pre->bind_param("i",$id);
 					   $statement_pre->execute();
 					   $statement_pre->bind_result($varname);
 					   $statement_pre->store_result();
-					   while ($statement_pre->fetch()) { 
-					        $variant .= "<tr><td class='cap'>Variant title:</td><td class='val'>$varname</td></tr>"; 
+					   while ($statement_pre->fetch()) {
+					        $variant .= "<tr><td class='cap'>Variant title:</td><td class='val'>$varname</td></tr>";
                                            }
-					} else { 
+					} else {
 					   echo "Error: " . $connection->error;
 					}
                                         $statement_pre->close();
-					
+
 					echo "<tr><td class='cap'>Title</td><td class='val'>$title</td></tr>";
 					if (trim($abbreviation!=""))   { echo "<tr><td class='cap'>Abbreviation</td><td class='val'>$abbreviation</td></tr>"; }
 					if (trim($variant!=""))   { echo "$variant"; }
@@ -269,7 +269,7 @@ function details() {
 					if (trim($precededby!=""))   { echo "<tr><td class='cap'>Preceded By</td><td class='val'><a href='publication_search.php?mode=details&id=$precededby'>$precededbytitle</a></td></tr>"; }
 					if (trim($succededby!=""))   { echo "<tr><td class='cap'>Succeded By</td><td class='val'><a href='publication_search.php?mode=details&id=$succededby'>$succededbytitle</a></td></tr>"; }
 					if (trim($ContainedRFParentID!=""))   { echo "<tr><td class='cap'>ContainedRFParentID</td><td class='val'>$ContainedRFParentID</td></tr>"; }
-					if (trim($remarks!="")) { echo "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; } 
+					if (trim($remarks!="")) { echo "<tr><td class='cap'>Remarks</td><td class='val'>$remarks</td></tr>"; }
 					if (trim($ContainedRFParentID!=""))   { echo "<tr><td class='cap'>ContainedRFParentID</td><td class='val'>$ContainedRFParentID</td></tr>"; }
 					if (trim($specimens!=""))   { echo "<tr><td class='cap'>Specimens</td><td class='val'>$specimens</td></tr>"; }
 					echo "<BR>\n";
@@ -278,8 +278,8 @@ function details() {
 			    $query = "select taxon.fullname, taxon.author, d.typestatusname, d.fragmentid, tc.remarks, tc.text1, tc.text2 " .
 			    		"from determination d left join taxon on d.taxonid = taxon.taxonid " .
 			    		"left join taxoncitation tc on taxon.taxonid = tc.taxonid " .
-			    		"where typestatusname is not null and tc.referenceworkid = ? "; 
-				if ($debug) { echo "[$query]<BR>"; } 
+			    		"where typestatusname is not null and tc.referenceworkid = ? ";
+				if ($debug) { echo "[$query]<BR>"; }
 				$statement_ts = $connection->prepare($query);
 				if ($statement_ts) {
 					$statement_ts->bind_param("i",$id);
@@ -301,7 +301,7 @@ function details() {
 						"from determination d left join taxon on d.taxonid = taxon.taxonid " .
 						"left join determinationcitation dc on d.determinationid = dc.determinationid " .
 						"where typestatusname is not null and dc.referenceworkid = ? ";
-				if ($debug) { echo "[$query]<BR>"; } 
+				if ($debug) { echo "[$query]<BR>"; }
 				$statement_cit = $connection->prepare($query);
 				if ($statement_cit) {
 					$statement_cit->bind_param("i",$id);
@@ -328,11 +328,11 @@ function details() {
 }
 
 
-function search() {  
+function search() {
 	global $connection, $errormessage, $debug;
 	$question = "";
 	$joins = "";
-	$wherebit = " where "; 
+	$wherebit = " where ";
         $relaxedwherebit = " where " ;
 	$and = "";
 	$types = "";
@@ -342,7 +342,7 @@ function search() {
         $relaxedparametercount = 0;
 	$hasauthor = false;
 	$publisher = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['publisher']),0,59);
-	if ($publisher!="") { 
+	if ($publisher!="") {
 		$hasquery = true;
 		$question .= "$and publisher:[$publisher] ";
 		$types .= "s";
@@ -359,7 +359,7 @@ function search() {
 		$and = " and ";
 	}
 	$place = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['place']),0,59);
-	if ($place!="") { 
+	if ($place!="") {
 		$hasquery = true;
 		$question .= "$and place of publication:[$place] ";
 		$types .= "s";
@@ -376,7 +376,7 @@ function search() {
 		$and = " and ";
 	}
 	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['title']),0,59);
-	if ($title!="") { 
+	if ($title!="") {
 		$hasquery = true;
 		$question .= "$and title:[$title] ";
 		$types .= "sss";
@@ -402,7 +402,7 @@ function search() {
 		$and = " and ";
 	}
 	$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ_0-9\. %]/","", $_GET['author']),0,59);
-	if ($author!="") { 
+	if ($author!="") {
 		$hasauthor = true;
 		$hasquery = true;
 		$question .= "$and author:[$author] ";
@@ -417,7 +417,7 @@ function search() {
 		if (preg_match("/[%_]/",$author))  { $operator = " like "; }
 		$wherebit .= "$and (agent.lastname $operator ? or agentvariant.name $operator ? or agent.lastname $operator ?)";
 		$joins .= " left join author a on r.referenceworkid = a.referenceworkid left join agentvariant on a.agentid = agentvariant.agentid left join agent on a.agentid = agent.agentid ";
-		$order = " order by agent.lastname, agent.firstname, r.text1 ";		
+		$order = " order by agent.lastname, agent.firstname, r.text1 ";
 		$relaxedwherebit .= "$and (agent.lastname like ? or agentvariant.name like ? or agent.lastname like ?)";
                 $realaxedauthor = "%$author%";
 		$relaxedparameters[$relaxedparametercount] = &$relaxedauthor;
@@ -428,9 +428,9 @@ function search() {
 		$relaxedparametercount++;
 		$and = " and ";
 	} else {
-		// author or agentid search is exclusive.  
+		// author or agentid search is exclusive.
 	$agentid = substr(preg_replace("/[^A-Za-z_0-9\. %]/","", $_GET['agentid']),0,59);
-	if ($agentid!="") { 
+	if ($agentid!="") {
 		$hasauthor = true;
 		$hasquery = true;
 		$question .= "$and author agentid:[$agentid] ";
@@ -439,7 +439,7 @@ function search() {
 		$parametercount++;
 		$wherebit .= "$and a.agentid = ? ";
 		$joins .= " left join author a on r.referenceworkid = a.referenceworkid left join agent on a.agentid = agent.agentid ";
-		$order = " order by agent.lastname, agent.firstname, r.text1 ";		
+		$order = " order by agent.lastname, agent.firstname, r.text1 ";
 		$relaxedwherebit .= "$and a.agentid = ? ";
 		$relaxedparameters[$relaxedparametercount] = &$agentid;
 		$relaxedparametercount++;
@@ -447,7 +447,7 @@ function search() {
 	}
 	}
 	$identifier = substr(preg_replace("/[^A-Za-z\/\\0-9\.%]/","", $_GET['identifier']),0,59);
-	if ($identifier!="") { 
+	if ($identifier!="") {
 		$ttype = substr(preg_replace("/[^A-Z0-9\.%]/","", $_GET['type']),0,59);
 		$hasquery = true;
 		$question .= "$and ( identifier:[$identifier] and type = [$ttype] )";
@@ -475,26 +475,26 @@ function search() {
 	}
 	if ($hasauthor) { $third = ", agent.lastname, agent.firstname "; } else { $third = ""; }
 	// referenceworktype = 5 an import generated citation in a work.
-	$query = "select distinct r.referenceworkid, r.text1 as title $third 
-		from referencework r  
+	$query = "select distinct r.referenceworkid, r.text1 as title $third
+		from referencework r
 		$joins $wherebit $and r.referenceworktype <> 5 $order ";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 	}
-	$relaxedquery = "select distinct r.referenceworkid, r.text1 as title $third 
-		from referencework r  
+	$relaxedquery = "select distinct r.referenceworkid, r.text1 as title $third
+		from referencework r
 		$joins $relaxedwherebit $and r.referenceworktype <> 5 $order ";
-	if ($hasquery===true) { 
+	if ($hasquery===true) {
 		$statement = $connection->prepare($query);
-		if ($statement) { 
+		if ($statement) {
 			$array = Array();
 			$array[] = $types;
 			foreach($parameters as $par) {
 			    $array[] = $par;
 			}
 			//call_user_func_array(array($statement, 'bind_param'),$array);
-            if (substr(phpversion(),0,4)=="5.3.") {
-               // work around for bug in __call, or is it? 
+            if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
+               // work around for bug in __call, or is it?
                // http://bugs.php.net/bug.php?id=50394
                // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
                call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
@@ -503,9 +503,9 @@ function search() {
             }
 
 			$statement->execute();
-			if ($hasauthor) { 
+			if ($hasauthor) {
 				$statement->bind_result($referenceid,$title,$authorlast, $authorfirst);
-			} else { 
+			} else {
 				$statement->bind_result($referenceid,$title);
 			}
 			$statement->store_result();
@@ -516,7 +516,7 @@ function search() {
 			echo "</div>\n";
 			echo "<HR>\n";
 
-                        if ($resultcount < 1 ) { 
+                        if ($resultcount < 1 ) {
                            $statement->close();
 		           $statement = $connection->prepare($relaxedquery);
                            if ($debug) { echo "[$relaxedquery]"; }
@@ -525,15 +525,15 @@ function search() {
 			   foreach($relaxedparameters as $par) {
 			      $rarray[] = $par;
 			   }
-                           if (substr(phpversion(),0,4)=="5.3.") {
+                           if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
                                call_user_func_array(array($statement, 'bind_param'),make_values_referenced($rarray));
                            } else {
                                call_user_func_array(array($statement, 'bind_param'),$rarray);
                            }
 		   	   $statement->execute();
-			   if ($hasauthor) { 
+			   if ($hasauthor) {
 				$statement->bind_result($referenceid,$title,$authorlast, $authorfirst);
-			   } else { 
+			   } else {
 				$statement->bind_result($referenceid,$title);
 			   }
 			   $statement->store_result();
@@ -544,7 +544,7 @@ function search() {
 			   echo "<HR>\n";
 
                         }
-			
+
 			if ($statement->num_rows > 0 ) {
 				echo "<form  action='publication_search.php' method='get'>\n";
 				echo "<input type='hidden' name='mode' value='details'>\n";
@@ -553,17 +553,17 @@ function search() {
 				$oldauthor = "";
 				while ($statement->fetch()) {
 					$currentauthor = $authorlast.$authorfirst;
-					if ($hasauthor && $oldauthor!=$currentauthor) { 
+					if ($hasauthor && $oldauthor!=$currentauthor) {
 						echo "<strong>$authorlast, $authorfirst</strong><BR>";
 						$oldauthor = $currentauthor;
-					} 
+					}
 					echo "<input type='checkbox' name='id[]' value='$referenceid'> <a href='publication_search.php?mode=details&id=$referenceid'>$title</a> ";
 					echo "<BR>\n";
 				}
 				echo "</div>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "</form>\n";
-				
+
 			} else {
 				$errormessage .= "No matching results. ";
 			}
@@ -582,11 +582,11 @@ function search() {
 						" group by agent.firstname, agent.lastname, agent.agentid ";
 				$wildauthor = "%$author%";
 				$plainauthor = str_replace("%","",$author);
-       		    $authorparameters[0] = &$wildauthor;   // agentvariant like 
+       		    $authorparameters[0] = &$wildauthor;   // agentvariant like
  		        $types = "s";
        		    $authorparameters[1] = &$plainauthor;  // agentvariant soundex
  		        $types .= "s";
-       		    //$authorparameters[2] = &$wildauthor;   // agent like 
+       		    //$authorparameters[2] = &$wildauthor;   // agent like
  		        //$types .= "s";
        		    //$authorparameters[3] = &$plainauthor;  // agent soundex
  		        //$types .= "s";
@@ -594,7 +594,7 @@ function search() {
 		              echo "[$query][$wildauthor][$plainauthor][$wildauthor][$plainauthor]<BR>\n";
 	            }
 				$statement = $connection->prepare($query);
-				if ($statement) { 
+				if ($statement) {
 					$array = Array();
 					$array[] = $types;
 					foreach($authorparameters as $par)
@@ -615,25 +615,25 @@ function search() {
 				}
 			}
 			$statement->close();
-		} else { 
+		} else {
 			echo $connection->error;
 		}
-	} else { 
+	} else {
 		echo "<div>\n";
 		echo "No query parameters provided.";
 		echo "</div>\n";
 		echo "<HR>\n";
-		echo stats();	
-	} 
-	
+		echo stats();
+	}
+
 }
 
-function browse_exsiccatae() { 
+function browse_exsiccatae() {
    global $connection, $errormessage, $debug;
 
    echo "<h3>Exsiccatae known to the Harvard University Herbaria</h3>";
    $sql = "select r.text1, r.title, r.referenceworkid, count(fc.fragmentid) from referencework r left join fragmentcitation fc on r.referenceworkid = fc.referenceworkid where referenceworktype = 6 group by r.text1, r.title, r.referenceworkid";
-   if ($debug) { echo "[$sql]<BR>"; } 
+   if ($debug) { echo "[$sql]<BR>"; }
    $statement = $connection->prepare($sql);
    if ($statement) {
        $statement->execute();
@@ -641,14 +641,14 @@ function browse_exsiccatae() {
        $statement->store_result();
        while ($statement->fetch()) {
            if ($title=="") { $title=$full; }
-           if ($count>0) { $count = "($count)"; } else { $count = ""; } 
+           if ($count>0) { $count = "($count)"; } else { $count = ""; }
            echo "<a href='/databases/publication_search.php?mode=details&id=$id'>$title</a> $count<br>";
        }
-   } else { 
+   } else {
        $errormessage = $connection->error;
    }
    $statement->close();
-} 
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
 

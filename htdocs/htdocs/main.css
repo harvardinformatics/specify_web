@@ -1,9 +1,9 @@
 /* style sheet that effects all of the pages in the website */
 /* all content styles begins */
 	body {
-	font-family: Verdana, Arial, Helvetica, sans-serif; 
-	background-color: #c7ccbf; 
-	font-size : small; 
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	background-color: #c7ccbf;
+	font-size : small;
 	color: #000000;
 	margin: 0px;
 	padding: 0px;
@@ -24,7 +24,7 @@
 	margin: 0px;
 	padding: 0px;
     }
-    
+
     /* top_menu style begins */
     	/* embedded navbar begins */
     	#embed_nav {
@@ -46,13 +46,13 @@
 		#embed_nav a {
 		font-size: 90%;
 		color: #89201b;
-		text-decoration: none;	
-		}	
+		text-decoration: none;
+		}
 		#embed_nav a:hover {
 		text-decoration: underline;
 		}
     	/* embedded navbar begins */
-    
+
 		/* google tool bar styles begin */
 		#google-bar {
 		float: right;
@@ -62,10 +62,10 @@
 		}
 		/* google tool bar styles begin */
 	/* top_menu style ends */
-	
+
 	/* mid_sect style begins */
 	#mid_sect {
-	background-image: url(http://www.huh.harvard.edu/research/seasianfloras/images/acer_banner2.jpg);
+	/* background-image: url(https://www.huh.harvard.edu/research/seasianfloras/images/acer_banner2.jpg); */
 	margin: 0px;
 	padding: 0px;
 	clear: right;
@@ -77,7 +77,7 @@
 	}
 		/* for home page only, bigger image */
 		#home_mid_sect {
-		background-image: url(http://www.huh.harvard.edu/research/seasianfloras/images/acer_banner_home5.jpg);
+		/* background-image: url(https://www.huh.harvard.edu/research/seasianfloras/images/acer_banner_home5.jpg); */
 		margin: 0px;
 		padding: 0px;
 		clear: right;
@@ -88,7 +88,7 @@
 		margin: 5px;
 		}
 	/* mid_sect style begins */
-    
+
 	/* topnav css begins */
 	#topnav {
 	clear: left;
@@ -110,8 +110,8 @@
 	color: white;
 	text-decoration: none;
 	padding: 5px;
-	margin: 0px;	
-	}	
+	margin: 0px;
+	}
 	#topnav li.active a {
 	text-decoration: none;
 	background-color: #336699;
@@ -130,7 +130,7 @@
 	padding: 5px;
 	}
 	/* topnav css ends */
-	
+
 	/* second navbar style begins */
 	#nav2 {
 	background: #336699;
@@ -154,7 +154,7 @@
 	text-decoration: none;
 	margin: 0px;
 	padding: 5px 6px;
-	}	
+	}
 	#nav2 a.active {
 	background-color: #b8c0d2;
 	color: black;
@@ -169,9 +169,9 @@
 	margin: 0px;
 	padding: 5px 6px;
 	}
-	/* second navbar style ends */	
+	/* second navbar style ends */
 /* header styles ends */
-	
+
 /* sidenav style begins */
 	#sidenav {
 	color: #89201b;
@@ -202,7 +202,7 @@
 	text-decoration: none;
 	margin: 0px;
 	padding: 0px;
-	}	
+	}
 	#sidenav a.active {
 	text-decoration: underline;
 	font-weight: bold;
@@ -229,15 +229,15 @@
 
 /* thumbnail page styles begin */
 	/* list with 4 thumbnails */
-	div.float_4 { 
-	float: left; 
-	width: 145px; 
-	padding: 20px 30px; 
+	div.float_4 {
+	float: left;
+	width: 145px;
+	padding: 20px 30px;
 	margin-left: 10px;
 	}
-	div.float_4 p { 
+	div.float_4 p {
 	text-align: left;
-	margin-top: 15px; 
+	margin-top: 15px;
 	}
 	.float_4 a img {
 	border: black solid 1px;
@@ -253,15 +253,15 @@
 	color: black;
 	}
 	/* list with 3 thumbnails */
-	div.float_3 { 
-	float: left; 
-	width: 145px; 
-	padding: 20px 30px;  
+	div.float_3 {
+	float: left;
+	width: 145px;
+	padding: 20px 30px;
 	margin-left: 60px;
 	}
-	div.float_3 p { 
+	div.float_3 p {
 	text-align: left;
-	margin-top: 15px; 
+	margin-top: 15px;
 	}
 	.float_3 a img {
 	border: black solid 1px;
@@ -276,15 +276,15 @@
 	color: black;
 	}
 /* list with 3 thumbnails - sitemap styles */
-	#sitemap div.float_3 { 
-	float: left; 
+	#sitemap div.float_3 {
+	float: left;
 	width: 350px;
-	padding: 10px 20px;  
+	padding: 10px 20px;
 	margin-left: 40px;
 	}
-	#sitemap div.float_3 p { 
+	#sitemap div.float_3 p {
 	text-align: left;
-	margin-top: 15px; 
+	margin-top: 15px;
 	}
 	#sitemap .float_3 a {
 	font-size: 100%;
@@ -313,15 +313,15 @@
 /* sitemap styles ends*/
 
 	/* list with 2 thumbnails */
-	div.float_2 { 
-	float: left; 
-	width: 155px; 
-	padding: 20px 40px; 
+	div.float_2 {
+	float: left;
+	width: 155px;
+	padding: 20px 40px;
 	margin-left: 10px;
 	}
-	div.float_2 p { 
+	div.float_2 p {
 	text-align: left;
-	margin-top: 15px; 
+	margin-top: 15px;
 	}
 	.float_2 a img {
 	border: black solid 1px;
@@ -336,15 +336,15 @@
 	color: black;
 	}
 	/* list with 1 thumbnail */
-	div.float_1 { 
-	float: left; 
-	width: 255px; 
-	padding: 20px 40px; 
+	div.float_1 {
+	float: left;
+	width: 255px;
+	padding: 20px 40px;
 	margin-left: 150px;
 	}
-	div.float_1 p { 
+	div.float_1 p {
 	text-align: left;
-	margin-top: 15px; 
+	margin-top: 15px;
 	}
 	.float_1 a img {
 	border: black solid 1px;
@@ -417,7 +417,7 @@ margin: 0px;
 padding: 10px 10px 10px 0px;
 }
 /* privacy statement */
-	
+
 /* main text styles begin */
 	#main {
 	background: #b8c0d2;
@@ -522,7 +522,7 @@ padding: 10px 10px 10px 0px;
 	}
 /* footer styles begin */
 	#footer {
-	color: white; 
+	color: white;
 	clear: both;
 	width: 900px;
 	background: #003452;
@@ -551,24 +551,24 @@ padding: 10px 10px 10px 0px;
 	#embed_nav2 a {
 	font-size: 90%;
 	color: white;
-	text-decoration: none;	
-	}	
+	text-decoration: none;
+	}
 	#embed_nav2 a:hover {
 	text-decoration: underline;
 	}
-    /* embedded bottom navbar ends */ 
+    /* embedded bottom navbar ends */
 	h5 {
 	margin: 10px;
 	text-align: left;
 	color: white;
-	}	 
+	}
 	.footer_indent {
 	margin-left: 125px;
 	}
 	#footer h5 a {
 	color: white;
 	text-decoration: underline;
-	}	
+	}
 	#footer h5 a:hover {
 	text-decoration: none;
 	}

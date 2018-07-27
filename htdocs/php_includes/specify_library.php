@@ -3,28 +3,28 @@
  * Created on 2010 May 13
  *
  * Copyright © 2010 President and Fellows of Harvard College
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
- * 
+ *
+ *
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  */
 
-// Uncomment to turn on debugging 
+// Uncomment to turn on debugging
 //$debug = true;
 
-// set to "hwpi" to turn on new page header/footer 
+// set to "hwpi" to turn on new page header/footer
 // $useheader = 'old';
 $useheader = 'hwpi';
 
@@ -34,28 +34,28 @@ $useheader = 'hwpi';
 // Workaround from http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
 function make_values_referenced($arr){
     $refs = array();
-    foreach($arr as $key => $value) { 
+    foreach($arr as $key => $value) {
         $refs[$key] = &$arr[$key];
     }
     return $refs;
 }
 
 function barcode_to_catalog_number($aBarcode) {
-  $LOCALLENGTH = 9;    // HUH Barcode is a zero padded string of length 9 
+  $LOCALLENGTH = 9;    // HUH Barcode is a zero padded string of length 9
   $returnvalue = $aBarcode;
-  if (strlen($returnvalue) < $LOCALLENGTH) { 
+  if (strlen($returnvalue) < $LOCALLENGTH) {
      $returnvalue = str_pad($returnvalue, $LOCALLENGTH, "0", STR_PAD_LEFT);
   }
   return $returnvalue;
 }
 
-/** given some date and some precision where precision is 0,1,2,or 3, 
+/** given some date and some precision where precision is 0,1,2,or 3,
 **  this will return the date as a string truncated to the appropriate precision
 **  @date = dash separated date year - month - day
 **  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
 **  @return = date as a truncated text string
 **/
-function transformDate($date, $precision) { 
+function transformDate($date, $precision) {
    if ($precision <= 0 || $precision > 3)
       return "";
 
@@ -64,27 +64,27 @@ function transformDate($date, $precision) {
 
   if ($precision == 1)
      return $date;
-  
+
   $parts = explode("-",$date);
-  
+
   if ($precision == 2)
     return $parts[0]."-".$parts[1];
 
   if ($precision == 3)
     return $parts[0];
-  
+
   return "";
 }
 
 
-/** given some date and some precision where precision is 0,1,2,or 3, 
+/** given some date and some precision where precision is 0,1,2,or 3,
 **  this will return the date as a string truncated to the appropriate precision
 **  in the text form  99, Month 9999  day, month year
 **  @date = dash separated date year - month - day
 **  @precision = 0,1,2,3 where 0 = none, 1 = full, 2 = month, 3 = year
-**  @return = date as a truncated text string 
+**  @return = date as a truncated text string
 **/
-function transformDateText($date, $precision) { 
+function transformDateText($date, $precision) {
    $returnvalue = "";
    if ($precision <= 0 || $precision > 3)
       return "";
@@ -94,41 +94,41 @@ function transformDateText($date, $precision) {
 
   $matches = array();
   $match = preg_match("/^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$/", $date, $matches);
-  if ($precision == 1) { 
+  if ($precision == 1) {
      $returnvalue =  $matches[1]."-".$matches[2]."-".$matches[3];
   }
-  if ($precision == 2) { 
+  if ($precision == 2) {
      $returnvalue =  $matches[1]."-".$matches[2]."-**";
   }
-  if ($precision == 3) { 
+  if ($precision == 3) {
      $returnvalue =  $matches[1];
-  }   
-  
+  }
+
   return $returnvalue;
 }
- 
- 
-function pageheader($mode = "specimen",$topbar = "on") { 
+
+
+function pageheader($mode = "specimen",$topbar = "on") {
   global $useheader;
-  if ($mode=="off") { $topbar = "off"; } 
-  if  ($useheader=='hwpi') { 
+  if ($mode=="off") { $topbar = "off"; }
+  if  ($useheader=='hwpi') {
     return pageheader_new($mode,$topbar);
-  } else { 
+  } else {
     return pageheader_old($mode,$topbar);
   }
 }
-function pagefooter() { 
+function pagefooter() {
   global $useheader;
-  if  ($useheader=='hwpi') { 
+  if  ($useheader=='hwpi') {
     return pagefooter_new($mode);
-  } else { 
+  } else {
     return pagefooter_old($mode);
   }
 }
- 
+
 function pageheader_old($mode = "specimen",$topbar = "on") {
-	$title = "Specimen Search"; 
-	$heading = "Specimens"; 
+	$title = "Specimen Search";
+	$heading = "Specimens";
         $link = "specimen_index.html";
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
@@ -136,13 +136,13 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 	$active['i'] = " ";
 	switch ($mode) {
 		case "off":
-			$title = "Databases"; 
-	        $heading = "Botanical Databases"; 
+			$title = "Databases";
+	        $heading = "Botanical Databases";
             $link = "specimen_index.html";
             break;
 		case "specimen":
-			$title = "Specimen Search"; 
-	        $heading = "Specimens"; 
+			$title = "Specimen Search";
+	        $heading = "Specimens";
             $link = "specimen_index.html";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
@@ -150,8 +150,8 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			$active['i'] = " ";
 			break;
 		case "agent":
-			$title = "Botanist Search"; 
-	        $heading = "Botanists"; 
+			$title = "Botanist Search";
+	        $heading = "Botanists";
             $link = "botanist_index.html";
 			$active['s'] = " ";
 			$active['p'] = " ";
@@ -159,8 +159,8 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			$active['i'] = " ";
 			break;
 		case "publication":
-			$title = "Publication Search"; 
-	        $heading = "Publications"; 
+			$title = "Publication Search";
+	        $heading = "Publications";
             $link = "publication_index.html";
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
@@ -168,8 +168,8 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			$active['i'] = " ";
 			break;
 		case "image":
-			$title = "Specimen Image Search"; 
-	        $heading = "Specimens"; 
+			$title = "Specimen Image Search";
+	        $heading = "Specimens";
             $link = "image_search.php";
 			$active['s'] = "";
 			$active['p'] = "";
@@ -177,7 +177,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 			$active['i'] = " class='active' ";
 			break;
 		default;
-		
+
 	}
 	$result="<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
@@ -185,17 +185,17 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 	<meta http-equiv='content-type' content='text/html; charset=utf-8' />
 	<title>HUH - Databases - $title</title>
 	<link rel='stylesheet' type='text/css' media='print' href='print.css'></link>
-	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
+	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>
 ";
-if ($mode=='image' || $mode=='imagedetails') { 
+if ($mode=='image' || $mode=='imagedetails') {
     // include jquery libraries
     $result.='
-        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
+        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
     ';
 }
-if ($mode=='image') { 
+if ($mode=='image') {
     // include libraries for visualsearch search bar
     $result.='
         <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
@@ -209,7 +209,7 @@ if ($mode=='image') {
            <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
         <!--<![endif]-->';
 }
-if ($mode=='imagedetails') { 
+if ($mode=='imagedetails') {
      // include libraries for featured image zoom widget
      $result.= "
           <link rel=\"stylesheet\" href=\"css/multizoom.css\" type=\"text/css\" />
@@ -220,13 +220,13 @@ $result .= "
 </head>
 <body>
 <div id='allcontent'>
-	
+
 		<!-- header code begins -->
 		<div id='old_header'>
 			<div id='top_menu'>
-			
+
 		        <!-- SiteSearch Google HERE -->
-		         
+
 				<div id='embed_nav'>
 		  			<ul>
 						<li><a href='http://www.huh.harvard.edu/'>Home</a></li>
@@ -244,14 +244,14 @@ $result .= "
 		  			</ul>
 
 				</div>
-			
+
 			</div>
 			<!-- top menu ends -->
-		
+
 				<div id='mid_sect'>
 					<a href='http://www.huh.harvard.edu'><img width='100' src='http://www.huh.harvard.edu/images/huh_logo_bw_100.png' alt='HUH logo' title='Home page' /></a>
 				</div>
-	
+
 
 				<div id='topnav'>
 		 			<ul>
@@ -267,12 +267,12 @@ $result .= "
 			 			<li ><a href='http://www.huh.harvard.edu/visiting/'>Visiting</a></li>
 		   			</ul>
 		 		</div>
-		
+
 		</div>
 
 		<!-- header code ends -->
 ";
-if ($topbar!="off") { 		
+if ($topbar!="off") {
 $result .= "
 <div id='nav2'>
   <ul>
@@ -287,23 +287,23 @@ $result .= "
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts</a></li>
     <li><a href='add_correct.html'>Contribute</a></li>
     <li><a href='comment.html'>Comments/questions</a></li>
-    
+
   </ul>
-</div>  <!-- nav2 ends -->		
+</div>  <!-- nav2 ends -->
 ";
 }
-$result .= "		
+$result .= "
 <div id='main'>
    <!-- main content begins -->
    <div id='main_text_wide'>
    <div id='title'>
       <h3><a href='$link'>Index of $heading</a></h3>
    </div>
-"; 
+";
    return $result;
 }
 
-function pagefooter_old() { 
+function pagefooter_old() {
    $result = "
    </div>
 </div>
@@ -312,7 +312,7 @@ function pagefooter_old() {
 <p>Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.
 </p>
 
-<!-- footer include begins -->		
+<!-- footer include begins -->
 	<div id='footer'>
 
 			<div id='embed_nav2'>
@@ -324,16 +324,16 @@ function pagefooter_old() {
 					<li>&#124;</li>
 					<li><a href='http://www.pbi.fas.harvard.edu/' target='_blank'>PBI</a></li>
 					<li>&#124;</li>
-					<li><a href='http://www.hmnh.harvard.edu/' target='_blank'>HMNH</a></li> 
+					<li><a href='http://www.hmnh.harvard.edu/' target='_blank'>HMNH</a></li>
 		  		</ul>
 			</div>
 			<h5>&copy; 2001 - <span id='cdate'></span> by the President and Fellows of <a href='http://www.harvard.edu/' target='_blank'>Harvard</a> College
-		 	<br /><a href='http://www.huh.harvard.edu/priv_statement.html'>Privacy Statement</a> <span class='footer_indent'>Updated: 
-		 		
-		 		2009 May 21		 		
+		 	<br /><a href='http://www.huh.harvard.edu/priv_statement.html'>Privacy Statement</a> <span class='footer_indent'>Updated:
+
+		 		2009 May 21
 				</span></h5>
 
-		 		
+
 		 		<!-- gets current year for copyright date -->
 		 		<script type='text/javascript'>
 					// <![CDATA[
@@ -348,12 +348,12 @@ function pagefooter_old() {
 </body>
 </html>";
    return $result;
-} 
+}
 
 
 function pageheader_new($mode = "specimen",$topbar = "on") {
-	$title = "Specimen Search"; 
-	$heading = "Botanical Specimens"; 
+	$title = "Specimen Search";
+	$heading = "Botanical Specimens";
         $link = "specimen_index.html";
 	$active['s'] = " class='active' ";
 	$active['p'] = "";
@@ -361,13 +361,13 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 	$active['i'] = " ";
 	switch ($mode) {
 		case "off":
-			$title = "Databases"; 
-	        $heading = "Botanical Databases"; 
+			$title = "Databases";
+	        $heading = "Botanical Databases";
             $link = "specimen_index.html";
             break;
 		case "specimen":
-			$title = "Specimen Search"; 
-	        $heading = "Botanical Specimens"; 
+			$title = "Specimen Search";
+	        $heading = "Botanical Specimens";
             $link = "specimen_index.html";
 			$active['s'] = " class='active' ";
 			$active['p'] = "";
@@ -376,8 +376,8 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 			$active['t'] = "";
 			break;
 		case "agent":
-			$title = "Botanist Search"; 
-	        $heading = "Botanists"; 
+			$title = "Botanist Search";
+	        $heading = "Botanists";
             $link = "botanist_index.html";
 			$active['s'] = " ";
 			$active['p'] = " ";
@@ -386,8 +386,8 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 			$active['t'] = "";
 			break;
 		case "publication":
-			$title = "Publication Search"; 
-	        $heading = "Botanical Publications"; 
+			$title = "Publication Search";
+	        $heading = "Botanical Publications";
             $link = "publication_index.html";
 			$active['s'] = " ";
 			$active['p'] = " class='active' ";
@@ -396,8 +396,8 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 			$active['t'] = "";
 			break;
 		case "image":
-			$title = "Specimen Image Search"; 
-	        $heading = "Botanical Specimens"; 
+			$title = "Specimen Image Search";
+	        $heading = "Botanical Specimens";
             $link = "image_search.php";
 			$active['s'] = "";
 			$active['p'] = "";
@@ -406,8 +406,8 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 			$active['t'] = "";
 			break;
 		case "taxa":
-			$title = "Taxon Search"; 
-	        $heading = "Botanical Taxa"; 
+			$title = "Taxon Search";
+	        $heading = "Botanical Taxa";
             $link = "taxon_search.php";
 			$active['s'] = "";
 			$active['p'] = "";
@@ -416,7 +416,7 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 			$active['t'] = " class='active' ";
 			break;
 		default;
-		
+
 	}
 	$result="<!DOCTYPE html>
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
@@ -428,17 +428,17 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 	<title>HUH - Databases - $title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
 ";
-    // unstable style sheets coming from hwpi 
+    // unstable style sheets coming from hwpi
     // moved to local copies.
     $result .= "
 <link type='text/css' rel='stylesheet' href='/css/hwpi/css_autocomplete_pbm0lsQQJ7A7WCCIMgxLho6mI_kBNgznNUWmTWcnfoE.css' media='all' />
 <link type='text/css' rel='stylesheet' href='/css/hwpi/css_booknavigation_ueTLzD5nG-cUWCNxgvxnrujU5lN0jOXNNOXjbwGLMT0.css' media='all' />
 <link type='text/css' rel='stylesheet' href='/css/hwpi/css__colorbox_4Cnbcv58osyNmwlNq65lb2j10SUGgMy5GBI44Cs5cko.css' media='all' />
 ";
-if ($mode=='imagedetails') { 
+if ($mode=='imagedetails') {
   // line in one css file breaks the image details browser.
   $result .= "<link type='text/css' rel='stylesheet' href='css_OE.css' media='screen' />";
-} else { 
+} else {
   $result .= "<link type='text/css' rel='stylesheet' href='/css/hwpi/css__screen_ZA-CzvgM_hYQAxV3p2e2blh0OdJfEF_EIJ2yEh_Z9dU.css' media='screen' />";
 }
 $result .="
@@ -452,7 +452,7 @@ $result .="
       @import url('http://hwpi.harvard.edu/modules/system/system.menus.css');
       @import url('http://hwpi.harvard.edu/modules/system/system.messages.css');
       @import url('http://hwpi.harvard.edu/modules/system/system.theme.css');
-      
+
       @import url('http://hwpi.harvard.edu/modules/book/book.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/calendar/css/calendar_multiday.css');
       @import url('http://hwpi.harvard.edu/modules/comment/comment.css');
@@ -466,7 +466,7 @@ $result .="
       @import url('http://hwpi.harvard.edu/modules/search/search.css');
       @import url('http://hwpi.harvard.edu/modules/user/user.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/views/css/views.css');
-      
+
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/colorbox/styles/default/colorbox_style.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/ctools/css/ctools.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/nice_menus/nice_menus.css');
@@ -480,12 +480,12 @@ $result .="
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.slideshow.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.widgets.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/responsive.classic.css');
-      
+
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/adaptivetheme/at_core/css/at.layout.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/globals.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/hwpi.globals.css');
       @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/hwpi_classic.css');
-      
+
       @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/theme/os_dismiss.css');
     </style>
 */
@@ -508,17 +508,17 @@ jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"herbaria\/","ajaxP
         ';
 // Local HUH stylesheet
 $result .= "
-	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>	
+	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>
 ";
-if (1==1 || $mode=='image' || $mode=='imagedetails') { 
+if (1==1 || $mode=='image' || $mode=='imagedetails') {
     // include jquery libraries
     $result.='
-        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />   
+        <link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
     ';
 }
-if ($mode=='image') { 
+if ($mode=='image') {
     // include libraries for visualsearch search bar
     $result.='
         <script type="text/javascript" src="js/underscore-1.4.3.js"></script>
@@ -532,7 +532,7 @@ if ($mode=='image') {
            <link href="css/visualsearch.css" media="screen" rel="stylesheet" type="text/css"/>
         <!--<![endif]-->';
 }
-if ($mode=='imagedetails') { 
+if ($mode=='imagedetails') {
      // include libraries for featured image zoom widget
      $result.= "
           <link rel=\"stylesheet\" href=\"css/multizoom.css\" type=\"text/css\" />
@@ -546,11 +546,11 @@ $result .= "
     <a href='#main-content' class='element-invisible element-focusable' tabindex='1'>Skip to main content</a>
   </div>
 <div id='allcontent'>
-    
+
 <!--FLEXIBLE ADMIN HEADER FOR USE BY SELECT GROUPS USING OS-->
     <div id='branding_header'>
         <div  class='branding-container clearfix'>
-          <div class='branding-left'><a href='http://www.harvard.edu' ><img typeof='foaf:Image' src='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/images/harvard-logo.png' width='259' height='35' alt='Harvard Logo' /></a></div><div class='branding-right'><a href='http://www.fas.harvard.edu/' >FACULTY OF ARTS AND SCIENCES</a> | <a href='http://www.harvard.edu' >HARVARD.EDU</a></div>     </div>
+          <div class='branding-left'><a href='http://www.harvard.edu' ><img typeof='foaf:Image' src='https://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/images/harvard-logo.png' width='259' height='35' alt='Harvard Logo' /></a></div><div class='branding-right'><a href='http://www.fas.harvard.edu/' >FACULTY OF ARTS AND SCIENCES</a> | <a href='http://www.harvard.edu' >HARVARD.EDU</a></div>     </div>
     </div>
 
 <div id='page' class='container page header-main header-right content-top content-right footer footer-right'>
@@ -560,17 +560,17 @@ $result .= "
 			<header id='header' class='clearfix' role='banner'>
 			 <div id='header-container'>
 				 <div id='header-panels' class='at-panel gpanel panel-display three-col clearfix'>
-					 <div class='region region-header-second'><div class='region-inner clearfix'><div id='block-boxes-site-info' class='block block-boxes block-boxes-os_boxes_site_info no-title' ><div class='block-inner clearfix'>  
+					 <div class='region region-header-second'><div class='region-inner clearfix'><div id='block-boxes-site-info' class='block block-boxes block-boxes-os_boxes_site_info no-title' ><div class='block-inner clearfix'>
                      <div class='block-content content'><div id='boxes-box-site_info' class='boxes-box'><div class='boxes-box-content'><h1><a href='http://www.huh.harvard.edu/'  class='active'>Harvard University Herbaria &amp; Libraries</a></h1>
     <p>
     </p></div></div></div>
-  </div></div></div></div>					  					  <div class='region region-header-third'><div class='region-inner clearfix'><div id='block-os-secondary-menu' class='block block-os no-title' ><div class='block-inner clearfix'>  
-  
+  </div></div></div></div>					  					  <div class='region region-header-third'><div class='region-inner clearfix'><div id='block-os-secondary-menu' class='block block-os no-title' ><div class='block-inner clearfix'>
+
   <div class='block-content content'><ul class='nice-menu nice-menu-down' id='nice-menu-secondary-menu'><li class='menu-3619 menu-path-node-99471  first   odd  '><a href='http://huh.harvard.edu/pages/contact' >Contact</a></li><li class='menu-3620 menu-path-node-99461   even  '><a href='http://huh.harvard.edu/pages/visit' >Visit</a></li><li class='menu-3604 menu-path-kikihuhharvardedu-databases-   odd   last '><a href='http://kiki.huh.harvard.edu/databases/' >Databases</a></li></ul>
 </div>
-  </div></div><div id='block-os-search-solr-site-search' class='block block-os-search-solr no-title' ><div class='block-inner clearfix'>  
-  
-  <div class='block-content content'><form action='http://huh.harvard.edu/search/site' method='post' id='search-block-form' accept-charset='UTF-8'><div><div class='container-inline'>
+  </div></div><div id='block-os-search-solr-site-search' class='block block-os-search-solr no-title' ><div class='block-inner clearfix'>
+
+  <div class='block-content content'><form action='https://huh.harvard.edu/search/site' method='post' id='search-block-form' accept-charset='UTF-8'><div><div class='container-inline'>
   <div class='form-item form-type-textfield form-item-search-block-form'>
   <label for='edit-search-block-form--2'>Search </label>
  <input title='Enter the terms you wish to search for.' type='search' id='edit-search-block-form--2' name='search_block_form' value='' size='15' maxlength='128' class='form-text' />
@@ -581,12 +581,12 @@ $result .= "
   </div></div></div></div>					  				 </div>
 			  </div>
 		  </header>
-      <!--header regions end-->        
+      <!--header regions end-->
 
 				  <!--main menu region beg-->
 <div id='menu-bar' class='nav clearfix'>
-<nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >  
- 
+<nav id='block-os-primary-menu' class='block block-os no-title menu-wrapper menu-bar-wrapper clearfix' >
+
 <ul class='nice-menu nice-menu-down' id='nice-menu-primary-menu'>
 <li class='menu-3564 menuparent  menu-path-node-98801  first   odd  '><a href='http://huh.harvard.edu/pages/collections'  title='' class='active active'>Collections</a>
 <ul>
@@ -646,16 +646,16 @@ $result .= "
   <li class='menu-3623 menu-path-node-99476   odd   last '><a href='http://huh.harvard.edu/pages/history' >History</a></li>
 </ul></li>
 </ul>
- 
+
 
   </nav></div>		  <!--main menu region end-->
-        
+
 
 		<!-- header code ends -->
 
 ";
-if ($topbar!="off") { 
-$result .= "	
+if ($topbar!="off") {
+$result .= "
 <div id='nav2'>
   <ul>
     <li><a href='addenda.html'>Search Hints</a></li>
@@ -669,13 +669,13 @@ $result .= "
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts</a></li>
     <li><a href='add_correct.html'>Contribute</a></li>
     <li><a href='comment.html'>Comments</a></li>
-    
+
   </ul>
-</div>  <!-- nav2 ends -->		
+</div>  <!-- nav2 ends -->
 ";
-} 
+}
 $result .= "
-		
+
 <div id='main'>
    <!-- main content begins -->
    <a name='main-content'></a>
@@ -683,11 +683,11 @@ $result .= "
    <div id='title'>
       <h3><a href='$link'>Index of $heading</a></h3>
    </div>
-"; 
+";
    return $result;
 }
 
-function pagefooter_new() { 
+function pagefooter_new() {
    $result = '
    </div>
 </div>
@@ -705,107 +705,107 @@ function pagefooter_new() {
   </body>
 </html>';
    return $result;
-} 
+}
 
-/** 
+/**
  * This function will execute the sql statement for your major category counts Given the query that select count, field name from group by field name, this will return a series of anchor statements that run a search on the field provided in the field parameter displaying the names and counts for each row.
- * @param = $query a string containing a valid sql statement in the form 
+ * @param = $query a string containing a valid sql statement in the form
                 'select count(*), fieldname from ... group by fieldname'
- * @param = $field  a string containing the name of a field that can be searched through the search 
-            mode of this application (mode=search&$field=valueOfFieldName) 
+ * @param = $field  a string containing the name of a field that can be searched through the search
+            mode of this application (mode=search&$field=valueOfFieldName)
  * @returns a list of <a href=  href='specimen_search.php?mode=search&$field={value}'>{value}</a> ({count}) <BR>
 **/
 function nameCountSearch($query, $field, $cachequery) {
     global $connection, $errormessage;
-	
+
        $result = "";
-       if (strlen($cachequery)>0) { 
+       if (strlen($cachequery)>0) {
            $statement = $connection->prepare($cachequery);
-           if (!$statement) { 
+           if (!$statement) {
                $statement = $connection->prepare($query);
            }
-       } else { 
+       } else {
             $statement = $connection->prepare($query);
        }
-       if ($statement) { 
+       if ($statement) {
 		$statement->execute();
 		$statement->bind_result($ct, $name, $imct);
 		$statement->store_result();
 		if ($statement->num_rows > 0 ) {
-			while ($statement->fetch()) { 
-			    if ($name!="") { 
+			while ($statement->fetch()) {
+			    if ($name!="") {
                                     $im = "";
-                                    if ($imct>0) { 
+                                    if ($imct>0) {
                                        $im = " <a href='image_search.php?$field=$name'>($imct Images)</a>";
                                     }
 				    $result .= "<a href='specimen_search.php?mode=search&$field=$name'>$name</a> ($ct) $im<BR>";
 				}
 			}
-			
+
 		} else {
 			$errormessage .= "No matching results. ";
 		}
   	    $statement->close();
-	} else { 
-	    $errormessage .= $connection->error; 
-    } 
-    
+	} else {
+	    $errormessage .= $connection->error;
+    }
+
     return $result;
 }
 
 
 // TODO: Replace this with an include of the generated file.
-// This function gives html that provides counts for major categories in the database. 
+// This function gives html that provides counts for major categories in the database.
 // There are elements to this function that are HUH specific.
-function stats() {  
+function stats() {
    $returnvalue = "";
    $returnvalue .= "<h1>Statistics</h1>";
-   
+
    $returnvalue .= "<h2>Numbers of specimens in major groups.</h2>";
    $picklistName = 'HUH Taxon Group'; //customize for your own instance of Specify
    $query = "select count(*), Title from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
    $returnvalue .= nameCountSearch($query, 'taxonGroup');
-   
+
    $returnvalue .= "<h2>Numbers of specimens by Herbarium.</h2>";
    //you need to customize this for the way you have collections, collection codes and acronyms managed in Specify for your institution
    $query = "select count(PreparationId), preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid group by preparationattribute.text3";
    $query = "select count(collectionobjectid), text1 from fragment group by text1";
    $returnvalue .= nameCountSearch($query, 'herbarium');
-   
+
    $returnvalue .= "<h2>Numbers of specimens by Type Status.</h2>";
    $query = "select count(collectionobjectid), typestatusname from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
    $returnvalue .= nameCountSearch($query, 'typestatus');
-   
+
    return $returnvalue;
 }
 
-function browse($target = 'families') { 
-	$result = ""; 
+function browse($target = 'families') {
+	$result = "";
 	$field = "";
-	switch ($target) { 
+	switch ($target) {
 		case 'types':
                         $cachequery = "";
 			$sql = 'select count(collectionobjectid), typestatus, 0 from web_search group by typestatus ';
 			$field = 'typestatus';
-			break;	
+			break;
 		case 'countries':
                         $cachequery = "select cocount, country, imcount from cache_country ";
 			$sql = 'select count(distinct w.collectionobjectid), country, count(distinct i.imagesetid) from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid group by country ';
 			$field = 'country';
-			break;	
+			break;
 		case 'families':
-		default: 
+		default:
                         $cachequery = "select cocount, family, imcount from cache_family ";
 			$sql = 'select count(distinct w.collectionobjectid), family, count(distinct i.imagesetid) from web_search w left join IMAGE_SET_collectionobject i on w.collectionobjectid = i.collectionobjectid  group by family ';
 			$field = 'family';
 	}
-	if ($sql!="") { 
+	if ($sql!="") {
 		$result = nameCountSearch($sql, $field, $cachequery);
-	} 
-	return $result; 
+	}
+	return $result;
 }
 
-/** 
+/**
  * Workaround for missing json_encode in old php
  */
 function json_encode( $array ){
