@@ -423,7 +423,14 @@ function details() {
 							$statement_img->close();
 
 
-                                                        if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    							preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+							    
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
                                                         // only show locally
 							$query = "select path, filename " .
@@ -926,8 +933,15 @@ function details() {
 										echo "Error: " . $connection->error;
 									}
 
-                                                                        if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-                                                                            $lquery = "select loannumber, loan.isclosed, loan.dateclosed, loan.currentduedate, loanreturnpreparation.returneddate ".
+									if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    									preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+    									preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+    									preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    									preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    									preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    									$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+    									
+                                        	$lquery = "select loannumber, loan.isclosed, loan.dateclosed, loan.currentduedate, loanreturnpreparation.returneddate ".
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
 										" left join loanpreparation on preparation.preparationid = loanpreparation.preparationid " .
 										" left join loanreturnpreparation on loanpreparation.loanpreparationid = loanreturnpreparation.loanpreparationid " .
@@ -1007,7 +1021,15 @@ function details() {
 								}
 							}
 
-							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
+							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+							    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+							    
+							    
 								$redactlocality = false;
 							}
 
@@ -1470,8 +1492,16 @@ function search() {
 	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) {
 	        $redactlocality = true;
-		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
-			$redactlocality = false;
+	        
+		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    		preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+   			preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+    		preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    		preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    		preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    		$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+    
+    			$redactlocality = false;
 		}
 		$statement = $connection->prepare($query);
 		if ($statement) {

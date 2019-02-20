@@ -470,7 +470,11 @@ function details() {
 							}
 						}
 						// If internal, check for out of range collecting events:
-						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+						    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+						    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+						    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+						    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
                                                     // Definitions for datestype:
                                                     //  public static final byte                BIRTH              = 0;
@@ -595,7 +599,12 @@ function details() {
 
 				}
 				// Don't display details for agents that are only involved in transactions to users outside the herbarium.
-				if (!preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+				if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+				    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+				    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+				    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+				    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+				    
 					if ($numberofvariants==0) {
 						 $agent = "[Redacted]";
 					}

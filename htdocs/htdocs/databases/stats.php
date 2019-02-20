@@ -38,7 +38,14 @@ $mode = "menu";
  
 $isinternal = FALSE;
 
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1' || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+	preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+	preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+	preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+	$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+	
    $isinternal = TRUE;
 }
 

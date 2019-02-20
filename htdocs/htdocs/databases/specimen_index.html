@@ -196,7 +196,14 @@ When you observe any issues with the data, please report them through our <a hre
 
 
 <?php
-   if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1' || preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ) {
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+
       echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
       echo "<h3><a href='specimen_search.php?browsemode=stats'>Summary Statistics</a></h3>";						
       echo "<h3><a href='stats.php'>Detailed Statistics (Types, Annual Reports, Loans)</a></h3>";						

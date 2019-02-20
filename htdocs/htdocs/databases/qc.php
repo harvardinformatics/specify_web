@@ -96,9 +96,12 @@ if ($_GET['mode']!="")  {
 echo pageheader('qc'); 
 
 // Only display if internal 
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 						
-  
 	if ($connection) {
 		if ($debug) {  echo "[$mode]"; } 
 		
