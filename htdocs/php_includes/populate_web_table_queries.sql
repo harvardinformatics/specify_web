@@ -630,6 +630,7 @@ create table if not exists temp_dwc_search (
   imageuri varchar(255),
   occurenceuri varchar(255),
   taxonomicgroup varchar(255),
+  dynamicproperties text,
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
   temp_startdate date,
@@ -639,7 +640,8 @@ create table if not exists temp_dwc_search (
   temp_geographyid int,
   temp_determinationid bigint,
   temp_fragmentid bigint,
-  temp_projectid int, 
+  temp_projectid int,
+  temp_projectname varchar(255),
   unredacted_locality text,
   unredacted_decimallatitude decimal(12,10),
   unredacted_decimallongitude decimal(13,10)
@@ -705,7 +707,10 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = f
 -- Project
 -- Works currently, will have problems if a specimen is involved in more than one project.  Should replace with a function.
 -- 21 sec
-update temp_dwc_search left join project_colobj p on temp_dwc_search.collectionobjectid = p.collectionobjectid set temp_dwc_search.temp_projectid = p.projectid;
+update temp_dwc_search 
+left join project_colobj pc on temp_dwc_search.collectionobjectid = pc.collectionobjectid
+left join project p on pc.projectid = p.projectid  
+set temp_dwc_search.temp_projectid = p.projectid, temp_dwc_search.temp_projectname = p.projectname;
 -- 1 min 48 sec.
 create index temp_dwc_search_projid on temp_dwc_search(temp_projectid);
 
@@ -988,6 +993,11 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
        where taxon.esastatus is not null;
 
 delete from temp_dwc_search where scientificname = 'Redacted';
+
+
+-- Update dynamic properties with various info as JSON
+update temp_dwc_search
+set dynamicproperties = concat('{"huh_taxonomic_group": "',COALESCE(taxonomicgroup,'null'),'", "huh_project_id": ',COALESCE(temp_projectid,'null'),', "huh_project_name": ',if(temp_projectname is null,'null', concat('"',temp_projectname,'"')),'}');
 
 
 -- Get image metadata  
