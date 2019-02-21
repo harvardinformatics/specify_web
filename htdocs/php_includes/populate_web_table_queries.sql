@@ -40,7 +40,7 @@
 -- Comment out the next 4 lines and the last two lines to run queries directly.
 DROP PROCEDURE IF EXISTS specify.populate_web_tables;
 DELIMITER | 
-create  DEFINER=`specify_web_adm`@`localhost` procedure specify.populate_web_tables ()
+create  DEFINER=`root`@`localhost` procedure specify.populate_web_tables ()
 BEGIN
 
 -- clean up if rerunning after incomplete run.
@@ -48,6 +48,8 @@ BEGIN
 drop table if exists temp_web_search;
 drop table if exists temp_web_quicksearch;
 drop table if exists temp_dwc_search;
+drop table if exists temp_dwc_identification_history;
+
 
 -- Table containing full text index on a subset of fields to 
 -- use MySQL's full text index capabilities for a 'quick search'
@@ -186,13 +188,14 @@ create index idx_websearch_taxon_nodenumber on temp_web_search(taxon_nodenumber)
 -- create temporary copy of taxonomy tree in a myisam table.
 drop table if exists temp_taxon;
 -- 2 sec
-create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid, parentid, citesstatus from taxon;
+create table temp_taxon engine myisam as select taxonid, name, highestchildnodenumber, nodenumber, rankid, parentid, citesstatus, groupnumber from taxon;
 -- about 3-5 sec each 
 create unique index idx_temp_taxon_taxonid on temp_taxon(taxonid);
 create index temp_taxon_hc on temp_taxon(highestchildnodenumber);
 create index temp_taxon_node on temp_taxon(nodenumber);
 create index temp_taxon_rank on temp_taxon(rankid);
 create index temp_taxon_sens on temp_taxon(citesstatus);
+create index temp_taxon_sens on temp_taxon(groupnumber);
 -- 5 sec
 alter table temp_taxon add column family varchar(64);
 
@@ -343,9 +346,9 @@ create index idx_websearch_geo_nodenumber on temp_web_search(geo_nodenumber);
 -- create temporary copy of geography tree in a myisam table.
 drop table if exists temp_geography;
 -- 0.24 sec
-create table temp_geography (geographyid int primary key, name varchar(64), highestchildnodenumber int, nodenumber int, rankid int) 
+create table temp_geography (geographyid int primary key, name varchar(64), geographycode varchar(32), highestchildnodenumber int, nodenumber int, rankid int) 
     engine myisam 
-    as select geographyid, name, highestchildnodenumber, nodenumber, rankid from geography;
+    as select geographyid, name, geographycode, highestchildnodenumber, nodenumber, rankid from geography;
 -- about 0.1 sec each    
 create index temp_geography_hc on temp_geography(highestchildnodenumber);
 create index temp_geography_node on temp_geography(nodenumber);
@@ -380,7 +383,7 @@ update temp_geography set county = getGeographyOfRank(400,highestchildnodenumber
 -- other tree levels used for dwc_search
 -- about 5 minutes each.  Not faster if used with where clause.
 update temp_geography set continent = getGeographyOfRank(100,highestchildnodenumber,nodenumber);
-update temp_geography set country = getGeographyOfRank(200,highestchildnodenumber,nodenumber);
+update temp_geography set country = getGeographyOfRank(200,highestchildnodenumber,nodenumber); 
 update temp_geography set continentsubregion = getGeographyOfRank(250,highestchildnodenumber,nodenumber);
 update temp_geography set countrysubregion = getGeographyOfRank(260,highestchildnodenumber,nodenumber);
 -- Apply limits to less frequently used levels, bit faster for region.
@@ -566,9 +569,10 @@ create table if not exists temp_dwc_search (
   collectionid varchar(50),
   catalognumber varchar(32) not null,
   catalognumbernumeric int,
-  dc_type varchar(30) default 'PhysicalObject',
-  basisofrecord varchar(30) default 'PreservedSpecimen',
+  dc_type varchar(255) default 'http://purl.org/dc/dcmitype/PhysicalObject',
+  basisofrecord varchar(255) default 'PreservedSpecimen',
   collectornumber varchar(50),
+  samplingprotocol text,
   collector text,
   sex varchar(32),
   reproductiveStatus varchar(32),
@@ -586,17 +590,20 @@ create table if not exists temp_dwc_search (
   highergeography text,
   continent varchar(64),
   country varchar(64),
+  countrycode varchar(32),
   stateprovince varchar(64),
   islandgroup varchar(128),
   county varchar(64),
   island varchar(64),
   municipality varchar(64),
   locality text,
+  localityremarks text,
   minimumelevationmeters double,
   maximumelevationmeters double,
   verbatimelevation varchar(50),
   decimallatitude decimal(12,10),
   decimallongitude decimal(13,10),
+  coordinateuncertaintyinmeters int,
   geodeticdatum varchar(50),
   identifiedby text,
   dateidentified varchar(50),
@@ -606,13 +613,23 @@ create table if not exists temp_dwc_search (
   typestatus varchar(50),
   scientificname varchar(255),
   scientificnameauthorship varchar(128),
+  specificepithet varchar(255),
+  infraspecificepithet varchar(255),
   genus  varchar(255),
   family varchar(255),
   informationwitheld varchar(255),
   datageneralizations varchar(255),
   othercatalognumbers text,
+  occurenceremarks text,
   fragmentguid char(100) not null unique,
   timestamplastupdated datetime,
+  hasimage int default 0,
+  imagedescription text,
+  imagecreatedate datetime,
+  imagecreator varchar(255),
+  imageuri varchar(255),
+  occurenceuri varchar(255),
+  taxonomicgroup varchar(255),
   temp_identifier varchar(32) not null,
   temp_prepmethod varchar(32),
   temp_startdate date,
@@ -626,21 +643,35 @@ create table if not exists temp_dwc_search (
   unredacted_locality text,
   unredacted_decimallatitude decimal(12,10),
   unredacted_decimallongitude decimal(13,10)
-) ENGINE MyISAM CHARACTER SET utf8;
+) ENGINE MyISAM CHARACTER SET utf8;	
 
 delete from temp_dwc_search;
 
 -- ignore will cause duplicate guids to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid, concat(fragment.description, " | ", fragment.remarks), concat('http://data.huh.harvard.edu/',uuid) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
 
 -- add barcoded preparations
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid) select distinct collectionobjectid, fragment.text1, concat('barcode-', p.identifier), p.identifier, p.identifier, prepmethod, uuid, ifnull(fragment.timestampmodified,fragment.timestampcreated), fragment.fragmentid from fragment left join guids on fragment.fragmentid = guids.primarykey left join preparation p on fragment.preparationid = p.preparationid where p.identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct collectionobjectid, fragment.text1, concat('barcode-', p.identifier), p.identifier, p.identifier, prepmethod, uuid, ifnull(fragment.timestampmodified,fragment.timestampcreated), fragment.fragmentid, concat(fragment.description, " | ", fragment.remarks), concat('http://data.huh.harvard.edu/',uuid) from fragment left join guids on fragment.fragmentid = guids.primarykey left join preparation p on fragment.preparationid = p.preparationid where p.identifier is not null and guids.tablename = 'fragment';
+
+-- update modified timestamp based on changes to relevant tables
+update temp_dwc_search 
+  left join fragment 
+    on temp_dwc_search.temp_fragmentid = fragment.fragmentid 
+  left join determination
+    on fragment.fragmentid = determination.fragmentid
+  left join collectionobject 
+    on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent 
+    on collectionobject.collectingeventid = collectingevent.collectingeventid 
+  left join locality
+    on collectingevent.localityid = locality.localityid
+  set temp_dwc_search.timestamplastupdated = GREATEST(COALESCE(fragment.timestampcreated, '1000-01-01'), COALESCE(fragment.timestampmodified, '1000-01-01'), COALESCE(determination.timestampcreated, '1000-01-01'), COALESCE(determination.timestampmodified, '1000-01-01'), COALESCE(collectionobject.timestampcreated, '1000-01-01'), COALESCE(collectionobject.timestampmodified, '1000-01-01'), COALESCE(collectingevent.timestampcreated, '1000-01-01'), COALESCE(collectingevent.timestampmodified, '1000-01-01'), COALESCE(locality.timestampcreated, '1000-01-01'), COALESCE(locality.timestampmodified, '1000-01-01'));
 
 -- make the fragment guid resolvable
 -- 10 sec
-update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
+-- update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
 
 -- Index on the catalog number to speed later operations.
 -- 28 sec
@@ -650,7 +681,7 @@ create index temp_dwc_searchcatnum on temp_dwc_search(catalognumber);
 create index temp_dwc_searchfragid on temp_dwc_search(temp_fragmentid);
 
 -- 00220822 has prepmethod = 'Protolog' ???
-update temp_dwc_search set dc_type = 'StillImage' where temp_prepmethod = 'Photograph' or temp_prepmethod = 'Drawing';
+update temp_dwc_search set dc_type = 'http://purl.org/dc/dcmitype/StillImage' where temp_prepmethod = 'Photograph' or temp_prepmethod = 'Drawing';
 -- set collectionid to the biocol lsid for each herbarium
 -- (using the non-resolvable lsid per AppleCore guidance)
 -- Prepend http://biocol.org/ to make resolvable: 
@@ -665,7 +696,7 @@ update temp_dwc_search set collectionid = 'urn:lsid:biocol.org:col:15868' where 
 
 -- collectornumber
 -- 25 sec
-update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.collectornumber = collectingevent.stationfieldnumber where collectingevent.stationfieldnumber is not null;
+update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.collectornumber = collectingevent.stationfieldnumber, temp_dwc_search.samplingprotocol = collectingevent.method;
 -- collector, assumes currently true state of one collector per collecting event, thus concatenation of list of collectors
 -- ordered by isprimary and ordernumber are not needed.
 -- 1 min 7sec.
@@ -694,16 +725,28 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = f
 -- Date Collected
 -- Verbatim date
 -- 50 sec
-update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid set temp_dwc_search.verbatimdate = collectingevent.verbatimdate where collectingevent.verbatimdate is not null;
+update temp_dwc_search 
+  left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid 
+  left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+  set temp_dwc_search.verbatimdate = collectingevent.verbatimdate where collectingevent.verbatimdate is not null;
 -- Date function queries are slow on joins, copy fields to temp table to run functions there rather than on join
 -- 1 min 44 sec.
-update temp_dwc_search t left join fragment on t.temp_identifier = fragment.identifier left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent ce on collectionobject.collectingeventid = ce.collectingeventid set t.temp_startdate = ce.startdate, t.temp_enddate = ce.enddate, t.temp_startdateprecision = ce.startdateprecision, t.temp_enddateprecision = ce.enddateprecision;
+update temp_dwc_search t 
+  left join fragment on t.temp_identifier = fragment.identifier 
+  left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent ce on collectionobject.collectingeventid = ce.collectingeventid 
+  set t.temp_startdate = ce.startdate, t.temp_enddate = ce.enddate, t.temp_startdateprecision = ce.startdateprecision, t.temp_enddateprecision = ce.enddateprecision;
 -- Start date only, year (precision=3)
 -- 15 sec.
-update temp_dwc_search set temp_dwc_search.eventdate = year(temp_startdate), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 12 month)  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 3;
+update temp_dwc_search 
+  set temp_dwc_search.eventdate = year(temp_startdate), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 12 month)  
+  where temp_startdate is not null 
+    and temp_enddate is null and temp_startdateprecision = 3;
 -- Start date only, month (precision=2)
 -- 13 sec.
-update temp_dwc_search set temp_dwc_search.eventdate = date_format(temp_startdate,'%Y-%m'), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.month = month(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 1 month)  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 2;
+update temp_dwc_search 
+  set temp_dwc_search.eventdate = date_format(temp_startdate,'%Y-%m'), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.month = month(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = date_add(temp_startdate, interval 1 month)  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 2;
 -- Start date only, day (precision=1)
 -- 20 sec.
 update temp_dwc_search set temp_dwc_search.eventdate = date_format(temp_startdate,'%Y-%m-%d'), temp_dwc_search.year = year(temp_startdate), temp_dwc_search.month = month(temp_startdate), temp_dwc_search.day = day(temp_startdate), temp_dwc_search.startdatecollected = temp_startdate, temp_dwc_search.enddatecollected = temp_startdate  where temp_startdate is not null and temp_enddate is null and temp_startdateprecision = 1;
@@ -740,7 +783,14 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = f
 
 -- Depends on fields added to temp_geography above.
 -- 1 min.
-update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid left join geography g on locality.geographyid = g.geographyid set temp_dwc_search.temp_geographyid = g.geographyid where g.geographyid is not null;
+update temp_dwc_search 
+  left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid 
+  left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+  left join locality on collectingevent.localityid = locality.localityid 
+  left join geography g on locality.geographyid = g.geographyid 
+  set temp_dwc_search.temp_geographyid = g.geographyid 
+  where g.geographyid is not null;
 -- 46 sec.
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
 set 
@@ -764,6 +814,11 @@ set
    ifnull(concat(g.state,';'),''),
    ifnull(concat(g.county,';'),'')
  ) where d.temp_geographyid is not null;
+ 
+update temp_dwc_search d 
+  left join temp_geography g on d.country = g.country 
+        and g.rankid = 200
+  set d.countrycode = g.geographycode;
 
 -- 25 sec
 update temp_dwc_search d left join temp_geography g on d.temp_geographyid = g.geographyid 
@@ -777,7 +832,15 @@ set d.island = g.name where d.temp_geographyid is not null and g.rankid = 450 an
 
 -- Locality
 -- 1 min 10 sec
-update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.locality = locality.localityname, temp_dwc_search.unredacted_locality = locality.localityname where locality.localityid is not null;
+update temp_dwc_search 
+  left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid 
+  left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+  left join locality on collectingevent.localityid = locality.localityid  
+  set temp_dwc_search.locality = locality.localityname, 
+      temp_dwc_search.unredacted_locality = locality.localityname, 
+      temp_dwc_search.localityremarks = locality.remarks 
+  where locality.localityid is not null;
 -- Verbatim locality, not available in HUH data.
 
 -- elevation. 
@@ -786,7 +849,18 @@ update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = f
 
 -- georeference
 -- 36 sec
-update temp_dwc_search left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join locality on collectingevent.localityid = locality.localityid  set temp_dwc_search.decimallongitude = locality.longitude1, temp_dwc_search.decimallatitude = locality.latitude1, temp_dwc_search.geodeticdatum = locality.datum, temp_dwc_search.unredacted_decimallongitude = locality.longitude1, temp_dwc_search.unredacted_decimallatitude = locality.latitude1 where locality.localityid is not null;
+update temp_dwc_search 
+  left join fragment on temp_dwc_search.temp_fragmentid = fragment.fragmentid 
+  left join collectionobject on fragment.collectionobjectid = collectionobject.collectionobjectid 
+  left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid 
+  left join locality on collectingevent.localityid = locality.localityid  
+  set temp_dwc_search.decimallongitude = locality.longitude1, 
+      temp_dwc_search.decimallatitude = locality.latitude1, 
+      temp_dwc_search.geodeticdatum = locality.datum, 
+      temp_dwc_search.unredacted_decimallongitude = locality.longitude1, 
+      temp_dwc_search.unredacted_decimallatitude = locality.latitude1,
+      temp_dwc_search.coordinateUncertaintyInMeters = locality.latlongaccuracy
+  where locality.localityid is not null;
 
 -- Per darwincore google code recomendations, use EPSG codes for datum.
 -- This doesn't sound right, as EPSG codes specify the entire coordinate reference system, not just the datum.
@@ -851,6 +925,7 @@ update temp_dwc_search t left join determinationcitation dc on t.temp_determinat
   set identificationreferences = trim(concat( concatAuthors(crw.referenceworkid), ' ',  ifnull(concat(dc.Text2, '. '), ''), ifnull(concat(crw.title,' '),''),  ifnull(concat(dc.Text1, ".  "), "") ))
   where crw.referenceworkid is not null;
 
+
 -- scientificname
 -- scientificnameauthorship
 -- 4 min 16 sec
@@ -860,13 +935,25 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
            temp_dwc_search.scientificnameauthorship = taxon.author
        where taxon.taxonid is not null;
 
--- family, from temp taxon table
+-- update taxon info from temp_taxon table
 -- 5 min 
 update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid 
        left join taxon on determination.taxonid = taxon.taxonid
        left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
-       set temp_dwc_search.family = temp_taxon.family,
-           temp_dwc_search.genus = temp_taxon.genus
+       set temp_dwc_search.taxonomicgroup = temp_taxon.groupnumber,
+           temp_dwc_search.family = temp_taxon.family,
+           temp_dwc_search.genus = temp_taxon.genus,
+           temp_dwc_search.specificepithet = 
+             case 
+               when (temp_taxon.rankid = 220) then temp_taxon.name
+               when (temp_taxon.rankid > 220) then temp_taxon.species
+               else null
+             end,
+           temp_dwc_search.infraspecificepithet = 
+             case
+               when (temp_taxon.rankid > 220) then temp_taxon.name 
+               else null
+             end
        where taxon.taxonid is not null;
 
 -- Run setCitesChildren(); to make sure that all children of cites genera/families are also marked as cites listed, then queries can run 
@@ -903,6 +990,26 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 delete from temp_dwc_search where scientificname = 'Redacted';
 
 
+-- Get image metadata  
+update temp_dwc_search 
+  left join IMAGE_SET_collectionobject 
+    on temp_dwc_search.collectionobjectid = IMAGE_SET_collectionobject.collectionobjectid
+  left join IMAGE_SET
+    on IMAGE_SET_collectionobject.imagesetid = IMAGE_SET.id
+  left join IMAGE_BATCH
+    on IMAGE_BATCH.id = IMAGE_SET.batch_id
+  left join IMAGE_OBJECT 
+    on IMAGE_SET.id = IMAGE_OBJECT.image_set_id and
+	   IMAGE_OBJECT.object_type_id = 4 and
+       IMAGE_OBJECT.active_flag = 1
+  set hasimage = 1,
+      imagedescription = IMAGE_SET.description,
+      imagecreatedate = IMAGE_BATCH.production_date,
+      imagecreator = IMAGE_BATCH.photographer_name,
+      imageuri = concat('http://data.huh.harvard.edu/',temp_dwc_search.fragmentguid,'/image')
+  where IMAGE_OBJECT.URI is not null;
+
+
 -- othercatalognumbers  only providing accession number if present.  
 -- Do other identifiers go here as well, or does their project based nature put them elsewhere? 
 -- 45 sec
@@ -916,11 +1023,105 @@ create index dwc_country on temp_dwc_search(country);
 -- 1 min 40 sec
 create index dwc_search_collobjectid on temp_dwc_search(collectionobjectid);
 
+
+-- Create identification history table
+create table if not exists temp_dwc_identification_history (
+  autoid bigint not null primary key auto_increment,
+  fragmentguid char(100), -- dwc_search.fragmentguid
+  determinationid bigint,
+  identificationid varchar(255), -- todo: future work, need to generate guids
+  identifiedby text, -- determination.text1
+  dateidentified varchar(50), -- determination.determineddate
+  identificationqualifier varchar(50), -- determination.qualifier, picklistitem.title
+  remarks text, -- determination.remarks | determination.text2
+  identificationreferences text, -- referencework.*
+  typestatus varchar(50), -- determination.typestatusname, picklistitem.title	
+  verificationstatus text, -- todo: future work
+  scientificname varchar(255),
+  scientificnameauthorship varchar(128),
+  specificepithet varchar(255),
+  infraspecificepithet varchar(255),
+  genus  varchar(255),
+  family varchar(255)
+) ENGINE MyISAM CHARACTER SET utf8;
+
+delete from temp_dwc_identification_history;
+
+-- fill in identification records
+insert ignore into temp_dwc_identification_history (fragmentguid, determinationid, remarks)
+  select temp_dwc_search.fragmentguid, determination.determinationid, determination.remarks
+  from temp_dwc_search, determination
+  where temp_dwc_search.temp_fragmentid = determination.fragmentid;
+
+create index temp_dwc_identification_history_detid on temp_dwc_identification_history(determinationid);
+
+update temp_dwc_identification_history 
+  left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+  set temp_dwc_identification_history.dateidentified = 
+      date_format(determination.determineddate,
+        case when determineddateprecision=1 then '%Y-%m-%d'
+             when determineddateprecision=2 then '%Y-%m'
+             when determineddateprecision=3 then '%Y'
+      end)
+  where determination.determineddate is not null;
+  
+update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+  left join picklistitem on determination.typestatusname = picklistitem.value
+  set temp_dwc_identification_history.typestatus = picklistitem.title 
+  where determination.typestatusname is not null;
+
+update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+  set temp_dwc_identification_history.identifiedby = determination.text1 
+  where determination.typestatusname is null;
+
+-- determination qualifier
+update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+  join (select * from picklistitem where PickListID=(select PickListID from picklist where Name="HUH Determination Qualifier")) pli
+  on determination.qualifier = pli.title 
+  set temp_dwc_identification_history.identificationqualifier = pli.title 
+  where determination.qualifier is not null;
+
+-- determination references 
+update temp_dwc_identification_history t left join determinationcitation dc on t.determinationid = dc.determinationid 
+  left join referencework crw on dc.referenceworkid = crw.referenceworkid 
+  set identificationreferences = trim(concat( concatAuthors(crw.referenceworkid), ' ',  ifnull(concat(dc.Text2, '. '), ''), ifnull(concat(crw.title,' '),''),  ifnull(concat(dc.Text1, ".  "), "") ))
+  where crw.referenceworkid is not null;
+
+-- scientificname
+-- scientificnameauthorship
+-- 4 min 16 sec
+update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+       left join taxon on determination.taxonid = taxon.taxonid
+       set temp_dwc_identification_history.scientificname = trim(concat(taxon.fullname,' ',ifnull(taxon.author,''))),
+           temp_dwc_identification_history.scientificnameauthorship = taxon.author
+       where taxon.taxonid is not null;
+
+-- update taxon info from temp_taxon table
+-- 5 min 
+update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid 
+       left join taxon on determination.taxonid = taxon.taxonid
+       left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
+       set temp_dwc_identification_history.family = temp_taxon.family,
+           temp_dwc_identification_history.genus = temp_taxon.genus,
+           temp_dwc_identification_history.specificepithet = 
+             case 
+               when (temp_taxon.rankid = 220) then temp_taxon.name
+               when (temp_taxon.rankid > 220) then temp_taxon.species
+               else null
+             end,
+           temp_dwc_identification_history.infraspecificepithet = 
+             case
+               when (temp_taxon.rankid > 220) then temp_taxon.name 
+               else null
+             end
+       where taxon.taxonid is not null;
+
+
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
 create table if not exists dwc_search (id int); 
 drop table if exists old_dwc_search;
-rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search;
+rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search, temp_dwc_identification_history to dwc_identification_history;
 
 -- Clean up.  Remove the previous copies of the tables. 
 drop table old_dwc_search;
@@ -943,6 +1144,7 @@ create table temp_cache_country as select count(distinct w.collectionobjectid) a
 create table if not exists cache_country (id int);
 rename table cache_country to old_cache_country, temp_cache_country to cache_country;
 drop table old_cache_country;
+
 
 
 -- Some things that don't work.

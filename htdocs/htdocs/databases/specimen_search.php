@@ -711,7 +711,9 @@ function details() {
 									$determination = array();
 									if ($statement_det) {
 										$statement_det->bind_param("i",$fragmentid);
-										$statement_det->execute();
+										if (!$statement_det->execute()) {
+											echo "Error: " . $connection->error;
+										}										
 										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent,
 										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
 										              $determineragent, $text2, $determinationid, $determinedDatePrecision, $family, $isfiledunder, $islabel, $isfragment, $determinerid );
