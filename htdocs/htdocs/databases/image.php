@@ -65,8 +65,9 @@ if (strlen($id==0)) {
       if ($imagefile->mimetype=="image/tiff" || ($convert=="jpeg" || $convert=="jpg")) { 
          echo "The Harvard University Herbaria are working on improving specimen image availability for our web-based database and actively continue to digitize and present JPEG files. We are converting previously available high resolution TIFF files into more accessible JPEG files better suited for web presentation, and they will become available as they are processed. We apologize for any inconvenience. If you require a file sooner, or require a high resolution TIFF file, please contact us at huh-requests@oeb.harvard.edu. Thank you.";
          // convert_file($imagefile,"jpeg");
-      } else { 
-         fetch_file($imagefile);
+      } else {
+         redirectS3($imagefile); 
+         //fetch_file($imagefile);
       }
    } else { 
       return_error_image($imagefile->errormessage);
@@ -134,6 +135,20 @@ function convert_file($imagefile,$toType="jpeg") {
       return_error_image("Unable to read file to convert: " .$imagefile->filename);
    }
 }
+
+/**
+ * Redirect the request to AWS S3
+ */
+function redirectS3($imagefile) {
+
+    $s3file = preg_replace('huhimagestorage/Herbaria', 'herbaria', $imagefile);
+
+	$newURL = "https://s3.amazonaws.com/" . $s3file;
+
+	header('Location: '.$newURL);
+
+}
+
 
 /**
  * Directly fetch the image file from the filesystem and pass 
