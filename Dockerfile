@@ -9,6 +9,4 @@ EXPOSE 80
 
 COPY etc/000-default /etc/apache2/sites-enabled/000-default
 
-ADD ./htdocs/htdocs /var/www
-
 CMD ["apachectl", "-DFOREGROUND"]
