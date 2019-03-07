@@ -195,7 +195,7 @@ create index temp_taxon_hc on temp_taxon(highestchildnodenumber);
 create index temp_taxon_node on temp_taxon(nodenumber);
 create index temp_taxon_rank on temp_taxon(rankid);
 create index temp_taxon_sens on temp_taxon(citesstatus);
-create index temp_taxon_sens on temp_taxon(groupnumber);
+create index temp_taxon_grp  on temp_taxon(groupnumber);
 -- 5 sec
 alter table temp_taxon add column family varchar(64);
 
