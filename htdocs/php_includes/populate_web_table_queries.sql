@@ -1131,10 +1131,11 @@ update temp_dwc_identification_history left join determination on temp_dwc_ident
 -- create a placeholder for first run of script.
 create table if not exists dwc_search (id int); 
 drop table if exists old_dwc_search;
-rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search, temp_dwc_identification_history to dwc_identification_history;
+rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search, dwc_identification_history to old_dwc_identification_history, temp_dwc_identification_history to dwc_identification_history;
 
 -- Clean up.  Remove the previous copies of the tables. 
 drop table old_dwc_search;
+drop table old_dwc_identification_history;
 
 
 --  Tables to support pages built from slow group by searches.
