@@ -140,8 +140,11 @@ function convert_file($imagefile,$toType="jpeg") {
  * Redirect the request to AWS S3
  */
 function redirectS3($imagefile) {
+
+	$path = preg_replace("/huhimagestorage\/Herbaria/", "herbaria", (string)$imagefile->path);
+	$path = preg_replace("/huhimagestorage\/huhspecimenimages/", "huhspecimenimages", $path);
     
-    $s3file = preg_replace("/huhimagestorage\/Herbaria/", "herbaria", (string)$imagefile->path) . $imagefile->filename;
+    $s3file = $path . $imagefile->filename;
 
 	$newURL = "https://s3.amazonaws.com/" . $s3file;
 
