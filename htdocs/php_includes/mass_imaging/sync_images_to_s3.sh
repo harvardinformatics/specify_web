@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that the filesystem is mounted correctly with mfsymlinks (CIFS only?)
-content=$(cat test.txt)
+content=$(cat /mnt/huhimagestorage/huhspecimenimages/symlink_testfile.txt)
 if [ "Symlinks working!" != "$content" ];then
     echo "ERROR: huhimagestorage/ is not mounted with mfsymlinks"
     exit 1
