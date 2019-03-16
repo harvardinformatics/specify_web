@@ -70,7 +70,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						BARCODES=$(zbarimg -q --raw -Sdisable -Scode39.enable "$f")
 						for b in ${BARCODES[@]} ; do
 						
-							if [[ ! $b =~ $BARCODE_FRORMAT ]] ; then
+							if [[ ! $b =~ $BARCODE_FORMAT ]] ; then
 								echo "WARN: Skipping bad barcode ($b) from $f"
 								continue
 							fi
