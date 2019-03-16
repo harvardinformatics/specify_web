@@ -8,4 +8,4 @@ if [ "Symlinks working!" != "$content" ];then
 fi
 
 # run the sync - excluding CR2 and DNG for now
-aws s3 sync --exclude "*.dng" --exclude "*.CR2" /mnt/huhimagestorage/huhspecimenimages/ s3://huhspecimenimages/
+aws s3 sync --quiet --size-only --exclude "*.dng" --exclude "*.CR2" /mnt/huhimagestorage/huhspecimenimages/ s3://huhspecimenimages/
