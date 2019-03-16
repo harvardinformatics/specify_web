@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Make sure that the filesystem is mounted correctly with mfsymlinks (CIFS only?)
+content=$(cat /mnt/huhimagestorage/huhspecimenimages/symlink_testfile.txt)
+if [ "Symlinks working!" != "$content" ];then
+    echo "ERROR: huhimagestorage/ is not mounted with mfsymlinks"
+    exit 1
+fi
+
 BASE_DIR="/mnt/huhimagestorage/Herbaria6/HUH-IT/from_informatics_*"
 IMG_DIR="/mnt/huhimagestorage/huhspecimenimages"
 USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge)
@@ -27,29 +34,29 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 					fi
 					
 					if [ ! -d $sd/Output/JPG ]; then
-						echo "Alert: No JPG directory for $sd"
+						echo "ERROR: No JPG directory, skipping $sd"
 						continue
 					fi
 					
 					if [ ! -d $sd/Output/JPG-Preview ]; then
-						echo "Alert: No JPG-Preview directory for $sd"
+						echo "ERROR: No JPG-Preview directory, skipping $sd"
 						continue
 					fi
 					
 					if [ ! -d $sd/Output/JPG-Thumbnail ]; then
-						echo "Alert: No JPG-Thumbnail directory for $sd"
+						echo "ERROR: No JPG-Thumbnail directory, skipping $sd"
 						continue
 					fi										
 			
 					if [ ! -d $sd/Output/DNG ]; then
-						echo "Alert: No DNG directory for $sd"
+						echo "ERROR: No DNG directory, skipping $sd"
 						continue
 					fi
 				
 					source image_count_check.sh $sd
 					
 					if [ $? != 0 ] ; then
-						echo "ALERT: Check for derivatives failed at $sd"
+						echo "ERROR: Check for derivatives failed, skipping $sd"
 						continue
 					fi
 					
@@ -65,41 +72,22 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							basefile="${filename%.*}"
 							
 							# Create symlinks for all of the files
-							if [ -f "$IMG_DIR/JPG/$b.jpg" ] ; then
-								echo "ALERT: symlink already exists at $IMG_DIR/JPG/$b.jpg"
-							else
-								ln -s "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG/$b.jpg" 
-							fi
+							source link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg";
 							
-							if [ -f "$IMG_DIR/JPG-Preview/$b.jpg" ] ; then
-								echo "ALERT: symlink already exists at $IMG_DIR/JPG-Preview/$b.jpg"
-							else
-								ln -s "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview/$b.jpg" 
-							fi
-							
-							if [ -f "$IMG_DIR/JPG-Thumbnail/$b.jpg" ] ; then
-								echo "ALERT: symlink already exists at $IMG_DIR/JPG-Thumbnail/$b.jpg"
-							else
-								ln -s "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail/$b.jpg" 
-							fi
-							
-							if [ -f "$IMG_DIR/DNG/$b.dng" ] ; then
-								echo "ALERT: symlink already exists at $IMG_DIR/DNG/$b.dng"
-							else
-								ln -s "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG/$b.dng" 
-							fi
-							
-							if [ -f "$IMG_DIR/RAW/$b.CR2" ] ; then
-								echo "ALERT: symlink already exists at $IMG_DIR/RAW/$b.CR2"
-							else
-								ln -s "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW/$b.CR2" 
-							fi																											
+							source link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg";
 
+							source link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg";
+							
+							source link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng";
+							
+							source link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2";
+								
+							# Create database entries																									
 							php add_image_set.php "$BATCH_ID" "$sd" "$b"
 							
 							if [ $? != 0 ] ; then
-								echo "ALERT: Ingest failed for barcode $b in dir $sd"
-								continue
+								echo "ERROR: Ingest failed for barcode $b in dir $sd"
+								exit 1
 							fi							
 
 						done	
@@ -109,7 +97,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 					
 					echo "Done ingesting $sd"
 				else
-					echo "ALERT: Skipping badly formatted directory $sd"
+					echo "ERROR: Skipping badly formatted directory $sd"
 				fi
 				
 			done
