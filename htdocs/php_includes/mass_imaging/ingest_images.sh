@@ -12,7 +12,7 @@ IMG_DIR="/mnt/huhimagestorage/huhspecimenimages"
 USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge)
 SESSION_FORMAT1="/[0-9]{4}-[0-9]{2}-[0-9]{2}$"
 SESSION_FORMAT2="/[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}$"
-BARCODE_FORMAT="/^[0-9]{8}$/"
+BARCODE_FORMAT="^[0-9]{8}$"
 
 for d in $BASE_DIR ; do # iterate through the directories for each photostation
 	for u in ${USERS[@]} ; do # iterate through the subdirectories for each user
