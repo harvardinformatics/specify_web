@@ -54,7 +54,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						continue
 					fi
 				
-					source image_count_check.sh $sd
+					./image_count_check.sh $sd
 					
 					if [ $? != 0 ] ; then
 						echo "ERROR: Check for derivatives failed, skipping $sd"
