@@ -61,7 +61,12 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						continue
 					fi
 					
-					BATCH_ID=$(php add_batch.php $sd) # Add batch to the database
+					BATCH_ID=$(php add_image_batch.php $sd) # Add batch to the database
+
+					if [ $? != 0 ] ; then
+						echo "ERROR: Failed to add image batch for $sd"
+						exit 1
+					fi	
 								
 					for f in $sd/Output/JPG/*.jpg ; do # use the JPGs for scanning for barcodes
 						echo "Looking for barcodes in '$f'"
