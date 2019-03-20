@@ -82,8 +82,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 								continue
 							fi							
 						done
-						barcode_list=$(IFS=";" ; echo ${sc_barcodes[*]} ; )
-							
+						barcode_list=$(IFS=';' ; echo "${sc_barcodes[*]}" ; )
 							
 						# Create image_set records that all derivates will hang from
 						imagesetid=$(php add_image_set.php "$BATCH_ID" "$masterfile" ${sc_barcodes[*]}) || { echo "ERROR: Failed to add image_set record for $masterfile" ; exit 1; }
