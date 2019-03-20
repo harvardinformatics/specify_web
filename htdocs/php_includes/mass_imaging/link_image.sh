@@ -28,7 +28,7 @@ if [ -f "$linkfile" ] ; then
 				fi
 			else
 			
-				ln -rs "$sourcefile" "$linkfile"
+				ln -sr "$sourcefile" "$linkfile"
 				
 				if [ $? != 0 ] ; then
 					echo "ERROR: Symlink failed for $linkfile to $sourcefile"
@@ -43,7 +43,7 @@ if [ -f "$linkfile" ] ; then
 	fi
 else
 
-	ln -rs "$sourcefile" "$linkfile"
+	ln -sr "$sourcefile" "$linkfile"
 	
 	if [ $? != 0 ] ; then
 		echo "ERROR: Symlink failed for $linkfile to $sourcefile"

@@ -9,7 +9,7 @@ $debug = false;
 $base = "/mnt/";
 
 if ($argc < 5) {
-	echo "USAGE: add_image_object.php <imagesetid> <file> <image_type> <activeflag> [barcode]\n";
+	echo "USAGE: add_image_object.php <imagesetid> <file> <image_type> <activeflag> [barcode(s)]\n";
 }
 
 $imagesetid = $argv[1];
@@ -57,7 +57,7 @@ switch (strtolower($ext)) {
 
 
 $imagelocalfileid = findOrCreateLocalFile($barcode, $filename, $base, $path, $ext, $mimetype);
-$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag);
+$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcode);
 
 echo $objectid;
 
@@ -135,7 +135,7 @@ function findOrCreateLocalFile($barcode, $filename, $base, $path, $extension, $m
 
 
 
-function findOrCreateObject($imagesetid, $objecttypeid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $urlparam="") { 
+function findOrCreateObject($imagesetid, $objecttypeid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodes, $urlparam="") { 
     global $connection, $debug;
     
     $imageobjectid = null;
@@ -204,11 +204,11 @@ function findOrCreateObject($imagesetid, $objecttypeid, $imagelocalfileid, $base
               }
               $uri = "id=$imagelocalfileid$urlparam";
 
-              $sql = "insert into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-              if ($debug) { echo "$sql\n[$imagesetid][$objecttypeid][$repositoryid][$mimeid][$objectname][$uri][$imagelocalfileid]\n"; } 
+              $sql = "insert into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+              if ($debug) { echo "$sql\n[$imagesetid][$objecttypeid][$repositoryid][$mimeid][$objectname][$uri][$imagelocalfileid][$barcodes]\n"; } 
               $stmtinsert = $connection->prepare($sql);
               $objectname = "$path$filename";
-              $stmtinsert->bind_param('iiiiiiiiiisssssi',$imagesetid,$objecttypeid,$repositoryid,$activeflag,$mimeid,$bitsid,$compressionid,$photointerpid,$pixelwidth,$pixelheight,$timestamp,$resolution,$filesize,$objectname,$uri,$imagelocalfileid);
+              $stmtinsert->bind_param('iiiiiiiiiisssssis',$imagesetid,$objecttypeid,$repositoryid,$activeflag,$mimeid,$bitsid,$compressionid,$photointerpid,$pixelwidth,$pixelheight,$timestamp,$resolution,$filesize,$objectname,$uri,$imagelocalfileid,$barcodes);
               if ($stmtinsert->execute()) { 
                  if ($stmtinsert->affected_rows==1) { 
                     $imageobjectid = $connection->insert_id;
