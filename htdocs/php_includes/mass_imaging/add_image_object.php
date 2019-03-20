@@ -17,9 +17,16 @@ $file		= $argv[2];
 $imagetype  = $argv[3];
 $activeflag = $argv[4];
 
-$barcode = null;
+$barcode     = null;
+$barcodelist = null;
 if (isset($argv[5])) {
-	$barcode = $argv[5];
+	$barcodelist = $argv[5];
+
+	if (strlen($argv[5]) > 10 || strpos($argv[5], ';') !== false) {
+		# don't set individual barcode if list is given
+	} else {
+		$barcode = $argv[5];	
+	}
 }
 
 $path_parts = pathinfo($file);
@@ -57,7 +64,7 @@ switch (strtolower($ext)) {
 
 
 $imagelocalfileid = findOrCreateLocalFile($barcode, $filename, $base, $path, $ext, $mimetype);
-$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcode);
+$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodelist);
 
 echo $objectid;
 
