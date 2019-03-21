@@ -392,7 +392,7 @@ function details() {
 								$statement_img->bind_result($url,$height,$width,$imagename,$filesize,$imagesetid);
 								$statement_img->store_result();
 								$fullurl = "";
-                                                                $imagesetidseen = "";
+                                $imagesetidseen = "";
 								while ($statement_img->fetch()) {
                                                                         if ($imagesetidseen!=$imagesetid) {
                                                                            $fullurl = "";
@@ -413,7 +413,17 @@ function details() {
 											$fullurl = $url;
 										}
 										$size = floor($filesize / 1024);
-										$size = $size . " kb";
+										if ($size > 1024) {
+											$size = floor($size / 1024);
+											if ($size > 1024) {
+												$size = floor($size / 1024);
+												$size = $size . "GB";
+											} else {
+												$size = $size . "MB";
+											}
+										} else {
+											$size = $size . "KB";
+										}
 										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
 										$images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
 									}
