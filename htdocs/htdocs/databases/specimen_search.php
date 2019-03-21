@@ -407,7 +407,7 @@ function details() {
                                                                                     $ahreffullurl = "<a href='$fullurl'>";
                                                                                     $aclosefullurl = "</a>";
                                                                                 }
-										$firstimage[] = "$ahreffullurl<img src='$url' height='205' width='150' alt='Thumbnail image of sheet' >$aclosefullurl";
+										$firstimage[$imagesetid] = "$ahreffullurl<img src='$url' height='205' width='150' alt='Thumbnail image of sheet' >$aclosefullurl";
 									} else {
 										if ($imagename == "Full") {
 											$fullurl = $url;
@@ -424,8 +424,15 @@ function details() {
 										} else {
 											$size = $size . "KB";
 										}
+										$imagelabel = $imagename;
+										if ($imagename == "Full") {
+											$imagelabel = "Full Quality";
+										}
+										if ($imagename == "Half") {
+											$imagelabel = "Half Size";
+										}
 										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
-										$images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
+										$images[$imagesetid] .= "Image: <a href='$url'>$imagelabel</a> [$size]";
 									}
 								}
 							} else {
@@ -444,6 +451,7 @@ function details() {
 							    
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
                                                         // only show locally
+                            $paths = array();
 							$query = "select path, filename " .
 								" from IMAGE_LOCAL_FILE i left join fragment f on i.fragmentid =f.fragmentid " .
 								" where f.collectionobjectid = ? ";
@@ -457,7 +465,7 @@ function details() {
 								$fullurl = "";
 								while ($statement_img->fetch()) {
                                                                        if (strpos($imagepath,"thumbs")===FALSE) {
-								       $images[] = "File at: $imagepath$imagefilename";
+								       $paths[] = "File at: $imagepath$imagefilename";
 }
 								}
 							} else {
@@ -1125,18 +1133,24 @@ function details() {
 							}
 							echo "</table></td>\n";
 							echo "<td><table class='images'>\n";
-							   foreach ($firstimage as $value) {
-						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-                                                              }
+							   foreach ($firstimage as $k => $value) {
+						    	   if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
+							           if (trim(value!=""))   { 
+							               echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>";
+							               echo "<tr><td class='cap'></td><td class='val'>".$images[$k]."</td></tr>"; 
+							           }
+                                   }
 							   }
-							   foreach ($images as $value) {
-						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-                                                              }
-						 	   }
+//							   foreach ($images as $value) {
+//						           if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
+//							           if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+//                                 }
+//					 	       }
+							   foreach ($paths as $value) {
+							       if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+					 	       }
 							echo "</table></td>";
-                                                        echo "</tr>\n";
+                            echo "</tr>\n";
 							if (trim($specimenRemarks!="")) {
 								echo "<tr><td colspan='2'><table class='remarks'>";
 								echo "<td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
