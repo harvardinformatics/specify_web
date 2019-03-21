@@ -13,7 +13,7 @@ $debug=TRUE;
 // Generate thumbnail copies of image files
 $generate_thumbs = TRUE;
 // Generate full size jpeg images from tiffs
-$generate_jpeg = FALSE;
+$generate_jpeg = TRUE;
 
 // The path to the directory above the directory 
 // in which image mount points can be found
@@ -33,7 +33,7 @@ $mountpointparent = "/mnt/";
 //
 // Path below huhimagestorage/Herbaria{n}/ will be used as batch name.
 // This will be the path stored in the database.
-$basedirectories[0] = 'huhimagestorage/Herbaria2/GPI-Types/HUHGPI00055';
+$basedirectories[0] = 'huhimagestorage/Herbaria2/GPI-Types/HUHGPI0069';
 
 // The, decided by convention for all applications, directory
 // that contains the mountpoints and the list of mountpoints

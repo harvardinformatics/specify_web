@@ -377,13 +377,14 @@ function details() {
 							// HUH images are in separate set of IMAGE_ tables imported from ASA.
 							$images = array();
 							$firstimage = array();
+							$firstimage_links = array();
 							$query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size, o.image_set_id " .
 								" from IMAGE_SET_collectionobject c left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id " .
 								" left join REPOSITORY r on o.repository_id = r.id " .
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
 								" where c.collectionobjectid = ? and hidden_flag = 0 and active_flag = 1 " .
 								" group by o.image_set_id, t.name " .
-								" order by o.image_set_id, left(right(o.object_name,5),1), object_type_id desc ";
+								" order by o.image_set_id desc, object_type_id, left(right(o.object_name,5),1) desc ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
 							if ($statement_img) {
@@ -392,7 +393,7 @@ function details() {
 								$statement_img->bind_result($url,$height,$width,$imagename,$filesize,$imagesetid);
 								$statement_img->store_result();
 								$fullurl = "";
-                                                                $imagesetidseen = "";
+                                $imagesetidseen = "";
 								while ($statement_img->fetch()) {
                                                                         if ($imagesetidseen!=$imagesetid) {
                                                                            $fullurl = "";
@@ -400,22 +401,33 @@ function details() {
                                                                         }
 									if ($imagename == "Thumbnail") {
 										//$firstimage .= "<tr><td class='cap'></td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
-                                                                                if ($fullurl=="") {
-                                                                                    $ahreffullurl = "";
-                                                                                    $aclosefullurl = "";
-                                                                                } else {
-                                                                                    $ahreffullurl = "<a href='$fullurl'>";
-                                                                                    $aclosefullurl = "</a>";
-                                                                                }
-										$firstimage[] = "$ahreffullurl<img src='$url' height='205' width='150' alt='Thumbnail image of sheet' >$aclosefullurl";
+
+										$firstimage[$imagesetid] = "<img src='$url' height='205' width='150' alt='Thumbnail image of sheet' >";
 									} else {
-										if ($imagename == "Full") {
-											$fullurl = $url;
+										if ($imagename == "Half") {
+											$firstimage_links[$imagesetid] = $url;
 										}
 										$size = floor($filesize / 1024);
-										$size = $size . " kb";
+										if ($size > 1024) {
+											$size = floor($size / 1024);
+											if ($size > 1024) {
+												$size = floor($size / 1024);
+												$size = $size . "GB";
+											} else {
+												$size = $size . "MB";
+											}
+										} else {
+											$size = $size . "KB";
+										}
+										$imagelabel = $imagename;
+										if ($imagename == "Full") {
+											$imagelabel = "Full Quality";
+										}
+										if ($imagename == "Half") {
+											$imagelabel = "Half Size";
+										}
 										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
-										$images[] .= "Image: <a href='$url'>$imagename</a> [$size]";
+										$images[$imagesetid][] = "<a href='$url'>$imagelabel</a> [$size]";
 									}
 								}
 							} else {
@@ -434,6 +446,7 @@ function details() {
 							    
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
                                                         // only show locally
+                            $paths = array();
 							$query = "select path, filename " .
 								" from IMAGE_LOCAL_FILE i left join fragment f on i.fragmentid =f.fragmentid " .
 								" where f.collectionobjectid = ? ";
@@ -447,7 +460,7 @@ function details() {
 								$fullurl = "";
 								while ($statement_img->fetch()) {
                                                                        if (strpos($imagepath,"thumbs")===FALSE) {
-								       $images[] = "File at: $imagepath$imagefilename";
+								       $paths[] = "File at: $imagepath$imagefilename";
 }
 								}
 							} else {
@@ -1115,18 +1128,37 @@ function details() {
 							}
 							echo "</table></td>\n";
 							echo "<td><table class='images'>\n";
-							   foreach ($firstimage as $value) {
-						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-                                                              }
+							   foreach ($firstimage as $k => $value) {
+						    	   if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
+						    	   
+						    	   	   $ahreffullurl = "";
+                                       $aclosefullurl = "";
+						    	   	   if (isset($firstimage_links[$k])) {
+						    	   	   	  $ahreffullurl = "<a href='".$firstimage_links[$k]."'>";
+                                          $aclosefullurl = "</a>";
+                                        }
+                                          
+							            if (trim($value!=""))   { 
+							                echo "<tr><td class='cap'></td><td class='val'>" . $ahreffullurl . $value . $aclosefullurl . "</td></tr>";
+							            }
+							        
+							           foreach ($images[$k] as $v) {
+							               if (trim($v!=""))   {                                                                                     
+							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>"; 
+							               }
+							           }
+                                   }
 							   }
-							   foreach ($images as $value) {
-						              if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-							         if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
-                                                              }
-						 	   }
+//							   foreach ($images as $value) {
+//						           if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
+//							           if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+//                                 }
+//					 	       }
+							   foreach ($paths as $value) {
+							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+					 	       }
 							echo "</table></td>";
-                                                        echo "</tr>\n";
+                            echo "</tr>\n";
 							if (trim($specimenRemarks!="")) {
 								echo "<tr><td colspan='2'><table class='remarks'>";
 								echo "<td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
