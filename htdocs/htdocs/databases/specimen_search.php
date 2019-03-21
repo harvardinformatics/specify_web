@@ -1139,7 +1139,7 @@ function details() {
                                         }
                                           
 							            if (trim($value!=""))   { 
-							                echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>";
+							                echo "<tr><td class='cap'></td><td class='val'>" . $ahreffullurl . $value . $aclosefullurl . "</td></tr>";
 							            }
 							        
 							           foreach ($images[$k] as $v) {
