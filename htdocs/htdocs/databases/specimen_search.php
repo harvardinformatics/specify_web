@@ -1138,7 +1138,7 @@ function details() {
 							           if (trim($value!=""))   { 
 							               echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>";
 							           }
-							           foreach ($firstimage[$k] as $v) {
+							           foreach ($images[$k] as $v) {
 							               if (trim($v!=""))   { 
 							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>"; 
 							               }
