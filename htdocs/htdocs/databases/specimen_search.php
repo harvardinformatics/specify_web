@@ -383,7 +383,7 @@ function details() {
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
 								" where c.collectionobjectid = ? and hidden_flag = 0 and active_flag = 1 " .
 								" group by o.image_set_id, t.name " .
-								" order by o.image_set_id, left(right(o.object_name,5),1), object_type_id desc ";
+								" order by o.image_set_id, object_type_id, left(right(o.object_name,5),1) desc ";
 							if ($debug===true) {  echo "[$query]<BR>"; }
 							$statement_img = $connection->prepare($query);
 							if ($statement_img) {
@@ -432,7 +432,7 @@ function details() {
 											$imagelabel = "Half Size";
 										}
 										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
-										$images[$imagesetid][] = "Image: <a href='$url'>$imagelabel</a> [$size]";
+										$images[$imagesetid][] = "<a href='$url'>$imagelabel</a> [$size]";
 									}
 								}
 							} else {
