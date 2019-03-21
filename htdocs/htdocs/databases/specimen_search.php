@@ -432,7 +432,7 @@ function details() {
 											$imagelabel = "Half Size";
 										}
 										//$images .= "<tr><td class='cap'></td><td class='val'>Image: <a href='$url'>$imagename</a> [$size]</td></tr>";
-										$images[$imagesetid] .= "Image: <a href='$url'>$imagelabel</a> [$size]";
+										$images[$imagesetid][] = "Image: <a href='$url'>$imagelabel</a> [$size]";
 									}
 								}
 							} else {
@@ -1135,9 +1135,13 @@ function details() {
 							echo "<td><table class='images'>\n";
 							   foreach ($firstimage as $k => $value) {
 						    	   if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-							           if (trim(value!=""))   { 
+							           if (trim($value!=""))   { 
 							               echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>";
-							               echo "<tr><td class='cap'></td><td class='val'>".$images[$k]."</td></tr>"; 
+							           }
+							           foreach ($firstimage[$k] as $v) {
+							               if (trim($v!=""))   { 
+							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>"; 
+							               }
 							           }
                                    }
 							   }
@@ -1147,7 +1151,7 @@ function details() {
 //                                 }
 //					 	       }
 							   foreach ($paths as $value) {
-							       if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
 					 	       }
 							echo "</table></td>";
                             echo "</tr>\n";
