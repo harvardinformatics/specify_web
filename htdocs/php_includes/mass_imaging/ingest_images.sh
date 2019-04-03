@@ -113,23 +113,23 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							# Create symlinks for all of the files
 							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }	
 							php add_image_object.php "$imagesetid" "$linkfile" 4 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }					
-							aws s3 cp "$linkfile" "$S3DIR/JPG/" &
+							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG/" &
 							
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							php add_image_object.php "$imagesetid" "$linkfile" 3 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
-							aws s3 cp "$linkfile" "$S3DIR/JPG-Preview/" &
+							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG-Preview/" &
 							
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							php add_image_object.php "$imagesetid" "$linkfile" 2 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
-							aws s3 cp "$linkfile" "$S3DIR/JPG-Thumbnail/" &
+							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG-Thumbnail/" &
 							
 							linkfile=$(./link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							php add_image_object.php "$imagesetid" "$linkfile" 7 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
-							#aws s3 cp "$linkfile" "$S3DIR/DNG/" &
+							#aws s3 cp --no-progress "$linkfile" "$S3DIR/DNG/" &
 							
 							linkfile=$(./link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							php add_image_object.php "$imagesetid" "$linkfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }	
-							#aws s3 cp "$linkfile" "$S3DIR/RAW/" &
+							#aws s3 cp --no-progress "$linkfile" "$S3DIR/RAW/" &
 												
 						done
 						
