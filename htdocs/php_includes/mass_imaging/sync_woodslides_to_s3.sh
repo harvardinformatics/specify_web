@@ -1,0 +1,1 @@
+flock -n /var/lock/sync_woodslides_to_s3.lock -c aws s3 sync --size-only /mnt/huhimagestorage/HUHWoodSlides/ s3://huhwoodslides/ >> /var/log/sync_woodslides_to_s3.log 2>&1
