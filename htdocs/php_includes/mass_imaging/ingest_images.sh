@@ -36,6 +36,11 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						continue
 					fi
 
+          if [ -f "$sd/ingest_error" ] ; then
+            echo "Error file found, skipping $sd"
+            continue
+          fi
+
 					if [ ! -d "$sd/Output/JPG" ] ; then
 						echo "WARN: No JPG directory, skipping $sd"
 						continue
@@ -56,7 +61,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						continue
 					fi
 
-					./image_count_check.sh $sd || { echo "ERROR: Check for derivatives failed, skipping $sd" ; continue ; }
+					./image_count_check.sh $sd || { echo "ERROR: Check for derivatives failed, skipping $sd" ; touch $sd/ingest_error ; continue ; }
 
 					BATCH_ID=$(php add_image_batch.php $sd) || { echo "ERROR: Failed to add image batch for $sd" ; exit 1 ; }
 					echo "Added/found batch (id ${BATCH_ID}) for $sd"
