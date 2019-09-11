@@ -69,7 +69,7 @@ switch (strtolower($ext)) {
 
 
 $imagelocalfileid = findOrCreateLocalFile($barcode, $destfilename, $base, $destpath, $ext, $mimetype);
-$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $destpath, $filename, $destfilename, $mimetype, $activeflag, $barcodelist);
+$objectid = findOrCreateObject($imagesetid, $imagetype, $imagelocalfileid, $base, $path, $filename, $destpath, $destfilename, $mimetype, $activeflag, $barcodelist);
 
 echo $objectid;
 
