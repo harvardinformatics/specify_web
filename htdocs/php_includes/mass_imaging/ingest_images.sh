@@ -158,7 +158,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#linkfile=$(./link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							#aws s3 cp --no-progress "$linkfile" "$S3DIR/RAW/" &
 							#php add_image_object.php "$imagesetid" "$linkfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
-              
+
               srcfile="$sd/Capture/$basefile.CR2"
               aws s3 cp --no-progress "$srcfile" "$S3DIR/RAW/$b_$crc.CR2" &
               destfile="$IMG_DIR/RAW/$b_$crc.CR2"
