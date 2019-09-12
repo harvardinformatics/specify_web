@@ -38,7 +38,7 @@ $mimetype   = null;
 
 $path_parts = pathinfo($destfile);
 $destpath       = preg_replace("/\/mnt\//", "", $path_parts['dirname'])."/";
-$destfilename   = $path_parts['basename'];
+$destfilename   = $path_parts['filename'];
 
 switch (strtolower($ext)) {
 	case "jpg":
