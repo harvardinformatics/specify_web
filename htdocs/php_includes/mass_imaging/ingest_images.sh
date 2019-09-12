@@ -123,8 +123,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#php add_image_object.php "$imagesetid" "$linkfile" 4 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
               srcfile="$sd/Output/JPG/$basefile.jpg"
-              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG/$b_$crc.jpg" &
-              destfile="$IMG_DIR/JPG/$b_$crc.jpg"
+              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG/${b}_$crc.jpg" &
+              destfile="$IMG_DIR/JPG/${b}_$crc.jpg"
 							php add_image_object.php "$imagesetid" "$srcfile" "$destfile" 4 1 "$b" || { echo "ERROR: add_image_object.php failed for $srcfile / $destfile" ; exit 1; }
 
 							#linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
@@ -132,8 +132,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#php add_image_object.php "$imagesetid" "$linkfile" 3 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
               srcfile="$sd/Output/JPG-Preview/$basefile.jpg"
-              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG-Preview/$b_$crc.jpg" &
-              destfile="$IMG_DIR/JPG-Preview/$b_$crc.jpg"
+              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG-Preview/${b}_$crc.jpg" &
+              destfile="$IMG_DIR/JPG-Preview/${b}_$crc.jpg"
 							php add_image_object.php "$imagesetid" "$srcfile" "$destfile" 3 1 "$b" || { echo "ERROR: add_image_object.php failed for $srcfile / $destfile" ; exit 1; }
 
 							#linkfile=$(./link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
@@ -141,8 +141,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#php add_image_object.php "$imagesetid" "$linkfile" 2 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
               srcfile="$sd/Output/JPG-Thumbnail/$basefile.jpg"
-              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG-Thumbnail/$b_$crc.jpg" &
-              destfile="$IMG_DIR/JPG-Thumbnail/$b_$crc.jpg"
+              aws s3 cp --no-progress "$srcfile" "$S3DIR/JPG-Thumbnail/${b}_$crc.jpg" &
+              destfile="$IMG_DIR/JPG-Thumbnail/${b}_$crc.jpg"
 							php add_image_object.php "$imagesetid" "$srcfile" "$destfile" 2 1 "$b" || { echo "ERROR: add_image_object.php failed for $srcfile / $destfile" ; exit 1; }
 
 							#linkfile=$(./link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
@@ -150,8 +150,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#php add_image_object.php "$imagesetid" "$linkfile" 7 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
               srcfile="$sd/Output/DNG/$basefile.dng"
-              aws s3 cp --no-progress "$srcfile" "$S3DIR/DNG/$b_$crc.dng" &
-              destfile="$IMG_DIR/DNG/$b_$crc.dng"
+              aws s3 cp --no-progress "$srcfile" "$S3DIR/DNG/${b}_$crc.dng" &
+              destfile="$IMG_DIR/DNG/${b}_$crc.dng"
 							php add_image_object.php "$imagesetid" "$srcfile" "$destfile" 7 0 "$b" || { echo "ERROR: add_image_object.php failed for $srcfile / $destfile" ; exit 1; }
 
 
@@ -160,8 +160,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							#php add_image_object.php "$imagesetid" "$linkfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
               srcfile="$sd/Capture/$basefile.CR2"
-              aws s3 cp --no-progress "$srcfile" "$S3DIR/RAW/$b_$crc.CR2" &
-              destfile="$IMG_DIR/RAW/$b_$crc.CR2"
+              aws s3 cp --no-progress "$srcfile" "$S3DIR/RAW/${b}_$crc.CR2" &
+              destfile="$IMG_DIR/RAW/${b}_$crc.CR2"
 							php add_image_object.php "$imagesetid" "$srcfile" "$destfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $srcfile / $destfile" ; exit 1; }
 
 						done
