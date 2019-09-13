@@ -17,7 +17,7 @@ do
 
 echo "Caching $f"
 
-    ./runcached.sh --ttl 3600 --cache-dir /tmp/zbarcache --ignore-env --ignore-pwd --prune-cache zbarimg -q --raw -Sdisable -Scode39.enable "$f" >/dev/null &
+    ./runcached.sh --ttl 86400 --cache-dir /tmp/zbarcache --ignore-env --ignore-pwd --prune-cache zbarimg -q --raw -Sdisable -Scode39.enable "$f" >/dev/null &
 
     while [ $(jobs -p | wc -l) -ge $NUM_PROCS ]; do
 #       echo "Sleeping"
