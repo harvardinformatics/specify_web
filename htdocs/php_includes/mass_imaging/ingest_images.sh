@@ -100,15 +100,15 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 
 						# Create image_object records for the base files (before the symlinks)
 						imagefile="$sd/Output/JPG/$basefile.jpg"
-				    jpgid=(php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+				    jpgid=$(php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Preview/$basefile.jpg"
-						jpgpid=(php add_image_object.php "$imagesetid" "$imagefile" 3 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						jpgpid=$(php add_image_object.php "$imagesetid" "$imagefile" 3 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Thumbnail/$basefile.jpg"
-						jpgtid=(php add_image_object.php "$imagesetid" "$imagefile" 2 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						jpgtid=$(php add_image_object.php "$imagesetid" "$imagefile" 2 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/DNG/$basefile.dng"
-						dngid=(php add_image_object.php "$imagesetid" "$imagefile" 7 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						dngid=$(php add_image_object.php "$imagesetid" "$imagefile" 7 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Capture/$basefile.CR2"
-						cr2id=(php add_image_object.php "$imagesetid" "$imagefile" 8 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						cr2id=$(php add_image_object.php "$imagesetid" "$imagefile" 8 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 
 						#barcode_count=0
 

@@ -61,11 +61,9 @@ switch (strtolower($ext)) {
 		exit(1);
 }
 
-
 $imagelocalfileid = findOrCreateLocalFile($barcode, $filename, $base, $path, $ext, $mimetype);
-$objectid = findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodelist);
-
-echo $objectid;
+findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodelist);
+//echo $objectid;
 
 function findOrCreateLocalFile($barcode, $filename, $base, $path, $extension, $mimetype) {
 	global $connection, $debug;
@@ -104,7 +102,6 @@ function findOrCreateLocalFile($barcode, $filename, $base, $path, $extension, $m
 }
 
 
-
 function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodes, $urlparam="") {
     global $connection, $debug;
 
@@ -123,15 +120,15 @@ function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $fi
               $statement->fetch();
            } else {
               $objectname = "$path$filename";
-              $sql = "insert into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              $sql = "insert delayed into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                select (image_set_id,object_type_id,repository_id,?,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,?,uri,?,?) from IMAGE_OBJECT where ID = ?";
               if ($debug) { echo "$sql\n[$activeflag][$objectname][$imagelocalfileid][$barcodes][$imageobjectid]\n"; }
               $stmtinsert = $connection->prepare($sql);
               $stmtinsert->bind_param('isisi',$activeflag,$objectname,$imagelocalfileid,$barcodes,$imageobjectid);
               if ($stmtinsert->execute()) {
-                 if ($stmtinsert->affected_rows==1) {
-                    $imageobjectid = $connection->insert_id;
-                 }
+                 //if ($stmtinsert->affected_rows==1) {
+                 //   $imageobjectid = $connection->insert_id;
+                 //}
               } else {
                   error_log("Query Error: ($stmtinsert->errno) $stmtinsert->error [$sql] \n");
                   exit(1);
@@ -148,34 +145,5 @@ function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $fi
        exit(1);
     }
 
-    return $imageobjectid;
-}
-
-
-/**
- * Lookup a value in the ST_LOOKUP table.
- *
- * @param string the value to lookup.
- *
- * @return the id for the value, or null if not found.
- */
-function st_lookup($string) {
-    global $connection,$debug;
-    $result = null;
-    $sql = "select ID from ST_LOOKUP where NAME = ? ";
-    if ($debug) { echo "$sql [$string]\n"; }
-    $statement = $connection->stmt_init();
-    if ($statement->prepare($sql)) {
-       $statement->bind_param("s",$string);
-       if ($statement->execute()) {
-           $statement->bind_result($id);
-           $statement->store_result();
-           if ($statement->num_rows>0) {
-              if ($statement->fetch()) {
-                 $result = $id;
-              }
-           }
-       }
-    }
-    return $result;
+    //return $imageobjectid;
 }
