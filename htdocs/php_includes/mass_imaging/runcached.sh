@@ -72,7 +72,7 @@ zmodload zsh/system
 # into whatever the called program outputs).
 [[ -d "$RUNCACHED_CACHE_DIR/." ]] || mkdir -p "$RUNCACHED_CACHE_DIR" >/dev/null 2>/dev/null
 
-((RUNCACHED_PRUNE)) && find "$RUNCACHED_CACHE_DIR/." -maxdepth 1 -type f \! -newermt @$[EPOCHSECONDS-RUNCACHED_MAX_AGE] -delete 2>/dev/null
+((RUNCACHED_PRUNE)) && find "$RUNCACHED_CACHE_DIR/." -maxdepth 1 -type f \! -newermt "-$RUNCACHED_MAX_AGE seconds" -delete 2>/dev/null
 
 [[ -n "$@" ]] || exit 0 # if no command specified, exit silently
 
@@ -94,7 +94,7 @@ zmodload zsh/system
 : >>$RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.lock 2>/dev/null
 if zsystem flock -t 0 $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.lock 2>/dev/null; then
     if [[ -f $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.stdout ]]; then
-        if [[ $[EPOCHSECONDS-$(zstat +mtime $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.stdout)] -le $RUNCACHED_MAX_AGE ]]; then
+        if [[ $[$(date +%s)-$(zstat +mtime $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.stdout)] -le $RUNCACHED_MAX_AGE ]]; then
             cat $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.stdout &
             cat $RUNCACHED_CACHE_DIR/$RUNCACHED_CACHE_KEY.stderr >&2 &
             wait
