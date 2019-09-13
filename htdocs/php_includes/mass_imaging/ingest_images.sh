@@ -95,20 +95,20 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 
 						# Create image_set records that all derivates will hang from
 						imagesetid=$(php add_image_set.php "$BATCH_ID" "$masterfile" ${sc_barcodes[*]}) || { echo "ERROR: Failed to add image_set record for $masterfile" ; exit 1; }
-						echo "Added/found image_set (id $imagesetid) for $masterfile"
+            #echo "Added/found image_set (id $imagesetid) for $masterfile"
 
 
 						# Create image_object records for the base files (before the symlinks)
 						imagefile="$sd/Output/JPG/$basefile.jpg"
-				    (php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+				    jpgid=(php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Preview/$basefile.jpg"
-						(php add_image_object.php "$imagesetid" "$imagefile" 3 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						jpgpid=(php add_image_object.php "$imagesetid" "$imagefile" 3 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Thumbnail/$basefile.jpg"
-						(php add_image_object.php "$imagesetid" "$imagefile" 2 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						jpgtid=(php add_image_object.php "$imagesetid" "$imagefile" 2 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/DNG/$basefile.dng"
-						(php add_image_object.php "$imagesetid" "$imagefile" 7 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						dngid=(php add_image_object.php "$imagesetid" "$imagefile" 7 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Capture/$basefile.CR2"
-						(php add_image_object.php "$imagesetid" "$imagefile" 8 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+						cr2id=(php add_image_object.php "$imagesetid" "$imagefile" 8 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 
 						#barcode_count=0
 
@@ -121,26 +121,26 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							# Create symlinks for all of the files
 							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
-							php add_image_object.php "$imagesetid" "$linkfile" 4 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Preview/" &
-							php add_image_object.php "$imagesetid" "$linkfile" 3 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgpid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Thumbnail/" &
-							php add_image_object.php "$imagesetid" "$linkfile" 2 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgtid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 							linkfile=$(./link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/DNG/" &
-							php add_image_object.php "$imagesetid" "$linkfile" 7 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$dngid" "$linkfile" 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/RAW/" &
-							php add_image_object.php "$imagesetid" "$linkfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$cr2id" "$linkfile" 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 						done
 
