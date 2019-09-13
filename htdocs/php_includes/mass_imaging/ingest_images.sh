@@ -12,8 +12,8 @@ if [ "Symlinks working!" != "$content" ];then
 fi
 
 USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge)
-SESSION_FORMAT1="/[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-SESSION_FORMAT2="/[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}$"
+SESSION_FORMAT1="/20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
+SESSION_FORMAT2="/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$"
 BARCODE_FORMAT="^[0-9]{8}$"
 
 for d in $BASE_DIR ; do # iterate through the directories for each photostation
@@ -66,7 +66,9 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 					BATCH_ID=$(php add_image_batch.php $sd) || { echo "ERROR: Failed to add image batch for $sd" ; exit 1 ; }
 					echo "Added/found batch (id ${BATCH_ID}) for $sd"
 
-					#mkdir "$sd/Transcribe" # directory containing symlinks for running transcription app
+          # Start caching barcodes
+          echo "Caching barcodes for $sd"
+          ./cache_barcodes.sh "$sd" 8 &
 
 					for f in $sd/Output/JPG/*.jpg ; do # use the JPGs for scanning for barcodes
 
@@ -75,7 +77,8 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						masterfile="$sd/Capture/$basefile.CR2"
 
 						echo "Looking for barcodes in $f"
-						BARCODES=$(zbarimg -q --raw -Sdisable -Scode39.enable "$f")
+						#BARCODES=$(zbarimg -q --raw -Sdisable -Scode39.enable "$f")
+            BARCODES=$(./runcached.sh --ttl 86400 --cache-dir /tmp/zbarcache --ignore-env --ignore-pwd --prune-cache zbarimg -q --raw -Sdisable -Scode39.enable "$f")
 						echo "Found ${BARCODES[*]}"
 
 						# scrub barcodes
@@ -97,7 +100,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 
 						# Create image_object records for the base files (before the symlinks)
 						imagefile="$sd/Output/JPG/$basefile.jpg"
-				      	(php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
+				    (php add_image_object.php "$imagesetid" "$imagefile" 4 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Preview/$basefile.jpg"
 						(php add_image_object.php "$imagesetid" "$imagefile" 3 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 						imagefile="$sd/Output/JPG-Thumbnail/$basefile.jpg"
@@ -117,26 +120,26 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 
 							# Create symlinks for all of the files
 							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
-							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG/" &
+							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
 							php add_image_object.php "$imagesetid" "$linkfile" 4 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
-							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG-Preview/" &
+							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Preview/" &
 							php add_image_object.php "$imagesetid" "$linkfile" 3 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
-							aws s3 cp --no-progress "$linkfile" "$S3DIR/JPG-Thumbnail/" &
+							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Thumbnail/" &
 							php add_image_object.php "$imagesetid" "$linkfile" 2 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 							linkfile=$(./link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
-							aws s3 cp --no-progress "$linkfile" "$S3DIR/DNG/" &
+							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/DNG/" &
 							php add_image_object.php "$imagesetid" "$linkfile" 7 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
-							#aws s3 cp --no-progress "$linkfile" "$S3DIR/RAW/" &
+							#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/RAW/" &
 							php add_image_object.php "$imagesetid" "$linkfile" 8 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
 
 						done
