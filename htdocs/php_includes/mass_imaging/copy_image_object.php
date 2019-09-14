@@ -105,7 +105,7 @@ function findOrCreateLocalFile($barcode, $filename, $base, $path, $extension, $m
 function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $filename, $mimetype, $activeflag, $barcodes, $urlparam="") {
     global $connection, $debug;
 
-    $imageobjectid = null;
+    $newobjectid = null;
     $fullpath = $base.$path;
 
     $sql = "select ID from IMAGE_OBJECT where image_local_file_id = ? ";
@@ -114,7 +114,7 @@ function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $fi
     if ($statement->prepare($sql)) {
        $statement->bind_param("i",$imagelocalfileid);
        if ($statement->execute()) {
-           $statement->bind_result($imageobjectid);
+           $statement->bind_result($newobjectid);
            $statement->store_result();
            if ($statement->num_rows>0) {
               $statement->fetch();
