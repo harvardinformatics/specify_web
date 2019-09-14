@@ -120,7 +120,7 @@ function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $fi
               $statement->fetch();
            } else {
               $objectname = "$path$filename";
-              $sql = "insert delayed into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              $sql = "insert delayed into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes)
                select (image_set_id,object_type_id,repository_id,?,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,?,uri,?,?) from IMAGE_OBJECT where ID = ?";
               if ($debug) { echo "$sql\n[$activeflag][$objectname][$imagelocalfileid][$barcodes][$imageobjectid]\n"; }
               $stmtinsert = $connection->prepare($sql);
