@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_DIR="/mnt/huhimagestorage/Herbaria6/HUH-IT/from_informatics_*"
+BASE_DIR="/mnt/huhimagestorage/Herbaria6/HUH-IT/from_informatics_*/Mass_Digitization"
 IMG_DIR="/mnt/huhimagestorage/huhspecimenimages"
 S3DIR="s3://huhspecimenimages"
 
