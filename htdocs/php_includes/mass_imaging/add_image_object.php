@@ -1,6 +1,6 @@
 <?php
 
-include_once('../connection_library.php');;
+include_once('../connection_library.php');
 
 $connection = specify_connect();
 

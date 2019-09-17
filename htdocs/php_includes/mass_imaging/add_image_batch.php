@@ -17,8 +17,8 @@ $batchname = substr($batchdir, strpos($batchdir, "from_informatics"));
 $dirs = array_filter(explode('/', $batchname));
 $len = count($dirs);
 $host = $dirs[0]; #hostname is first dir
-$user = $dirs[$len-1]; #username is second to last dir
-$session = $dirs[$len]; #session date is last dir
+$user = $dirs[$len-2]; #username is second to last dir
+$session = $dirs[$len-1]; #session date is last dir
 
 $batchid = 0;
 
