@@ -119,12 +119,13 @@ function findOrCreateObject($imageobjectid, $imagelocalfileid, $base, $path, $fi
            if ($statement->num_rows>0) {
               $statement->fetch();
            } else {
+              $uri = "id=$imagelocalfileid$urlparam";
               $objectname = "$path$filename";
               $sql = "insert delayed into IMAGE_OBJECT (image_set_id,object_type_id,repository_id,active_flag,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,object_name,uri,image_local_file_id,barcodes)
-               select image_set_id,object_type_id,repository_id,?,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,?,uri,?,? from IMAGE_OBJECT where ID = ?";
+               select image_set_id,object_type_id,repository_id,?,mime_type_id,bits_per_sample_id,compression_id,photo_interp_id,pixel_width,pixel_height,create_date,resolution,file_size,?,?,?,? from IMAGE_OBJECT where ID = ?";
               if ($debug) { echo "$sql\n[$activeflag][$objectname][$imagelocalfileid][$barcodes][$imageobjectid]\n"; }
               $stmtinsert = $connection->prepare($sql);
-              $stmtinsert->bind_param('isisi',$activeflag,$objectname,$imagelocalfileid,$barcodes,$imageobjectid);
+              $stmtinsert->bind_param('issisi',$activeflag,$objectname,$uri,$imagelocalfileid,$barcodes,$imageobjectid);
               if ($stmtinsert->execute()) {
                  //if ($stmtinsert->affected_rows==1) {
                  //   $imageobjectid = $connection->insert_id;
