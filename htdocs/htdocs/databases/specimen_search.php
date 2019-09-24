@@ -436,14 +436,14 @@ function details() {
 							$statement_img->close();
 
 
-							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    							preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    							preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-							    
+
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
                                                         // only show locally
                             $paths = array();
@@ -727,7 +727,7 @@ function details() {
 										$statement_det->bind_param("i",$fragmentid);
 										if (!$statement_det->execute()) {
 											echo "Error: " . $connection->error;
-										}										
+										}
 										$statement_det->bind_result($fullName, $typeStatusName, $confidence, $qualifier, $determinedDate, $isCurrent,
 										              $determinationRemarks, $nodenumber, $author, $verifier, $citesstatus, $taxonid,
 										              $determineragent, $text2, $determinationid, $determinedDatePrecision, $family, $isfiledunder, $islabel, $isfragment, $determinerid );
@@ -811,10 +811,11 @@ function details() {
 													$determination['Annotation Text'] = "$text2";
 												}
 												// If a CITES listed species, set redactlocality flag.
-                                                if ($citesstatus == '') { $citesstatus = 'None'; }  // handle nulls
-												if ($citesstatus != "None") {
-													$redactlocality = true;
-												}
+                        if ($citesstatus == '') { $citesstatus = 'None'; }  // handle nulls
+												// Removed redaction of CITES due to change in policy circa 2018
+												//if ($citesstatus != "None") {
+												//	$redactlocality = true;
+												//}
 												if ($typeStatusName != "") {
 													// If this has any type status (including 'Not a type'), link to taxon name reference.
 													// Add any references that are linked to the taxon name
@@ -949,14 +950,14 @@ function details() {
 										echo "Error: " . $connection->error;
 									}
 
-									if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    									preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+									if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    									preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
     									preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
     									preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     									preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     									preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     									$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-    									
+
                                         	$lquery = "select loannumber, loan.isclosed, loan.dateclosed, loan.currentduedate, loanreturnpreparation.returneddate ".
 										" from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
 										" left join loanpreparation on preparation.preparationid = loanpreparation.preparationid " .
@@ -1037,15 +1038,15 @@ function details() {
 								}
 							}
 
-							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-							    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+							    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-							    
-							    
+
+
 								$redactlocality = false;
 							}
 
@@ -1130,21 +1131,21 @@ function details() {
 							echo "<td><table class='images'>\n";
 							   foreach ($firstimage as $k => $value) {
 						    	   if ($redactlocality !== true || (strpos($value,'nrs.harvard.edu')!==false )) {
-						    	   
+
 						    	   	   $ahreffullurl = "";
                                        $aclosefullurl = "";
 						    	   	   if (isset($firstimage_links[$k])) {
 						    	   	   	  $ahreffullurl = "<a href='".$firstimage_links[$k]."'>";
                                           $aclosefullurl = "</a>";
                                         }
-                                          
-							            if (trim($value!=""))   { 
+
+							            if (trim($value!=""))   {
 							                echo "<tr><td class='cap'></td><td class='val'>" . $ahreffullurl . $value . $aclosefullurl . "</td></tr>";
 							            }
-							        
+
 							           foreach ($images[$k] as $v) {
-							               if (trim($v!=""))   {                                                                                     
-							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>"; 
+							               if (trim($v!=""))   {
+							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>";
 							               }
 							           }
                                    }
@@ -1527,15 +1528,15 @@ function search() {
 	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) {
 	        $redactlocality = true;
-	        
-		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    		preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+
+		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    		preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
    			preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
     		preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     		preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     		preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     		$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-    
+
     			$redactlocality = false;
 		}
 		$statement = $connection->prepare($query);
