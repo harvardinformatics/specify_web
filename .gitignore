@@ -1,1 +1,6 @@
 .svn
+htdocs/.DS_Store
+htdocs/htdocs/.DS_Store
+htdocs/php_includes/.DS_Store
+htdocs/php_includes/connection_library.php
+htdocs/php_includes/mass_imaging/.DS_Store

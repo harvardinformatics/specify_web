@@ -644,8 +644,9 @@ create table if not exists temp_dwc_search (
   temp_projectname varchar(255),
   unredacted_locality text,
   unredacted_decimallatitude decimal(12,10),
-  unredacted_decimallongitude decimal(13,10)
-) ENGINE MyISAM CHARACTER SET utf8;
+  unredacted_decimallongitude decimal(13,10),
+  old_fragmentguid char(100)
+) ENGINE MyISAM CHARACTER SET utf8;	
 
 delete from temp_dwc_search;
 
@@ -673,7 +674,7 @@ update temp_dwc_search
 
 -- make the fragment guid resolvable
 -- 10 sec
--- update temp_dwc_search set fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
+update temp_dwc_search set old_fragmentguid = concat('http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/',fragmentguid);
 
 -- Index on the catalog number to speed later operations.
 -- 28 sec
