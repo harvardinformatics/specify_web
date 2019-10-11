@@ -44,7 +44,7 @@ function lookupCollectionObjectId($barcode) {
    	if ($statement->fetch()) {
 		return $collectionobjectid;
    	} else {
-   		error_log("ERROR: No collectionobject found for barcode $barcode");
+   		error_log("No fragment or collectionobject found for barcode $barcode");
    	}
 }
 
