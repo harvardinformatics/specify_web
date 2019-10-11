@@ -11,7 +11,7 @@ if [ "Symlinks working!" != "$content" ];then
     exit 1
 fi
 
-USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge)
+USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge mschill zbailey etanner)
 SESSION_FORMAT1="/20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
 SESSION_FORMAT2="/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{1,2}$"
 BARCODE_FORMAT="^[0-9]{8}$"
