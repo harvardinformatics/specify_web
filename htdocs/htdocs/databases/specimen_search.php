@@ -1558,12 +1558,12 @@ function search() {
                 		}
 			}
 			$statement->execute();
-			$resultcount = $statement->num_rows;
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above.
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
 		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
 			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector, $sensitive_flag);
 			$statement->store_result();
+			$resultcount = $statement->num_rows;
 
 			echo "<div>\n";
       $notice = "";
