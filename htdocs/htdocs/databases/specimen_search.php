@@ -1558,6 +1558,7 @@ function search() {
                 		}
 			}
 			$statement->execute();
+			$resultcount = $statement->num_rows;
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above.
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
 		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
@@ -1565,16 +1566,15 @@ function search() {
 			$statement->store_result();
 
 			echo "<div>\n";
-			$count = $statement->num_rows;
-                        $notice = "";
-                        if ($count==0) { $notice = "<b>PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. If your search here does not return any results, please <a href='/databases/comment.html'>contact us</a>.</b>"; }
-			if ($count==1) { $s = ""; } else { $s = "es"; }
+      $notice = "";
+      if ($resultcount==0) { $notice = "<b>PLEASE NOTE: only a percentage of our physical collection has been databased and digitized. If your search here does not return any results, please <a href='/databases/comment.html'>contact us</a>.</b>"; }
+			if ($resultcount==1) { $s = ""; } else { $s = "es"; }
 			//already limiting to 100: echo "$count records found. $notice <BR>";
 			echo "    <span class='query'>$question</span>\n";
 			echo "</div>\n";
 			echo "<HR>\n";
 
-			if ($count > 0 ) {
+			if ($resultcount > 0 ) {
 
 				echo "<div id='image-key'><img height='16' alt='has image' src='images/leaf.gif' /> = with images</div>\n";
 				echo "<form  action='specimen_search.php' method='get'>\n";
@@ -1595,7 +1595,7 @@ function search() {
 
                                         $paging_links .= "<a href='$uri_first'>&lt;&lt;</a>&nbsp;&nbsp;<a href='$uri_prev'>&lt; Previous</a> ";
                                 }
-                                if ($count > 99) {
+                                if ($resultcount > 99) {
                                         $nextstart = $start + 100;
                                         $query_string['start'] = $nextstart;
                                         $uri_next = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
