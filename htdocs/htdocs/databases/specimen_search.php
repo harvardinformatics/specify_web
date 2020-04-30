@@ -1610,7 +1610,7 @@ function search() {
 																				$query_string['start'] = 0;
 																				$query_string['limit'] = 10000;
 																				$uri_single_page = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
-																				$single_page = "<a href='$uri_single_page'>Get all results (limit 10,000)</a><br>";
+																				$single_page = "<a href='$uri_single_page'>Get all results</a> (limit 10,000)<br>";
                                 }
                                 $paging_links .= "<br>";
 
