@@ -1199,9 +1199,15 @@ function search() {
 
 	// ***** Step 1: Obtain query parameters and assemble query ***********
 	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
-	$start = substr(preg_replace("/\D/", "", $_GET['start']), 0, 5);
+	$start = substr(preg_replace("/\D/", "", $_GET['start']), 0, 7);
+	$limit = substr(preg_replace("/\D/", "", $_GET['limit']), 0, 5);
 	if ($start == "")
 		$start = "0";
+	if ($limit == "")
+	  $limit = "1000";
+	if (intval($limit) > 10000)
+	  $limit = "10000";
+
 	if ($quick!="") {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] <BR>";
@@ -1209,11 +1215,11 @@ function search() {
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 1000";
+			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, $limit";
 		$ctquery = "select count(distinct c.barcode) " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 1000 ";
+			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, $limit ";
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
@@ -1517,7 +1523,7 @@ function search() {
 			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " .
 			" from web_search " .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
-			" limit $start, 1000 ";
+			" limit $start, $limit ";
 
 	}
 	if ($debug===true  && $hasquery===true) {
@@ -1580,10 +1586,11 @@ function search() {
 				echo "<input type='hidden' name='mode' value='details'>\n";
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 
+				$single_page = "";
 				$paging_links = "";
                                 parse_str($_SERVER['QUERY_STRING'], $query_string);
                                 if ($start > 0) {
-                                        $prevstart = $start - 100;
+                                        $prevstart = $start - $limit;
                                         if ($prevstart < 0)
                                                 $prevstart = 0;
                                                 $query_string['start'] = $prevstart;
@@ -1594,11 +1601,16 @@ function search() {
 
                                         $paging_links .= "<a href='$uri_first'>&lt;&lt;</a>&nbsp;&nbsp;<a href='$uri_prev'>&lt; Previous</a> ";
                                 }
-                                if ($resultcount > 999) {
-                                        $nextstart = $start + 1000;
+                                if ($resultcount >= $limit) {
+                                        $nextstart = $start + $limit;
                                         $query_string['start'] = $nextstart;
                                         $uri_next = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
                                         $paging_links .= "| <a href='$uri_next'>Next page &gt;</a>";
+
+																				$query_string['start'] = 0;
+																				$query_string['limit'] = 10000;
+																				$uri_single_page = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+																				$single_page = "<a href='$uri_single_page'>Get all results (limit 10,000)</a><br>";
                                 }
                                 $paging_links .= "<br>";
 
@@ -1638,6 +1650,7 @@ function search() {
 				echo "</div>\n";
 
 				echo $paging_links;
+				echo $single_page;
 
 				echo "<input type='image' src='images/display_recs.gif' name='display' alt='Display selected records' />\n";
 				echo "</form>\n";
