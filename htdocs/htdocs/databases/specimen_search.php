@@ -1199,14 +1199,14 @@ function search() {
 
 	// ***** Step 1: Obtain query parameters and assemble query ***********
 	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
-	$start = substr(preg_replace("/\D/", "", $_GET['start']), 0, 7);
-	$limit = substr(preg_replace("/\D/", "", $_GET['limit']), 0, 5);
+	$start = intval(substr(preg_replace("/\D/", "", $_GET['start']), 0, 7));
+	$limit = intval(substr(preg_replace("/\D/", "", $_GET['limit']), 0, 5));
 	if ($start == "")
-		$start = "0";
+		$start = 0;
 	if ($limit == "")
-	  $limit = "1000";
-	if (intval($limit) > 10000)
-	  $limit = "10000";
+	  $limit = 1000;
+	if ($limit > 10000)
+	  $limit = 10000;
 
 	if ($quick!="") {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
