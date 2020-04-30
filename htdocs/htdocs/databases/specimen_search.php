@@ -1209,11 +1209,11 @@ function search() {
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 100";
+			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 5000";
 		$ctquery = "select count(distinct c.barcode) " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 100 ";
+			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, 5000 ";
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
@@ -1517,7 +1517,7 @@ function search() {
 			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " .
 			" from web_search " .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
-			" limit $start, 100 ";
+			" limit $start, 5000 ";
 
 	}
 	if ($debug===true  && $hasquery===true) {
@@ -1594,8 +1594,8 @@ function search() {
 
                                         $paging_links .= "<a href='$uri_first'>&lt;&lt;</a>&nbsp;&nbsp;<a href='$uri_prev'>&lt; Previous</a> ";
                                 }
-                                if ($resultcount > 99) {
-                                        $nextstart = $start + 100;
+                                if ($resultcount > 4999) {
+                                        $nextstart = $start + 5000;
                                         $query_string['start'] = $nextstart;
                                         $uri_next = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
                                         $paging_links .= "| <a href='$uri_next'>Next page &gt;</a>";
