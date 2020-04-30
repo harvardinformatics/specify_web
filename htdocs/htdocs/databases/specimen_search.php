@@ -1607,10 +1607,17 @@ function search() {
                                         $uri_next = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
                                         $paging_links .= "| <a href='$uri_next'>Next page &gt;</a>";
 
-																				$query_string['start'] = 0;
-																				$query_string['limit'] = 10000;
-																				$uri_single_page = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
-																				$single_page = "<a href='$uri_single_page'>Get all results</a> (limit 10,000)<br>";
+																				if ($limit < 5000) {
+																				  $query_string['start'] = 0;
+																				  $query_string['limit'] = 5000;
+																				  $uri_single_page = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+																				  $single_page = "<a href='$uri_single_page'>View larger results</a> (5,000 per page)<br>";
+																				} else {
+																					$query_string['start'] = 0;
+																				  $query_string['limit'] = 1000;
+																				  $uri_single_page = $_SERVER['PHP_SELF'] . '?' . http_build_query($query_string);
+																				  $single_page = "<a href='$uri_single_page'>View fewer results</a> (1,000 per page)<br>";
+																				}
                                 }
                                 $paging_links .= "<br>";
 
