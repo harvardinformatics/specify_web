@@ -39,8 +39,7 @@ $mode = $_GET['mode']; // ok if null
 $collectionobjectid = 0;
 
 // check uuid format
-preg_match("(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})", $uuid,$m);
-if (!empty($m)) {
+if (preg_match("^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$", $uuid)) {
 	$query = "select f.collectionobjectid from guids g, fragment f where f.fragmentid = g.primarykey and g.tablename='fragment' and g.uuid='".$uuid."'";
 	$statement = $connection->prepare($query);
 	if ($statement) {
@@ -54,10 +53,9 @@ if (!empty($m)) {
 	}
 }
 
-preg_match("(\d{8})", $barcode,$m);
-if (!empty($m)) {
-	$bc = $m[0];
-	$query = "select collectionobjectid from fragment f, preparation p where f.preparationid = p.preparationid and (f.identifier like '$bc' or p.identifier like '$bc')";
+if (preg_match("^\d{1,8}$", $barcode)) {
+	$barcode = str_pad($barcode,8,'0',STR_PAD_LEFT);
+	$query = "select collectionobjectid from fragment f, preparation p where f.preparationid = p.preparationid and (f.identifier like '$barcode' or p.identifier like '$barcode')";
 	$statement = $connection->prepare($query);
 	if ($statement) {
 		$statement->execute();
