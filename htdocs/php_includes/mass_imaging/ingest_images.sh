@@ -11,7 +11,7 @@ if [ "Symlinks working!" != "$content" ];then
     exit 1
 fi
 
-USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge mschill zbailey etanner)
+USERS=(abrach bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge mschill zbailey etanner NEBC)
 SESSION_FORMAT1="/20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
 SESSION_FORMAT2="/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{1,2}$"
 BARCODE_FORMAT="^[0-9]{8}$"
@@ -61,7 +61,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						continue
 					fi
 
-					./image_count_check.sh $sd || { echo "ERROR: Check for derivatives failed, skipping $sd" ; touch $sd/ingest_error ; continue ; }
+					./image_count_check.sh $sd || { echo "ERROR: Check for derivatives failed, skipping $sd" ; continue ; }
 
 					BATCH_ID=$(php add_image_batch.php $sd) || { echo "ERROR: Failed to add image batch for $sd" ; exit 1 ; }
 					echo "Added/found batch (id ${BATCH_ID}) for $sd"

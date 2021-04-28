@@ -23,4 +23,4 @@ END; $$
 delimiter ;
 
 
--- call call_tr_setup_soro();
+call call_tr_setup_soro();
