@@ -3,31 +3,31 @@
  * Created on Jun 8, 2010
  *
  * Copyright 2010 The President and Fellows of Harvard College
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
- * 
+ *
  */
 $debug=false;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
 
-if ($debug) { 
+if ($debug) {
 	mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
-} else { 
+} else {
 	mysqli_report(MYSQLI_REPORT_OFF);
 }
 
@@ -35,49 +35,49 @@ $connection = specify_connect();
 $errormessage = "";
 
 $mode = "menu";
- 
+
 $isinternal = FALSE;
 
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 	preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
     preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 	preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 	preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 	$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-	
+
    $isinternal = TRUE;
 }
 
 if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="family_type_count") {
-		$mode = "family_type_count"; 
+		$mode = "family_type_count";
 	}
 	if ($_GET['mode']=="herbarium_type_count") {
-		$mode = "herbarium_type_count"; 
+		$mode = "herbarium_type_count";
 	}
 	if ($_GET['mode']=="family_type_count_summary") {
-		$mode = "family_type_count_summary"; 
+		$mode = "family_type_count_summary";
 	}
 	if ($_GET['mode']=="annualreport") {
-		$mode = "annualreport"; 
+		$mode = "annualreport";
 	}
 	if ($_GET['mode']=="annualreport_details") {
-		$mode = "annualreport_details"; 
+		$mode = "annualreport_details";
 	}
 	if ($_GET['mode']=="loan_list") {
-		$mode = "loan_list"; 
+		$mode = "loan_list";
 	}
-} 
-	
-echo pageheader('qc'); 
+}
 
-// Only display if internal 
-if ($isinternal===TRUE) { 
-  
+echo pageheader('qc');
+
+// Only display if internal
+if ($isinternal===TRUE) {
+
 	if ($connection) {
-		if ($debug) {  echo "[$mode]"; } 
-		
+		if ($debug) {  echo "[$mode]"; }
+
 		switch ($mode) {
 		    case "family_type_count":
 		        echo family_type_count();
@@ -86,11 +86,11 @@ if ($isinternal===TRUE) {
 		        echo herbarium_type_count();
 		        break;
 		    case "annualreport":
-                        $year = preg_replace("[^0-9]","",$_GET['year']);
+                        $year = preg_replace("/[^0-9]/","",$_GET['year']);
 		        echo annualreport($year,FALSE);
 		        break;
 		    case "annualreport_details":
-                        $year = preg_replace("[^0-9]","",$_GET['year']);
+                        $year = preg_replace("/[^0-9]/","",$_GET['year']);
 		        echo annualreport($year,TRUE);
 		        break;
 		    case "family_type_count_summary":
@@ -99,33 +99,33 @@ if ($isinternal===TRUE) {
 		    case "loan_list":
 		        echo loan_list();
 		        break;
-			case "menu": 	
+			case "menu":
 			default:
-				echo menu(); 
+				echo menu();
 		}
-		
+
 		$connection->close();
-		
-	} else { 
+
+	} else {
 		$errormessage .= "Unable to connect to database. ";
 	}
-	
+
 	if ($errormessage!="") {
 		echo "<strong>Error: $errormessage</strong>";
 	}
-	
-	
-    echo "<h3><a href='stats.php'>Database Statistics</a></h3>";						
-	
+
+
+    echo "<h3><a href='stats.php'>Database Statistics</a></h3>";
+
 } else {
-	echo "<h2>Stats pages are available only within HUH</h2>"; 
+	echo "<h2>Stats pages are available only within HUH</h2>";
 }
 
 echo pagefooter();
 
 // ******* main code block ends here, supporting functions follow. *****
 
-function menu() { 
+function menu() {
    $returnvalue = "";
 
    $returnvalue .= "<div>";
@@ -141,7 +141,7 @@ function menu() {
    $returnvalue .= "<li></li>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport&year='>Annual Report Statistics (summary)</li>";
    $returnvalue .= "<li><a href='stats.php?mode=annualreport_details&year='>Annual Report Statistics, with details (slow)</li>";
-   for ($year=intval(date("Y"));$year>1958;$year--) { 
+   for ($year=intval(date("Y"));$year>1958;$year--) {
       $nextyear = $year-1;
       $returnvalue .= "<li><a href='stats.php?mode=annualreport&year=$year'>$nextyear-$year Annual Report Statistics (summary)</li>";
    }
@@ -151,12 +151,12 @@ function menu() {
    return $returnvalue;
 }
 
-function family_type_count() { 
+function family_type_count() {
 	global $connection,$debug;
    $returnvalue = "";
-    
+
    $query = "select name, highestchildnodenumber, nodenumber from taxon where rankid = 140 order by name ";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Counts of the number of specimens in each family that have a type status (other than just 'NotType').</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
@@ -184,12 +184,12 @@ function family_type_count() {
 }
 
 
-function herbarium_type_count() { 
+function herbarium_type_count() {
 	global $connection,$debug;
    $returnvalue = "";
-    
+
    $query = "select count(distinct fragment.identifier), typestatusname, fragment.text1 from determination left join fragment on determination.fragmentid = fragment.fragmentid group by typestatusname, fragment.text1 order by fragment.text1, typestatusname; ";
-   if ($debug) { echo "[$query]<BR>"; }  
+   if ($debug) { echo "[$query]<BR>"; }
       $date = date(DATE_ISO8601);
       $returnvalue .= "<h2>Counts of the number of barcodes in each herbarium by type status.  As of $date</h2>";
 	$statement = $connection->prepare($query);
@@ -209,12 +209,12 @@ function herbarium_type_count() {
    return $returnvalue;
 }
 
-function family_type_count_summary() { 
+function family_type_count_summary() {
 	global $connection,$debug;
    $returnvalue = "";
-    
+
    $query = "select distinct family from web_search where family is not null order by family ";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Counts of the number of specimens in each family that have a type status (other than just 'NotType').  Counts calculated from the web search cache table, may be slightly different than counts calculated from current data.</h2>";
 	$statement = $connection->prepare($query);
 	if ($statement) {
@@ -241,33 +241,33 @@ function family_type_count_summary() {
    return $returnvalue;
 }
 
-function annualreport($year,$showdetails=FALSE) { 
+function annualreport($year,$showdetails=FALSE) {
    global $connection,$debug;
-  
+
    $returnvalue = "";
-   $year = substr(preg_replace("[^0-9]","",$year),0,4);
-   if ($year=='') { $year = date('Y'); } 
+   $year = substr(preg_replace("/[^0-9]/","",$year),0,4);
+   if ($year=='') { $year = date('Y'); }
    $syear = intval($year) - 1;
    $datestart = "$syear-06-30";
    $dateend = "$year-07-01";
 
-   if ($showdetails) { 
+   if ($showdetails) {
       $returnvalue .= "Change to: <a href='stats.php?mode=annualreport&year=$year'>Annual Report Statistics (summary)</a><br>";
-   } else { 
+   } else {
       $returnvalue .= "Change to: <a href='stats.php?mode=annualreport_details&year=$year'>Annual Report Statistics, with details (slow)</a><br>";
    }
 
-   // ************  Accessions   ********** 
+   // ************  Accessions   **********
 
-   $query = "select count(distinct accession.accessionid), accession.text1, 
-       sum(itemcount), sum(typecount), sum(nonspecimencount), 
-       sum(returncount), sum(distributecount), sum(discardcount) 
-   from accession left join accessionpreparation 
-      on accession.accessionid = accessionpreparation.accessionid 
-   where dateaccessioned > '$datestart' and dateaccessioned < '$dateend' 
+   $query = "select count(distinct accession.accessionid), accession.text1,
+       sum(itemcount), sum(typecount), sum(nonspecimencount),
+       sum(returncount), sum(distributecount), sum(discardcount)
+   from accession left join accessionpreparation
+      on accession.accessionid = accessionpreparation.accessionid
+   where dateaccessioned > '$datestart' and dateaccessioned < '$dateend'
    group by accession.text1;
  ";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
 
    $returnvalue .= "<h2>Accessions in fiscal year $syear-$year</h2>";
    $statement = $connection->prepare($query);
@@ -293,16 +293,16 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "</table>";
    }
 
-   $query = "select count(distinct accession.accessionid), accession.text1, 
-       sum(itemcount), sum(typecount), sum(nonspecimencount), 
+   $query = "select count(distinct accession.accessionid), accession.text1,
+       sum(itemcount), sum(typecount), sum(nonspecimencount),
        sum(returncount), sum(distributecount), sum(discardcount),
        accession.type
-   from accession left join accessionpreparation 
-      on accession.accessionid = accessionpreparation.accessionid 
-   where dateaccessioned > '$datestart' and dateaccessioned < '$dateend' 
+   from accession left join accessionpreparation
+      on accession.accessionid = accessionpreparation.accessionid
+   where dateaccessioned > '$datestart' and dateaccessioned < '$dateend'
    group by accession.type, accession.text1;
  ";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
 
    $returnvalue .= "<h2>Accessions in fiscal year $syear-$year by type</h2>";
    $statement = $connection->prepare($query);
@@ -315,8 +315,8 @@ function annualreport($year,$showdetails=FALSE) {
                 $treturncount=0;$tdistributecount=0;$tdiscardcount=0;
                 $returnvalue .= "<tr><th>Type</th><th>Herbarium</th><th>Accessions</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Returned</th><th>Distributed</th><th>Discarded</th><th>Total</th></tr>";
                 while ($statement->fetch()) {
-                    if ($accessiontype =="Exchange") { $accessiontype = "Incoming Exchange"; } 
-                    if ($accessiontype =="FieldWork") { $accessiontype = "Staff Collection"; } 
+                    if ($accessiontype =="Exchange") { $accessiontype = "Incoming Exchange"; }
+                    if ($accessiontype =="FieldWork") { $accessiontype = "Staff Collection"; }
                     $sum = $itemcount + $typecount + $nonspecimencount + $distributecount;
                     $returnvalue .= "<tr><td>$accessiontype</td><td>$herbarium</td><td>$accessions</td><td>$itemcount</td><td>$typecount</td><td>$nonspecimencount</td><td>$returncount</td><td>$distributecount</td><td>$discardcount</td><td><strong>$sum</strong></td></tr>";
                     $taccessions+=$accessions;
@@ -332,15 +332,15 @@ function annualreport($year,$showdetails=FALSE) {
    }
 
 
-   // ************  Loans   ********** 
+   // ************  Loans   **********
 
-   $query = "select count(distinct loan.loanid), text2, text3, sum(itemcount), sum(typecount), sum(nonspecimencount) from loan 
+   $query = "select count(distinct loan.loanid), text2, text3, sum(itemcount), sum(typecount), sum(nonspecimencount) from loan
     left join loanpreparation p on loan.loanid = p.loanid
-    where loandate > '$datestart' and loandate < '$dateend' 
+    where loandate > '$datestart' and loandate < '$dateend'
     group by text2,  text3;";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Loans out in fiscal year $syear-$year</h2>";
-      if ($syear<1993) { 
+      if ($syear<1993) {
           $returnvalue .= "<p>Note: Then open loan records were captured in late 1991, loans that were closed at that time were not systematically captured, counts of loans prior to 1992 are progressively more incomplete in earlier years.</p>";
       }
 	$statement = $connection->prepare($query);
@@ -356,8 +356,8 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "<table>";
 	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Recipient Role</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Total</th></tr>";
 		while ($statement->fetch()) {
-                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
-                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    if ($unit=='FC') { $unit = "Farlow Collections"; }
+                    if ($unit=='GC') { $unit = "General Collections"; }
                     $sum = $itemcount + $typecount + $nonspecimencount;
                     $tcount += $count;
                     $titems += $itemcount;
@@ -369,10 +369,10 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td>$titems</td><td>$ttypes</td><td>$tns</td><td><strong>$grandtotal</strong></td></tr>";
 	        $returnvalue .= "</table>";
 	}
-   $query = "select count(distinct loan.loanid), loan.text2, loan.text3, sum(r.itemcount), sum(r.typecount), sum(r.nonspecimencount)  from loan 
+   $query = "select count(distinct loan.loanid), loan.text2, loan.text3, sum(r.itemcount), sum(r.typecount), sum(r.nonspecimencount)  from loan
     left join loanpreparation p on loan.loanid = p.loanid
     left join loanreturnpreparation r on r.loanpreparationid = p.loanpreparationid
-    where dateclosed > '$datestart' and dateclosed < '$dateend' 
+    where dateclosed > '$datestart' and dateclosed < '$dateend'
     group by text2, text3;";
    if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Loans closed in fiscal year $syear-$year, counts of material returned.</h2>";
@@ -389,8 +389,8 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "<table>";
 	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Recipient Role</th><th>Items</th><th>Types</th><th>Non-Specimens</th><th>Total</th></tr>";
 		while ($statement->fetch()) {
-                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
-                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    if ($unit=='FC') { $unit = "Farlow Collections"; }
+                    if ($unit=='GC') { $unit = "General Collections"; }
                     $sum = $itemcount + $typecount + $nonspecimencount;
                     $tcount += $count;
                     $titems += $itemcount;
@@ -406,12 +406,12 @@ function annualreport($year,$showdetails=FALSE) {
 
    /** By purpose **/
 
-   $query = "select count(*), text2, purposeofloan, text3 from loan 
-    where loandate > '$datestart' and loandate < '$dateend' 
+   $query = "select count(*), text2, purposeofloan, text3 from loan
+    where loandate > '$datestart' and loandate < '$dateend'
     group by text2, purposeofloan, text3;";
-   if ($debug) { echo "[$query]<BR>"; } 
+   if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Loans out in fiscal year $syear-$year by purpose</h2>";
-      if ($syear<1993) { 
+      if ($syear<1993) {
           $returnvalue .= "<p>Note: Then open loan records were captured in late 1991, loans that were closed at that time were not systematically captured, counts of loans prior to 1992 are progressively more incomplete in earlier years.</p>";
       }
 	$statement = $connection->prepare($query);
@@ -423,16 +423,16 @@ function annualreport($year,$showdetails=FALSE) {
 	        $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Purpose</th><th>Recipient Role</th></tr>";
                 $tcount = 0;
 		while ($statement->fetch()) {
-                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
-                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    if ($unit=='FC') { $unit = "Farlow Collections"; }
+                    if ($unit=='GC') { $unit = "General Collections"; }
 	            $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$purposeofloan</td><td>$role</td></tr>";
                     $tcount += $count;
                 }
 	        $returnvalue .= "<tr><td><strong>Total</strong></td><td>$tcount</td><td></td><td></td></tr>";
 	        $returnvalue .= "</table>";
 	}
-   $query = "select count(*), text2, purposeofloan, text3 from loan 
-    where dateclosed > '$datestart' and dateclosed < '$dateend' 
+   $query = "select count(*), text2, purposeofloan, text3 from loan
+    where dateclosed > '$datestart' and dateclosed < '$dateend'
     group by text2, purposeofloan, text3;";
    if ($debug) { echo "[$query]<BR>"; }
       $returnvalue .= "<h2>Loans closed in fiscal year $syear-$year by purpose</h2>";
@@ -445,8 +445,8 @@ function annualreport($year,$showdetails=FALSE) {
                 $returnvalue .= "<tr><th>Unit</th><th>Loans</th><th>Purpose</th><th>Recipient Role</th></tr>";
                 $tcount = 0;
                 while ($statement->fetch()) {
-                    if ($unit=='FC') { $unit = "Farlow Collections"; } 
-                    if ($unit=='GC') { $unit = "General Collections"; } 
+                    if ($unit=='FC') { $unit = "Farlow Collections"; }
+                    if ($unit=='GC') { $unit = "General Collections"; }
                     $returnvalue .= "<tr><td>$unit</td><td>$count</td><td>$purposeofloan</td><td>$role</td></tr>";
                     $tcount += $count;
                 }
@@ -456,9 +456,9 @@ function annualreport($year,$showdetails=FALSE) {
 
    $returnvalue .= "Quality Control: <a href='qc.php?mode=loan_null_role'>List loans where the recipient role is null</a></br>";
 
-   // ************  Loan detailed breakdowns   ********** 
+   // ************  Loan detailed breakdowns   **********
 
-   if ($showdetails) { 
+   if ($showdetails) {
 
    $returnvalue .= tablekey();
 
@@ -479,14 +479,14 @@ function annualreport($year,$showdetails=FALSE) {
    $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate <= '$datestart' and isclosed = 0 group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of outstanding material in open Loans opened before fiscal year $syear-$year");
 
-   for ($x=0;$x<2;$x++) { 
-      if ($x==0) { $direction = 'Sent'; } else { $direction = 'Returned (closed)'; } 
-      if ($x==0) { $date = 'loandate'; } else { $date = 'dateclosed'; } 
+   for ($x=0;$x<2;$x++) {
+      if ($x==0) { $direction = 'Sent'; } else { $direction = 'Returned (closed)'; }
+      if ($x==0) { $date = 'loandate'; } else { $date = 'dateclosed'; }
 
    $query = "select case country when 'USA' then country else 'International' end as isUSA, 'Any', count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where $date > '$datestart' and $date < '$dateend' and role = 'Borrower' group by case country when 'USA' then country else 'International' end, fragment.text1, text3, loan.text2 order by case country when 'USA' then country else 'International' end, loan.text2, loan.text1, text3;";
 
    $returnvalue .= transactionitemlist($query,"Loans $direction by US/International in fiscal year $syear-$year","Loans");
-  
+
    $query = "select country, abbreviation, count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where $date > '$datestart' and $date < '$dateend' and role = 'Borrower' group by country, abbreviation, fragment.text1, text3, loan.text2 order by country, abbreviation, loan.text2, loan.text1, text3;";
 
    $returnvalue .= transactionitemlist($query,"Loans $direction by country and herbarium in fiscal year $syear-$year","Loans");
@@ -497,9 +497,9 @@ function annualreport($year,$showdetails=FALSE) {
 
    }  // repeat for opened/closed
 
-   }  // show details 
+   }  // show details
 
-   // ************   Borrows   ********** 
+   // ************   Borrows   **********
 
    $query = "select count(distinct borrow.borrowid), sum(itemcount), sum(nonspecimencount),sum(typecount), 'n/a', borrow.text2, if(text2='FH','FC','GC'), text3 from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid where receiveddate > '$datestart' and receiveddate < '$dateend' group by text3, borrow.text2 order by borrow.text2, borrow.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material Borrowed in fiscal year $syear-$year","Borrows");
@@ -507,19 +507,19 @@ function annualreport($year,$showdetails=FALSE) {
    $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(text2='FH','FC','GC'), text3 from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2 order by borrow.text2, borrow.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material returned in fiscal year $syear-$year","Borrows");
 
-   if ($showdetails) { 
+   if ($showdetails) {
 
     $query = "select count(distinct borrow.borrowid), sum(br.itemcount), sum(br.nonspecimencount),sum(br.typecount), 'n/a', borrow.text2, if(borrow.text2='FH','FC','GC'), if(gethighertaxonofrank(140,highestchildnodenumber,nodenumber) is null, fullname, gethighertaxonofrank(140,highestchildnodenumber,nodenumber)) from borrow left join borrowmaterial on borrow.borrowid = borrowmaterial.borrowid left join borrowreturnmaterial br on borrowmaterial.borrowmaterialid = br.borrowmaterialid left join taxon on borrowmaterial.taxonid = taxon.taxonid where returneddate > '$datestart' and returneddate < '$dateend' group by text3, borrow.text2, taxon.taxonid order by borrow.text2, borrow.text1, text3";
 
    $returnvalue .= transactionitemtotals($query,"Counts of Borrowed material by family/taxon returned in fiscal year $syear-$year","Borrows","Taxon");
 
-   } // show details 
+   } // show details
 
-   // ************  Exchanges (out) ********** 
+   // ************  Exchanges (out) **********
 
    $query = "select distinct exchangedate, text2, descriptionofmaterial, quantityexchanged, abbreviation from exchangeout
     left join agent on exchangeout.senttoorganizationid = agent.agentid
-    where exchangedate > '$datestart' and exchangedate < '$dateend' 
+    where exchangedate > '$datestart' and exchangedate < '$dateend'
     order by text2, abbreviation
     ;";
    if ($debug) { echo "[$query]<BR>"; }
@@ -537,7 +537,7 @@ function annualreport($year,$showdetails=FALSE) {
                 $returnvalue .= "</table>";
         }
 
-   // ************  Exchanges (out) ********** 
+   // ************  Exchanges (out) **********
 
    $query = "select count(distinct e.exchangeoutid), sum(quantityexchanged), e.text2 from exchangeout e where exchangedate > ? and exchangedate < ? group by e.text2 order by e.text2";
    if ($debug) { echo "[$query]<BR>"; }
@@ -558,7 +558,7 @@ function annualreport($year,$showdetails=FALSE) {
 
 
 
-   // ************  Gifts (out) ********** 
+   // ************  Gifts (out) **********
 
    $query = "select count(distinct gift.giftid), sum(itemcount), sum(nonspecimencount),sum(typecount), purposeofgift, gift.text2 from gift left join giftpreparation on gift.giftid = giftpreparation.giftid where giftdate > ? and giftdate < ? group by gift.text2, purposeofgift order by gift.text2, purposeofgift";
    if ($debug) { echo "[$query]<BR>"; }
@@ -580,7 +580,7 @@ function annualreport($year,$showdetails=FALSE) {
 
 
 
-   // ************  QC Checks   ********** 
+   // ************  QC Checks   **********
 
    $query = "select distinct country, abbreviation, loan.loannumber from loan left join loanagent on loan.loanid = loanagent.loanid left join agent on loanagent.agentid = agent.agentid left join address on agent.agentid = address.agentid where loandate > '$datestart' and loandate < '$dateend' and role = 'Borrower'   and (country is null or abbreviation is null) order by loannumber;";
 
@@ -603,7 +603,7 @@ function annualreport($year,$showdetails=FALSE) {
    return $returnvalue;
 }
 
-function tablekey() { 
+function tablekey() {
       $returnvalue = "<h2>Interpreting the Report</h2>";
       $returnvalue .= "<table>\n";
                 $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>Loans</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcodes</th><th>Recipient Role</th></tr>";
@@ -615,7 +615,7 @@ function tablekey() {
       return $returnvalue;
 }
 
-function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient Role") { 
+function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient Role") {
    global $connection,$debug;
    $returnvalue = "";
 
@@ -644,21 +644,21 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
                 $returnvalue .= "<table>";
                 $returnvalue .= "<tr><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcodes</th><th>$groupcoll</th></tr>";
                 while ($statement->fetch()) {
-                    if ($unit=='FC') { 
+                    if ($unit=='FC') {
                         $floancount+=$loancount;
                         $fitemcount+=$itemcount;
                         $ftypecount+=$typecount;
                         $fnonspecimencount+=$nonspecimencount;
                         $fbarcodecount+=$barcodecount;
-                        $unit = "Farlow Collections"; 
-                    } 
-                    if ($unit=='GC') { 
+                        $unit = "Farlow Collections";
+                    }
+                    if ($unit=='GC') {
                         $gloancount+=$loancount;
                         $gitemcount+=$itemcount;
                         $gtypecount+=$typecount;
                         $gnonspecimencount+=$nonspecimencount;
                         $gbarcodecount+=$barcodecount;
-                        $unit = "General Collections"; 
+                        $unit = "General Collections";
                     }
                     $returnvalue .= "<tr> <td>$unit</td><td>$herbarium</td><td>$loancount</td><td>$itemcount</td><td>$nonspecimencount</td><td>$typecount</td><td>$barcodecount</td><td>$purposeofloan</td></tr>";
                     $titemcount+=$itemcount;
@@ -678,7 +678,7 @@ function transactionitemtotals($query,$title,$type="Loans",$groupcoll="Recipient
      return $returnvalue;
 }
 
-function transactionitemlist($query,$title,$type="Loans") { 
+function transactionitemlist($query,$title,$type="Loans") {
    global $connection,$debug;
    $returnvalue = "";
 
@@ -692,11 +692,11 @@ function transactionitemlist($query,$title,$type="Loans") {
                 $returnvalue .= "<table>";
                 $returnvalue .= "<tr><th>Country</th><th>Recipient</th><th>Unit</th><th>Herbarium</th><th>$type</th><th>Items</th><th>Non-specimens</th><th>Types</th><th>Barcoded Items</th><th>Recipient Role</th></tr>";
                 while ($statement->fetch()) {
-                    if ($unit=='FC') { 
-                        $unit = "Farlow Collections"; 
-                    } 
-                    if ($unit=='GC') { 
-                        $unit = "General Collections"; 
+                    if ($unit=='FC') {
+                        $unit = "Farlow Collections";
+                    }
+                    if ($unit=='GC') {
+                        $unit = "General Collections";
                     }
                     $returnvalue .= "<tr><td>$country</td><td>$toherbarium</td><td>$unit</td><td>$herbarium</td><td>$loancount</td><td>$itemcount</td><td>$nonspecimencount</td><td>$typecount</td><td>$barcodecount</td><td>$purposeofloan</td></tr>";
                 }
@@ -705,7 +705,7 @@ function transactionitemlist($query,$title,$type="Loans") {
      return $returnvalue;
 }
 
-function loan_list() { 
+function loan_list() {
    global $connection,$debug;
    $returnvalue = "";
 
@@ -724,32 +724,32 @@ function loan_list() {
                     $nonspecimencounttotal += $nonspecimencount;
                     $typecounttotal += $typecount;
                     $barcodecounttotal += $barcodecount;
-                    if ($unit=='FC') { 
-                        $unit = "Farlow Collections"; 
-                    } 
-                    if ($unit=='GC') { 
-                        $unit = "General Collections"; 
+                    if ($unit=='FC') {
+                        $unit = "Farlow Collections";
                     }
-                    if ($isclosed=='1') { 
-                        $isclosed = "Closed"; 
-                    } 
-                    if ($isclosed=='0') { 
-                        $isclosed = "Open"; 
-                    } 
-                    if ($barcodecount!=0) { 
+                    if ($unit=='GC') {
+                        $unit = "General Collections";
+                    }
+                    if ($isclosed=='1') {
+                        $isclosed = "Closed";
+                    }
+                    if ($isclosed=='0') {
+                        $isclosed = "Open";
+                    }
+                    if ($barcodecount!=0) {
                       $sql = "select collectionobjectid from loanpreparation lp left join fragment f on lp.preparationid = f.preparationid where lp.loanid = ? ";
                       $statement2 = $connection->prepare($sql);
                       $ids = "";
-                      if ($statement2) { 
+                      if ($statement2) {
                          $statement2->bind_param('i',$loanid);
                          $statement2->execute();
                          $statement2->bind_result($collectionobjectid);
                          $statement2->store_result();
-                         while ($statement2->fetch()) { 
+                         while ($statement2->fetch()) {
                             $ids .= "&id[]=$collectionobjectid";
                          }
                          $statement2->close();
-                         if ($ids!="") { 
+                         if ($ids!="") {
                             $barcodecount = "<a href='specimen_search.php?mode=details$ids'>$barcodecount</a>";
                          }
                       }
@@ -764,5 +764,5 @@ function loan_list() {
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
- 
+
 ?>
