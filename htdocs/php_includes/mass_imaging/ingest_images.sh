@@ -121,28 +121,40 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 							# Create symlinks for all of the files
 							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
-							php copy_image_object.php "$jpgid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgid" "$linkfile" 1 "$b" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Preview/" &
-							php copy_image_object.php "$jpgpid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgpid" "$linkfile" 1 "$b" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Output/JPG-Thumbnail/$basefile.jpg" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Thumbnail/" &
-							php copy_image_object.php "$jpgtid" "$linkfile" 1 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$jpgtid" "$linkfile" 1 "$b" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
 							linkfile=$(./link_image.sh "$sd/Output/DNG/$basefile.dng" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/DNG/" &
-							php copy_image_object.php "$dngid" "$linkfile" 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$dngid" "$linkfile" 0 "$b" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
 
 							linkfile=$(./link_image.sh "$sd/Capture/$basefile.CR2" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
 							#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/RAW/" &
-							php copy_image_object.php "$cr2id" "$linkfile" 0 "$b" || { echo "ERROR: add_image_object.php failed for $linkfile" ; exit 1; }
+							php copy_image_object.php "$cr2id" "$linkfile" 0 "$b" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
 						done
+
+            # Add symlinks for images with no barcodes
+            if [ ${#sc_barcodes[@]} -eq 0 ]; then
+                # generate a random string
+                r=$("$sd/Output/JPG/$basefile.jpg" > md5sum)
+
+                # Create symlinks for all of the files
+  							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "nobc$r" "jpg") || { echo "ERROR: link_image.sh failed for nobc$r ($linkfile)" ; exit 1; }
+  							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
+  							php copy_image_object.php "$jpgid" "$linkfile" 1 "" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
+            fi
+
 
 						#if [ $barcode_count == 0 ] ; then
 						#	# link preview file to transcription dir with no barcode (folders usually)
