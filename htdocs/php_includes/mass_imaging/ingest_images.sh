@@ -148,7 +148,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
             # Add symlinks for images with no barcodes
             if [ ${#sc_barcodes[@]} -eq 0 ]; then
                 # generate a random string
-                r=$(echo "$sd/Output/JPG-Preview/$basefile.jpg" > md5sum)
+                r=$(echo -n "$sd/Output/JPG-Preview/$basefile.jpg" | md5sum)
 
                 # Create symlinks for all of the files
                 target="$sd/Output/JPG-Preview/$basefile.jpg"
