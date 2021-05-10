@@ -110,13 +110,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 						imagefile="$sd/Capture/$basefile.CR2"
 						cr2id=$(php add_image_object.php "$imagesetid" "$imagefile" 8 0 "$barcode_list") || { echo "ERROR: add_image_object.php failed for $imagefile" ; exit 1; }
 
-						#barcode_count=0
-
 						for b in ${sc_barcodes[@]} ; do
-
-							# link preview file to transcription dir
-							#ln -sr "$sd/Output/JPG-Preview/$basefile.jpg" "$sd/Transcribe/$basefile b${b}.jpg"
-							#((barcode_count++))
 
 							# Create symlinks for all of the files
 							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
@@ -147,19 +141,13 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
             # Add symlinks for images with no barcodes
             if [ ${#sc_barcodes[@]} -eq 0 ]; then
                 # generate a random string
-                r=$("$sd/Output/JPG/$basefile.jpg" > md5sum)
+                r=$(echo "$sd/Output/JPG-Preview/$basefile.jpg" > md5sum)
 
                 # Create symlinks for all of the files
-  							linkfile=$(./link_image.sh "$sd/Output/JPG/$basefile.jpg" "$IMG_DIR/JPG" "nobc$r" "jpg") || { echo "ERROR: link_image.sh failed for nobc$r ($linkfile)" ; exit 1; }
+  							linkfile=$(./link_image.sh "$sd/Output/JPG-Preview/$basefile.jpg" "$IMG_DIR/JPG-Preview" "nobc$r" "jpg") || { echo "ERROR: link_image.sh failed for nobc$r ($linkfile)" ; exit 1; }
   							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
   							php copy_image_object.php "$jpgid" "$linkfile" 1 "" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
             fi
-
-
-						#if [ $barcode_count == 0 ] ; then
-						#	# link preview file to transcription dir with no barcode (folders usually)
-						#	ln -sr "$sd/Output/JPG-Preview/$basefile.jpg" "$sd/Transcribe/$basefile.jpg"
-						#fi
 
 					done
 
