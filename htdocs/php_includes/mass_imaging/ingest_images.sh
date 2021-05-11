@@ -155,7 +155,7 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
   							linkfile=$(./link_image.sh "$target" "$IMG_DIR/JPG-Preview" "nobc$r" "jpg") || { echo "ERROR: link_image.sh failed for nobc$r ($linkfile)" ; exit 1; }
                 echo "linked $target to $linkfile"
   							aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
-  							php copy_image_object.php "$jpgid" "$linkfile" 1 "" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
+  							php copy_image_object.php "$jpgpid" "$linkfile" 1 "" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
             fi
 
 					done
