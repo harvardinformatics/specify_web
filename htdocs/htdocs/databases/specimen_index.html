@@ -3,7 +3,7 @@ include_once('specify_library.php');
 
 echo pageheader("specimen","off");
 
-?>		
+?>
 <div id="sidenav">
   <ul>
     <li><a href="addenda.html">Search Hints</a></li>
@@ -13,17 +13,17 @@ echo pageheader("specimen","off");
     <li><a href="publication_index.html">Publications</a></li>
     <li><a href="specimen_index.html" class="active">Specimens</a></li>
     <li><a href="image_search.php" >Images</a></li>
-  <hr />   
+  <hr />
     <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
-    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+    <li><a href='https://huh.harvard.edu/files/herbaria/files/economic_botany_table_2019-11-26_redacted.xlsx'>ECON Artifacts & Products</a></li>
 <!-- <li><a href='http://kiki.huh.harvard.edu/databases/diatoms/'>Diatoms Database</a></li> -->
     <li><a href="add_correct.html">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
-    
+
   </ul>
-</div>  <!-- sidenav ends -->		
-		
-		
+</div>  <!-- sidenav ends -->
+
+
 <div id="main">
 		<!-- main content begins -->
 		<div id="main_text">
@@ -46,13 +46,13 @@ When you observe any issues with the data, please report them through our <a hre
            <td><input type="submit" value="Search" /></td>
 	</tr>
       </table>
-</form>      
+</form>
 
 <div class="searchbox">
- 
+
 
 <form action="specimen_search.php" method="GET">
-   <input type="hidden" name="start" value="0"> 
+   <input type="hidden" name="start" value="0">
    <table align="center" cellspacing="6">
 			<tr>
 				  <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
@@ -60,7 +60,7 @@ When you observe any issues with the data, please report them through our <a hre
  				  <td>Genus</td>
     			<td colspan="2"><input type="text" name="gen" value="" size="30" maxlength="59"></td>
     		</tr>
-			<tr>			
+			<tr>
 				  <td>Specific epithet</td>
     			<td colspan="2"><input type="text" name="sp" value="" size="30" maxlength="59"></td>
 				  <td>Infraspecific epithet</td>
@@ -111,9 +111,9 @@ When you observe any issues with the data, please report them through our <a hre
 <?php
 
   @include_once("connection_library.php");
-  //$query = "select name from geography where rankid = 200 order by name "; 
-  //$query = "select country, count(*) from web_search where country is not null group by country order by country "; 
-  $query = "select distinct country from dwc_search where country is not null order by country "; 
+  //$query = "select name from geography where rankid = 200 order by name ";
+  //$query = "select country, count(*) from web_search where country is not null group by country order by country ";
+  $query = "select distinct country from dwc_search where country is not null order by country ";
   @$connection = specify_connect();
   if ($connection) {
 		@$statement = $connection->prepare($query);
@@ -125,14 +125,14 @@ When you observe any issues with the data, please report them through our <a hre
                 echo "<option value = '$country'>$country</option>\n";
             }
         }
-  } 
+  }
 ?>
 
 
                     </select></td>
     			<td>Year Collected</td>
     			<td collspan="2"><input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
-    		</tr>	
+    		</tr>
 			<tr>
 					<td>State/Province</td>
 	  			<td colspan="2"><input type="text" name="state" value="" size="30" maxlength="100" /></td>
@@ -169,13 +169,13 @@ When you observe any issues with the data, please report them through our <a hre
 			<td width="10"><input type="reset" value="Clear" /></td></tr>
 	</table>
 </form>
- 
+
 <p>Fields marked with a percentage sign [%] perform wildcard searches automatically. Other fields do an exact match search unless wildcards * or % are added.  Searches are case and accented character insenstive.  Searching on collector 'c. j. muller' will find specimens collected by 'C. J. Müller'.</p>
 <p>Wildcards can be entered anywhere within a name. Entering a wildcard before a name indicates uncertainty about the beginning of the name. Entering a wildcard after the name indicates uncertainty about its ending. Wildcards within a name can be used when e.g. the correct spelling is unknown.  The % and * are equivalent wildcards that match any number of characters.  The underscore can be used as a wildcard to match any one character.  Some search terms (e.g. collector, habitat, substrate, host) will return suggestions for similar searches if no matching results are found.</p>
 <p>
 	For plant names, enter search keys in any combination to qualify the name:
-	family/higher taxon, genus, specific epithet, and infraspecific epithet.  Results are inclusive, 
-    so it is possible to search for all specimens in a genus, for example.    
+	family/higher taxon, genus, specific epithet, and infraspecific epithet.  Results are inclusive,
+    so it is possible to search for all specimens in a genus, for example.
 	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	</p>
 <p>For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
 	 Enter a collector's name in any form.
@@ -196,18 +196,18 @@ When you observe any issues with the data, please report them through our <a hre
 
 
 <?php
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
     preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
     preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
-      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
-      echo "<h3><a href='specimen_search.php?browsemode=stats'>Summary Statistics</a></h3>";						
-      echo "<h3><a href='stats.php'>Detailed Statistics (Types, Annual Reports, Loans)</a></h3>";						
-      echo "<h3><a href='dumps.php'>Download spreadsheets</a></h3>";						
+      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";
+      echo "<h3><a href='specimen_search.php?browsemode=stats'>Summary Statistics</a></h3>";
+      echo "<h3><a href='stats.php'>Detailed Statistics (Types, Annual Reports, Loans)</a></h3>";
+      echo "<h3><a href='dumps.php'>Download spreadsheets</a></h3>";
    }
 ?>
 		    </div>
