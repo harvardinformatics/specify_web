@@ -7,7 +7,7 @@ $connection = specify_connect();
 $debug = false;
 
 if (! isset($argv[1])) {
-	echo "USAGE: php add_batch.php <batchdir>\n";
+	echo "USAGE: php add_image_batch.php <batchdir>\n";
 	exit(1);
 }
 

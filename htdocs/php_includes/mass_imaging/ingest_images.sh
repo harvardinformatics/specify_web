@@ -160,6 +160,10 @@ for d in $BASE_DIR ; do # iterate through the directories for each photostation
 
 					done
 
+          # Create tr_batch records for transcription app
+          trbatchid=$(php add_tr_batch.php "$BATCH_ID") || { echo "ERROR: Failed to add tr_batch for $masterfile" ; exit 1; }
+          echo "Added TR_BATCH (id $trbatchid) for $masterfile"
+
 					touch $sd/ingest_done # so we don't reprocess this directory
 
 					echo "Done ingesting $sd"
