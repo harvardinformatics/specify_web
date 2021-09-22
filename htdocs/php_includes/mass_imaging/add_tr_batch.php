@@ -20,12 +20,13 @@ $sql = "select SUBSTRING_INDEX(batch_name,'/',-2) as path from IMAGE_BATCH where
 if ($debug) { echo "$sql\n"; }
 $statement = $connection->stmt_init();
 if ($statement->prepare($sql)) {
-    $statement->bind_param("s",$imagebatchid);
+    $statement->bind_param("i",$imagebatchid);
     if ($statement->execute()) {
         $statement->bind_result($imagebatchname);
         $statement->store_result();
         if ($statement->num_rows>0) {
           $statement->fetch();
+					if ($debug) { echo "Found image batch $imagebatchname.\n"; }
         } else {
 					error_log("Error: No image batch found for id $imagebatchid\n");
 					exit(1);
@@ -53,8 +54,9 @@ if ($statement->prepare($sql)) {
 				if ($statement->num_rows>0) {
 				  if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
 					exit(0);
-				} 
+				}
     } else {
+			  if ($debug) { echo "Inserting TR_BATCH.\n"; }
         $sql = "insert into TR_BATCH (path, image_batch_id) values (?, ?)";
         if ($debug) { echo "$sql\n"; }
       	$stmtinsert = $connection->prepare($sql);
@@ -62,7 +64,11 @@ if ($statement->prepare($sql)) {
       	if ($stmtinsert->execute()) {
       		if ($stmtinsert->affected_rows==1) {
 						$trbatchid = $connection->insert_id;
-          }
+						if ($debug) { echo "Inserted TR_BATCH id $trbatchid.\n"; }
+          } else {
+						error_log("Failed to insert TR_BATCH");
+						exit(1);
+					}
         } else {
       		error_log("Query Error: ($stmtinsert->errno) $stmtinsert->error [$sql]\n");
       		exit(1);
