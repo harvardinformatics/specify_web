@@ -54,40 +54,43 @@ if ($statement->prepare($sql)) {
 				if ($statement->num_rows>0) {
 				  if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
 					exit(0);
-				}
-    } else {
-			  if ($debug) { echo "Inserting TR_BATCH.\n"; }
-        $sql = "insert into TR_BATCH (path, image_batch_id) values (?, ?)";
-        if ($debug) { echo "$sql\n"; }
-      	$stmtinsert = $connection->prepare($sql);
-      	$stmtinsert->bind_param('si',$imagebatchname,$imagebatchid);
-      	if ($stmtinsert->execute()) {
-      		if ($stmtinsert->affected_rows==1) {
-						$trbatchid = $connection->insert_id;
-						if ($debug) { echo "Inserted TR_BATCH id $trbatchid.\n"; }
-          } else {
-						error_log("Failed to insert TR_BATCH");
+				} else {
+					if ($debug) { echo "Inserting TR_BATCH.\n"; }
+	        $sql = "insert into TR_BATCH (path, image_batch_id) values (?, ?)";
+	        if ($debug) { echo "$sql\n"; }
+	      	$stmtinsert = $connection->prepare($sql);
+	      	$stmtinsert->bind_param('si',$imagebatchname,$imagebatchid);
+	      	if ($stmtinsert->execute()) {
+	      		if ($stmtinsert->affected_rows==1) {
+							$trbatchid = $connection->insert_id;
+							if ($debug) { echo "Inserted TR_BATCH id $trbatchid.\n"; }
+	          } else {
+							error_log("Failed to insert TR_BATCH");
+							exit(1);
+						}
+	        } else {
+	      		error_log("Query Error: ($stmtinsert->errno) $stmtinsert->error [$sql]\n");
+	      		exit(1);
+	      	}
+	      	$stmtinsert->close();
+
+					# Call stored procedure to set up batch images
+					$sql = 'CALL setup_tr_batch(?, ?)';
+		      $stmt = $connection->prepare($sql);
+		      $stmt->bind_param('is', $trbatchid, $imagebatchname);
+		      if ($stmt->execute()) {
+						if ($debug) { echo "Added TR_BARTCH $imagebatchname\n"; }
+					}	else {
+						error_log("Query Error: ($stmt->errno) $stmt->error [$sql]\n");
 						exit(1);
 					}
-        } else {
-      		error_log("Query Error: ($stmtinsert->errno) $stmtinsert->error [$sql]\n");
-      		exit(1);
-      	}
-      	$stmtinsert->close();
-
-				# Call stored procedure to set up batch images
-				$sql = 'CALL setup_tr_batch(?, ?)';
-	      $stmt = $connection->prepare($sql);
-	      $stmt->bind_param('is', $trbatchid, $imagebatchname);
-	      if ($stmt->execute()) {
-					if ($debug) { echo "Added TR_BARTCH $imagebatchname\n"; }
-				}	else {
-					error_log("Query Error: ($stmt->errno) $stmt->error [$sql]\n");
-					exit(1);
+					$stmt->close();
 				}
+				$statement->close();
+    } else {
+			error_log("Query Error: ($statement->errno) $statement->error [$sql]\n");
+    	exit(1);
 		}
-
-	$statement->close();
 } else {
 	error_log("Query Error: ($statement->errno) $statement->error $connection->error \n");
 	exit(1);
