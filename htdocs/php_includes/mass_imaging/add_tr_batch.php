@@ -50,7 +50,7 @@ if ($statement->prepare($sql)) {
     if ($statement->execute()) {
         $statement->bind_result($trbatchid);
         $statement->store_result();
-					if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"); }
+					if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
 					exit(0);
         } else {
         	$sql = "insert into TR_BATCH (path, image_batch_id) values (?, ?)";
