@@ -25,7 +25,7 @@ if ($statement->prepare($sql)) {
         $statement->bind_result($imagebatchname);
         $statement->store_result();
         if ($statement->num_rows>0) {
-            $statement->fetch();
+          $statement->fetch();
         } else {
 					error_log("Error: No image batch found for id $imagebatchid\n");
 					exit(1);
@@ -50,8 +50,10 @@ if ($statement->prepare($sql)) {
     if ($statement->execute()) {
         $statement->bind_result($trbatchid);
         $statement->store_result();
-				if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
-				exit(0);
+				if ($statement->num_rows>0) {
+				  if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
+					exit(0);
+				} 
     } else {
         $sql = "insert into TR_BATCH (path, image_batch_id) values (?, ?)";
         if ($debug) { echo "$sql\n"; }
@@ -78,7 +80,7 @@ if ($statement->prepare($sql)) {
 					exit(1);
 				}
 		}
-		
+
 	$statement->close();
 } else {
 	error_log("Query Error: ($statement->errno) $statement->error $connection->error \n");
