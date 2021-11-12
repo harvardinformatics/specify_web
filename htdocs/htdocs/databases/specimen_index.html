@@ -27,57 +27,116 @@ echo pageheader("specimen","off");
 <div id="main">
 		<!-- main content begins -->
 		<div id="main_text">
-           <h3>Index of Specimens</h3>
-
 <p>
-PLEASE NOTE: There are over 5 million specimens at the Harvard Herbaria, but only a small portion are cataloged and searchable online.  If you need assistance using our physical collections or have difficulty with our website, please contact us through our <a href='comment.html'> comments and questions form</a>.
-</p>
-<p>
-When you observe any issues with the data, please report them through our <a href='add_correct.html'>additions and corrections form</a>.
-</p>
-
-<h1>Databases</h1>
-<form action="specimen_search.php" method="GET">
-   <input type="hidden" name="start" value="0">
-      <table id="quicksearchtable" align="center" cellspacing="6" >
-        <tr>
-           <td>Specimen quick-search</td>
-	   <td colspan="2"><input type="text" name="quick" value="" size="30" maxlength="59"></td>
-           <td><input type="submit" value="Search" /></td>
-	</tr>
-      </table>
-</form>
+There are over 5 million specimens at the Harvard Herbaria, but only a portion are currently searchable online.  If you need help finding resources or using the collection, please use the <a href='comment.html'> comments and questions form</a>.
+</p><br>
 
 <div class="searchbox">
 
-
-<form action="specimen_search.php" method="GET">
    <input type="hidden" name="start" value="0">
    <table align="center" cellspacing="6">
+     <tr style="height:10px;">
+       <td colspan="6"></td>
+     </tr>
+     <tr>
+        <td colspan="3"><form action="specimen_search.php" method="GET"><input type="text" name="quick" value="" size="33" maxlength="59" tabindex="1"> <input type="submit" value="Quick Search" tabindex="2"/></form></td>
+        <td width="20"></td>
+        <td colspan="3"><form action="specimen_search.php" method="GET"><input type="text" name="barcode" value="" size="20" maxlength="59" tabindex="3"> <input type="submit" value="Find Barcode" tabindex="4" /></form></td>
+      </tr>
+<form action="specimen_search.php" method="GET">
+      <tr>
+      <td colspan="6">
+      <hr style="border: 0px; border-top: 1px solid #bbb;">
+      </td>
+      </tr>
 			<tr>
-				  <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
-    			<td colspan="2"><input type="text" name="family" value="" size="30" maxlength="59"></td>
- 				  <td>Genus</td>
-    			<td colspan="2"><input type="text" name="gen" value="" size="30" maxlength="59"></td>
+        <td><a href="specimen_search.php?browsemode=families">Family</a>/higher taxon</td>
+        <td colspan="2"><input type="text" name="family" value="" size="30" maxlength="59" tabindex="5"></td>
+        <td></td>
+        <td><a href="specimen_search.php?browsemode=countries">Country</a></td>
+        <td colspan="2"><select name="country" size=1 tabindex="15" style="width: 30ch;">
+                              <option value="">any</option>
+
+<?php
+
+@include_once("connection_library.php");
+//$query = "select name from geography where rankid = 200 order by name ";
+//$query = "select country, count(*) from web_search where country is not null group by country order by country ";
+$query = "select distinct country from dwc_search where country is not null order by country ";
+@$connection = specify_connect();
+if ($connection) {
+  @$statement = $connection->prepare($query);
+  if ($statement) {
+    @$statement->execute();
+    @$statement->bind_result($country);
+    @$statement->store_result();
+    while (@$statement->fetch()) {
+              echo "<option value = '$country'>$country</option>\n";
+          }
+      }
+}
+?>
+                  </select></td>
     		</tr>
 			<tr>
-				  <td>Specific epithet</td>
-    			<td colspan="2"><input type="text" name="sp" value="" size="30" maxlength="59"></td>
-				  <td>Infraspecific epithet</td>
-    			<td colspan="2"><input type="text" name="infra" value="" size="30" maxlength="59"></td>
-				  <td></td>
+        <td>Genus</td>
+        <td colspan="2"><input type="text" name="gen" value="" size="30" maxlength="59" tabindex="6"></td>
+        <td></td>
+        <td>State/Province</td>
+        <td colspan="2"><input type="text" name="state" value="" size="30" maxlength="100" tabindex="16" /></td>
 		    </tr>
 			<tr>
- 				<td>Author</td>
-    			<td colspan="2"><input type="text" name="author" value="" size="30" maxlength="59"></td>
-				  <td>Year published</td>
-    			<td colspan="2"><input type="text" name="year" value="" size="4" maxlength="59"></td>
+        <td>Specific epithet</td>
+        <td colspan="2"><input type="text" name="sp" value="" size="30" maxlength="59" tabindex="7"></td>
+        <td></td>
+        <td>County/Parish</td>
+        <td colspan="2"><input type="text" name="county" value="" size="30" maxlength="100" tabindex="17" /></td>
     		</tr>
 			<tr>
- 			  <td> </td>
-				<td colspan="2">&nbsp;<input type="checkbox" name="istype" value="on" />Types only</td>
+        <td>Infraspecific epithet</td>
+        <td colspan="2"><input type="text" name="infra" value="" size="30" maxlength="59" tabindex="8"></td>
+        <td></td>
+        <td>Location</td>
+        <td colspan="2"><input type="text" name="loc" value="" size="30" maxlength="59" tabindex="18" /></td>
+    		</tr>
+    		<tr>
+          <td>Collector</td>
+    			<td colspan="2"><input type="text" name="cltr" value="" size="30" maxlength="59" tabindex="9" /></td>
+          <td></td>
+          <td>Habitat</td>
+    			<td colspan="2"><input type="text" name="habitat" value="" size="30" maxlength="100" tabindex="19" /></td>
+    		</tr>
+			<tr>
+        <td>Collector no.</td>
+        <td colspan="2"><input type="text" name="collectornumber" value="" size="30" maxlength="59" tabindex="10" /></td>
+        <td></td>
+        <td>Substrate</td>
+        <td colspan="2"><input type="text" name="substrate" value="" size="30" maxlength="100" tabindex="20" /></td>
+		  </tr>
+			<tr>
+        <td>Year Collected</td>
+        <td colspan="2"><input type="text" name="yearcollected" value="" size="30" maxlength="20" tabindex="11" /></td>
+        <td></td>
+        <td>Host</td>
+        <td colspan="2"><input type="text" name="host" value="" size="30" maxlength="100" tabindex="21" /></td>
+		  </tr>
+			<tr>
+        <td>Author</td>
+    		<td colspan="2"><input type="text" name="author" value="" size="30" maxlength="59" tabindex="12" /></td>
+        <td></td>
+        <td>Previous ownership</td>
+    		<td colspan="2"><input type="text" name="provenance" value="" size="30" maxlength="100" tabindex="22" /></td>
+     </tr>
+			<tr>
+        <td>Year published</td>
+        <td colspan="2"><input type="text" name="year" value="" size="30" maxlength="59" tabindex="13" /></td>
+        <td></td>
+				<td>Images only</td>
+    	  <td colspan="2"><input type="checkbox" name="hasimage" value="on" tabindex="23" /></td>
+    		</tr>
+      <tr>
 			    <td><a href="specimen_search.php?browsemode=types">Type status</a></td>
-					<td colspan="2" size="30"><select name="typestatus" size="1">
+					<td colspan="2" size="30"><select name="typestatus" size="1" tabindex="14">
 								 <!--option value="none">&lt;ignore&gt; -->
 								 <option value="" selected="true"></option>
 								 <option value="any" >any type </option>
@@ -97,101 +156,28 @@ When you observe any issues with the data, please report them through our <a hre
 								 <option value="NotType">Annotated as 'Not A Type'</option>
 								 <option value="Type">'Type'</option>
 					</select></td></tr>
-			<tr>
-				  <td>Collector</td>
-    			<td colspan="2"><input type="text" name="cltr" value="" size="30" maxlength="59" /></td>
-					<td>Collector no.</td>
-    			<td colspan="2"><input type="text" name="collectornumber" value="" size="20" maxlength="59" /></td>
-    		</tr>
-    		<tr>
-    			<td><a href="specimen_search.php?browsemode=countries">Country</a></td>
-    			<td colspan="2"><select name="country" size=1>
-                                <option value="">any</option>
-
-<?php
-
-  @include_once("connection_library.php");
-  //$query = "select name from geography where rankid = 200 order by name ";
-  //$query = "select country, count(*) from web_search where country is not null group by country order by country ";
-  $query = "select distinct country from dwc_search where country is not null order by country ";
-  @$connection = specify_connect();
-  if ($connection) {
-		@$statement = $connection->prepare($query);
-		if ($statement) {
-			@$statement->execute();
-			@$statement->bind_result($country);
-			@$statement->store_result();
-			while (@$statement->fetch()) {
-                echo "<option value = '$country'>$country</option>\n";
-            }
-        }
-  }
-?>
-
-
-                    </select></td>
-    			<td>Year Collected</td>
-    			<td collspan="2"><input type="text" name="yearcollected" value="" size="20" maxlength="20" /></td>
-    		</tr>
-			<tr>
-					<td>State/Province</td>
-	  			<td colspan="2"><input type="text" name="state" value="" size="30" maxlength="100" /></td>
-					<td>County/Parish</td>
-    			        <td colspan="2"><input type="text" name="county" value="" size="20" maxlength="100" /></td>
-		        </tr>
-			<tr>
-					<td>Location</td>
-	  			<td colspan="2">%<input type="text" name="loc" value="" size="30" maxlength="59" />%</td>
-					<td>Substrate</td>
-    			        <td colspan="2"><input type="text" name="substrate" value="" size="20" maxlength="100" /></td>
-		        </tr>
-			<tr>
-					<td>Habitat</td>
-    			                <td colspan="2"><input type="text" name="habitat" value="" size="20" maxlength="100" /></td>
-					<td>Host</td>
-     			                <td colspan="2"><input type="text" name="host" value="" size="20" maxlength="100" /></td>
-    		        </tr>
-			<tr>
-				    <td>Images</td>
-    			<td colspan="2"><input type="checkbox" name="hasimage" value="on" />with images only </td>
-					<td>Previous ownership</td>
-    			<td colspan="2">%<input type="text" name="provenance" value="" size="20" maxlength="100" />%</td>
-    		</tr>
-			<tr>
-					<td></td>
-    			<td colspan="2"></td>
-					<td>Barcode</td>
-    			<td colspan="2"><input type="text" name="barcode" value="" size="20" maxlength="59" /></td>
-			</tr>
     </table>
 	<table align="center">
-			<tr><td width="10"><input type="submit" value="Search" /></td>
-			<td width="10"><input type="reset" value="Clear" /></td></tr>
+			<tr><td width="10"><input type="submit" value="Search" tabindex="24" /></td>
+			<td width="10"><input type="reset" value="Clear" tabindex="25" /></td></tr>
 	</table>
 </form>
 
-<p>Fields marked with a percentage sign [%] perform wildcard searches automatically. Other fields do an exact match search unless wildcards * or % are added.  Searches are case and accented character insenstive.  Searching on collector 'c. j. muller' will find specimens collected by 'C. J. Müller'.</p>
-<p>Wildcards can be entered anywhere within a name. Entering a wildcard before a name indicates uncertainty about the beginning of the name. Entering a wildcard after the name indicates uncertainty about its ending. Wildcards within a name can be used when e.g. the correct spelling is unknown.  The % and * are equivalent wildcards that match any number of characters.  The underscore can be used as a wildcard to match any one character.  Some search terms (e.g. collector, habitat, substrate, host) will return suggestions for similar searches if no matching results are found.</p>
 <p>
-	For plant names, enter search keys in any combination to qualify the name:
-	family/higher taxon, genus, specific epithet, and infraspecific epithet.  Results are inclusive,
-    so it is possible to search for all specimens in a genus, for example.
-	Searching for <b>types only</b> will include type specimens whose basionym corresponds to the search parameters.	</p>
-<p>For type specimens, select the kind of type from ‘type status’ or use the collective term ‘any type’ to search across all types.
-	 Enter a collector's name in any form.
-	 For location, enter any part of a possible locality string.
+<span style="color: red;">Disclaimer:</span> Collection records at the Harvard University Herbaria (HUH) may contain language that reflects historical place or taxon names in an original form that is no longer acceptable or appropriate in an inclusive environment. Because HUH preserves data in their original form to retain authenticity and facilitate research, we have chosen to facilitate conversations and are committed to address the problem of racial, derogatory and demeaning language that may be found in our database. Insensitive or offensive language is not condoned by the HUH.
 </p>
-<p>To view type images for a selected taxon, please select the check boxes for both "types only" and "images only".</p>
-<p>The Specimen quick-search will do a free text search and return up to the 100 most relevant results for the terms you provide.
+
+<p>Data shown in square brackets [ ] are annotations made by the cataloger and do not necessarily reflect data present on the specimen labels.
 </p>
-<p>If a barcode number is entered, all other search parameters will be ignored.  Barcode searches are exact match only, but don't need leading zeroes.</p>
-<p>In search results, square brackets [ ] indicate entries made by the cataloger that do not necessarily reflect data present on the specimen labels.</p>
-<p>Some examples of wildcards in searches:</p>
+
+<p>The * (star) character may be used as a wildcard search.</p>
+
+<p>Examples of wildcard searches:</p>
 <ul>
-<li><em>%Muller</em> matches 'J. Born<strong>müller</strong>'; 'C. H. <strong>Muller</strong>'; 'C. J. <strong>Müller</strong>'; and 'I. M. Johnston & C. H. <strong>Muller</strong>', but not 'C. H. Muller & J. M. Tucker'.</li>
-<li><em>C. H. Muller%</em> matches '<strong>C. H. Muller</strong>'; '<strong>C. H. Muller</strong> & J. M. Tucker'; '<strong>C. H. Muller</strong> & L. C. Hinckley' and '<strong>C. H. Muller</strong> & M. T. Muller', but not 'I. M. Johnston & C. H. Muller'.</li>
-<li><em>%Muller%</em> matches 'C. H. <strong>Muller</strong>'; 'C. H. <strong>Muller</strong> & J. M. Tucker'; 'C. H. <strong>Muller</strong> & L. C. Hinckley' and 'I. M. Johnston & C. H. <strong>Muller</strong>'.</li>
-<li><em>C%M<strong>_</strong>ller</em> matches both C. E. M<strong>i</strong>ller and C. H. M<strong>u</strong>ller</li>
+<li><em>*Muller</em> matches 'J. Born<strong>müller</strong>'; 'C. H. <strong>Muller</strong>'; 'C. J. <strong>Müller</strong>'; and 'I. M. Johnston & C. H. <strong>Muller</strong>', but not 'C. H. Muller & J. M. Tucker'.</li>
+<li><em>C. H. Muller*</em> matches '<strong>C. H. Muller</strong>'; '<strong>C. H. Muller</strong> & J. M. Tucker'; '<strong>C. H. Muller</strong> & L. C. Hinckley' and '<strong>C. H. Muller</strong> & M. T. Muller', but not 'I. M. Johnston & C. H. Muller'.</li>
+<li><em>*Muller*</em> matches 'C. H. <strong>Muller</strong>'; 'C. H. <strong>Muller</strong> & J. M. Tucker'; 'C. H. <strong>Muller</strong> & L. C. Hinckley' and 'I. M. Johnston & C. H. <strong>Muller</strong>'.</li>
+<li><em>C*M<strong>_</strong>ller</em> matches both C. E. M<strong>i</strong>ller and C. H. M<strong>u</strong>ller</li>
 </ul>
 
 
