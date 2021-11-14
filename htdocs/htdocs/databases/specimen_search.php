@@ -1198,7 +1198,7 @@ function search() {
 	$country = "";
 
 	// ***** Step 1: Obtain query parameters and assemble query ***********
-	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.0-9]/","", $_GET['quick']),0,59);
+	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.\"0-9]/","", $_GET['quick']),0,59);
 	$start = intval(substr(preg_replace("/\D/", "", $_GET['start']), 0, 7));
 	$limit = intval(substr(preg_replace("/\D/", "", $_GET['limit']), 0, 5));
 	if ($start == "")
