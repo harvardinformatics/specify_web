@@ -1215,11 +1215,11 @@ function search() {
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, $limit";
+			" where q.collectionobjectid > 0 and match (searchable) against (? in BOOLEAN MODE) limit $start, $limit";
 		$ctquery = "select count(distinct c.barcode) " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
-			" where q.collectionobjectid > 0 and match (searchable) against (?) limit $start, $limit ";
+			" where q.collectionobjectid > 0 and match (searchable) against (? in BOOLEAN MODE) limit $start, $limit ";
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
