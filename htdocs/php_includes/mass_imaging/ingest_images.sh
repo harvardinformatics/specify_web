@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")"
 
 BASE_DIR="/mnt/huhimagestorage/Herbaria6/HUH-IT/from_informatics_*/Mass_Digitization/*/*"
 IMG_DIR="/mnt/huhimagestorage/huhspecimenimages"
