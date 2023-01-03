@@ -15,6 +15,7 @@ fi
 #USERS=(abrach amilby bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge mschill zbailey etanner NEBC)
 SESSION_FORMAT1="/20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
 SESSION_FORMAT2="/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{1,2}$"
+SESSION_FORMAT3="/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{1,2}-[A-Za-z0-9]+$"
 BARCODE_FORMAT="^[0-9]{8}$"
 
 for sd in $BASE_DIR ; do # iterate through all image session directories
@@ -23,7 +24,7 @@ for sd in $BASE_DIR ; do # iterate through all image session directories
   	continue
   fi
 
-  if [[ ! $sd =~ $SESSION_FORMAT1 && ! $sd =~ $SESSION_FORMAT2 ]] ; then
+  if [[ ! $sd =~ $SESSION_FORMAT1 && ! $sd =~ $SESSION_FORMAT2 && ! $sd =~ $SESSION_FORMAT3 ]] ; then
     echo "WARN: Skipping badly formatted directory $sd"
     conitnue
   fi
