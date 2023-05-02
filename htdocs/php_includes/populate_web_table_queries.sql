@@ -546,6 +546,8 @@ create fulltext index i_temp_web_quicksearch on temp_web_quicksearch(searchable)
 -- Redact other sensitive information
 -- esastatus = 'controlled' = on DEA controlled substance list.
 delete from temp_web_search where taxon_nodenumber in (select nodenumber from taxon where esastatus is not null);
+-- embargo on specimens digitized for Dior project
+delete from temp_web_search where collectionobjectid in (select collectionobjectid from project_colobj where projectid = 12);
 
 create table if not exists web_search (id int);
 create table if not exists web_quicksearch (id int);
@@ -646,7 +648,7 @@ create table if not exists temp_dwc_search (
   unredacted_decimallatitude decimal(12,10),
   unredacted_decimallongitude decimal(13,10),
   old_fragmentguid char(100)
-) ENGINE MyISAM CHARACTER SET utf8;	
+) ENGINE MyISAM CHARACTER SET utf8;
 
 delete from temp_dwc_search;
 
@@ -995,6 +997,8 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 
 delete from temp_dwc_search where scientificname = 'Redacted';
 
+-- Embargo specimens digitized for Dior project
+delete from temp_dwc_search where collectionobjectid in (select collectionobjectid from project_colobj where projectid = 12);
 
 -- Update dynamic properties with various info as JSON
 update temp_dwc_search
