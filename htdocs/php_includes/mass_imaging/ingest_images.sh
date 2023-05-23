@@ -22,9 +22,9 @@ for sd in $BASE_DIR ; do # iterate through all image session directories
   	continue
   fi
 
-  if [[ ! $sd =~ $SESSION_FORMAT ]] ; then
+  if [[ ! $(basename $sd) =~ $SESSION_FORMAT ]] ; then
     echo "WARN: Skipping badly formatted directory $sd"
-    conitnue
+    continue
   fi
 
 	echo "Checking $sd"
