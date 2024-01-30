@@ -455,6 +455,8 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
     set w.collectornumber =  e.stationfieldnumber
     where e.stationfieldnumber is not null;
 
+-- TODO: set collectornumber using series id
+
 -- set herbarium acronym (fragment.text1 is HUH specific where multiple herbaria are managed
 -- as a single specify collection).
 -- 2 min 30 sec.
@@ -1133,7 +1135,9 @@ update temp_dwc_identification_history left join determination on temp_dwc_ident
 -- switch out the dwc_search tables for the newly build temp_dwc_search tables
 -- create a placeholder for first run of script.
 create table if not exists dwc_search (id int);
+create table if not exists dwc_identification_history (id int);
 drop table if exists old_dwc_search;
+drop table if exists old_dwc_identification_history;
 rename table dwc_search to old_dwc_search, temp_dwc_search to dwc_search, dwc_identification_history to old_dwc_identification_history, temp_dwc_identification_history to dwc_identification_history;
 
 -- Clean up.  Remove the previous copies of the tables.

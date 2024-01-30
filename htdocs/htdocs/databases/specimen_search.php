@@ -393,12 +393,12 @@ function details() {
 								$statement_img->bind_result($url,$height,$width,$imagename,$filesize,$imagesetid);
 								$statement_img->store_result();
 								$fullurl = "";
-                                $imagesetidseen = "";
+                $imagesetidseen = "";
 								while ($statement_img->fetch()) {
-                                                                        if ($imagesetidseen!=$imagesetid) {
-                                                                           $fullurl = "";
-                                                                           $imagesetidseen = $imagesetid;
-                                                                        }
+                  if ($imagesetidseen!=$imagesetid) {
+                     $fullurl = "";
+                     $imagesetidseen = $imagesetid;
+                  }
 									if ($imagename == "Thumbnail") {
 										//$firstimage .= "<tr><td class='cap'></td><td class='val'><a href='$fullurl'><img src='$url' height='205' width='150' alt='Thumbnail image of sheet' ></a></td></tr>";
 
