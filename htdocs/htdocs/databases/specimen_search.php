@@ -380,7 +380,7 @@ function details() {
 							$firstimage_links = array();
 							$query = "select concat(url_prefix,uri) as url, pixel_height, pixel_width, t.name, file_size, o.image_set_id " .
 								" from IMAGE_SET_collectionobject c " .
-								" join IMAGE_SET ims on c.imagesetid = ims.ID and ims.active_flag = 1 "
+								" join IMAGE_SET ims on c.imagesetid = ims.ID and ims.active_flag = 1 " .
 								" left join IMAGE_OBJECT o on c.imagesetid = o.image_set_id and o.active_flag = 1 and o.hidden_flag = 0 " .
 								" left join REPOSITORY r on o.repository_id = r.id " .
 								" left join IMAGE_OBJECT_TYPE t on o.object_type_id = t.id " .
