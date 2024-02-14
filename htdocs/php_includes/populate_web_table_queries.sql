@@ -455,7 +455,14 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
     set w.collectornumber =  e.stationfieldnumber
     where e.stationfieldnumber is not null;
 
--- TODO: set collectornumber using series id
+-- set collectornumber using series id
+update temp_web_search w
+  join collectionobject c on w.collectionobjectid = c.collectionobjectid
+  join otheridentifier oi on oi.CollectionObjectID = c.CollectionObjectID
+  set w.collectornumber =  oi.Identifier
+  where oi.identifier is not null
+  and w.collectornumber is null;
+
 
 -- set herbarium acronym (fragment.text1 is HUH specific where multiple herbaria are managed
 -- as a single specify collection).
