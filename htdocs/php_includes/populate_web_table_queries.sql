@@ -662,10 +662,10 @@ delete from temp_dwc_search;
 -- ignore will cause duplicate guids to be skipped.
 -- text1 contains herbarium acronym.
 -- 40 sec.
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct collectionobjectid, text1, concat('barcode-', identifier), identifier, identifier, prepmethod, uuid, ifnull(timestampmodified,timestampcreated), fragment.fragmentid, concat(fragment.description, " | ", fragment.remarks), concat('http://data.huh.harvard.edu/',uuid) from fragment left join guids on fragment.fragmentid = guids.primarykey where identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct f.collectionobjectid, f.text1, concat('barcode-', f.identifier), f.identifier, f.identifier, f.prepmethod, g.uuid, ifnull(f.timestampmodified,f.timestampcreated), f.fragmentid, concat_ws(" | ", co.description, co.remarks, f.description, f.remarks), concat('http://data.huh.harvard.edu/',g.uuid) from fragment f left join guids g on f.fragmentid = g.primarykey left join collectionobject co on f.collectionobjectid = co.collectionobjectid where f.identifier is not null and g.tablename = 'fragment';
 
 -- add barcoded preparations
-insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct collectionobjectid, fragment.text1, concat('barcode-', p.identifier), p.identifier, p.identifier, prepmethod, uuid, ifnull(fragment.timestampmodified,fragment.timestampcreated), fragment.fragmentid, concat(fragment.description, " | ", fragment.remarks), concat('http://data.huh.harvard.edu/',uuid) from fragment left join guids on fragment.fragmentid = guids.primarykey left join preparation p on fragment.preparationid = p.preparationid where p.identifier is not null and guids.tablename = 'fragment';
+insert ignore into temp_dwc_search (collectionobjectid, collectioncode, catalognumber, catalognumbernumeric, temp_identifier, temp_prepmethod, fragmentguid, timestamplastupdated, temp_fragmentid, occurenceremarks, occurenceuri) select distinct f.collectionobjectid, f.text1, concat('barcode-', p.identifier), p.identifier, p.identifier, f.prepmethod, g.uuid, ifnull(f.timestampmodified,f.timestampcreated), f.fragmentid, concat_ws(" | ", co.description, co.remarks, f.description, f.remarks), concat('http://data.huh.harvard.edu/',g.uuid) from fragment f left join guids g on f.fragmentid = g.primarykey left join collectionobject co on f.collectionobjectid = co.collectionobjectid join preparation p on f.preparationid = p.preparationid where p.identifier is not null and g.tablename = 'fragment';
 
 -- update modified timestamp based on changes to relevant tables
 update temp_dwc_search
@@ -1076,7 +1076,7 @@ insert ignore into temp_dwc_identification_history (fragmentguid, determinationi
 create index temp_dwc_identification_history_detid on temp_dwc_identification_history(determinationid);
 
 update temp_dwc_identification_history
-  left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
+  join determination on temp_dwc_identification_history.determinationid = determination.determinationid
   set temp_dwc_identification_history.dateidentified =
       date_format(determination.determineddate,
         case when determineddateprecision=1 then '%Y-%m-%d'
@@ -1110,18 +1110,20 @@ update temp_dwc_identification_history t left join determinationcitation dc on t
 -- scientificname
 -- scientificnameauthorship
 -- 4 min 16 sec
-update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
-       left join taxon on determination.taxonid = taxon.taxonid
+update temp_dwc_identification_history
+       join determination on temp_dwc_identification_history.determinationid = determination.determinationid
+       join taxon on determination.taxonid = taxon.taxonid
        set temp_dwc_identification_history.scientificname = trim(concat(taxon.fullname,' ',ifnull(taxon.author,''))),
            temp_dwc_identification_history.scientificnameauthorship = taxon.author
        where taxon.taxonid is not null;
 
 -- update taxon info from temp_taxon table
 -- 5 min
-update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
-       left join taxon on determination.taxonid = taxon.taxonid
-       left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
-       left join taxontreedefitem on taxon.rankid = taxontreedefitem.rankid and taxontreedefitem.taxontreedefid = 1
+update temp_dwc_identification_history
+       join determination on temp_dwc_identification_history.determinationid = determination.determinationid
+       join taxon on determination.taxonid = taxon.taxonid
+       join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
+       join taxontreedefitem on taxon.rankid = taxontreedefitem.rankid and taxontreedefitem.taxontreedefid = 1
        set temp_dwc_identification_history.family = temp_taxon.family,
            temp_dwc_identification_history.genus = temp_taxon.genus,
            temp_dwc_identification_history.specificepithet =
