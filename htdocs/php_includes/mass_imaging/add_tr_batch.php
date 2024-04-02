@@ -79,7 +79,7 @@ if ($statement->prepare($sql)) {
 		      $stmt = $connection->prepare($sql);
 		      $stmt->bind_param('is', $trbatchid, $imagebatchname);
 		      if ($stmt->execute()) {
-						if ($debug) { echo "Added TR_BARTCH $imagebatchname\n"; }
+						if ($debug) { echo "Added TR_BATCH $imagebatchname\n"; }
 					}	else {
 						error_log("Query Error: ($stmt->errno) $stmt->error [$sql]\n");
 						exit(1);
