@@ -19,7 +19,7 @@ $activeflag = $argv[4];
 
 $barcode     = null;
 $barcodelist = null;
-if (isset($argv[5])) {
+if (isset($argv[5]) && strlen($argv[5])>7) {
 	$barcodelist = $argv[5];
 
 	if (strlen($argv[5]) > 10 || strpos($argv[5], ';') !== false) {
