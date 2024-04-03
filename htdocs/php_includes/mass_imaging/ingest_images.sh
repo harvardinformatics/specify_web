@@ -119,7 +119,7 @@ for sd in $BASE_DIR ; do # iterate through all image session directories
 
       # if it's a nobarcode hash, don't put that in the barcode fields of the database
       bc=$b
-      if [[ $b =~ '^nobarcode_' ]] ; then
+      if [[ $b =~ ^nobarcode_ ]] ; then
         bc=""
       fi
 
