@@ -547,7 +547,10 @@ function details() {
 								$statement_det->store_result();
 								$separator = "";
 								while ($statement_det->fetch()) {
-									$collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName $etal</a>";
+									if ($etal) {
+											$etal .= " with $etal";
+									}
+									$collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName</a>$etal";
 									$comma = "; ";
 								}
 							} else {
