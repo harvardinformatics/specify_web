@@ -548,7 +548,7 @@ function details() {
 								$separator = "";
 								while ($statement_det->fetch()) {
 									if ($etal) {
-											$etal .= " with $etal";
+											$etal = " with $etal";
 									}
 									$collector .= "$comma<a href='botanist_search.php?botanistid=$agentid'>$collectorName</a>$etal";
 									$comma = "; ";
