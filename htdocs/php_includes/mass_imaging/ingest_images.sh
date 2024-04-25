@@ -13,7 +13,7 @@ if [ "Symlinks working!" != "$content" ];then
 fi
 
 #USERS=(abrach amilby bfranzone cthornton dhanrahan erullo etaylor hmerchant iferreras kbrzezinski wkittredge mschill zbailey etanner NEBC)
-SESSION_FORMAT="^20[0-9]{2}-[0-9]{2}-[0-9]{2}[-A-Za-z0-9]*$"
+SESSION_FORMAT="^20[0-9]{2}-[0-9]{2}-[0-9]{2}[-A-Za-z0-9_]*$"
 BARCODE_FORMAT="^[0-9]{8}$"
 
 for sd in $BASE_DIR ; do # iterate through all image session directories
