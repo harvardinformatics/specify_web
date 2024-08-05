@@ -81,6 +81,7 @@ create table if not exists temp_web_search (
     datecollected varchar(30),
     yearcollected varchar(4),
     collector text,
+    collectorid bigint,
     collectornumber varchar (255),
     specimenimages boolean,
     herbaria varchar (255),
@@ -445,15 +446,10 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
    left join collectingevent ce on c.collectingeventid = ce.collectingeventid
    left join collector coll on ce.collectingeventid = coll.collectingeventid
    left join agentvariant on coll.agentid = agentvariant.agentid
-   set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(coll.etal,'')))
+   set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(coll.etal,''))),
+       w.collectorid = agentvariant.agentid,
+       w.collectornumber =  e.stationfieldnumber
    where agentvariant.agentid is not null and agentvariant.vartype = 4 ;
-
--- set collectornumber
--- 2 min
-update temp_web_search w left join collectionobject c on w.collectionobjectid = c.collectionobjectid
-    left join collectingevent e on c.collectingeventid = e.collectingeventid
-    set w.collectornumber =  e.stationfieldnumber
-    where e.stationfieldnumber is not null;
 
 -- set collectornumber using series id
 update temp_web_search w
@@ -527,6 +523,7 @@ create index idx_websearch_state on temp_web_search(state);
 create index idx_websearch_county on temp_web_search(county);
 create index idx_websearch_typestatus on temp_web_search(typestatus);
 create index idx_websearch_collector on temp_web_search(collector(50));
+create index idx_websearch_collectorid on temp_web_search(collectorid);
 create index idx_websearch_collectornumber on temp_web_search(collectornumber);
 create index idx_websearch_herbaria on temp_web_search(herbaria);
 create index idx_websearch_provenance on temp_web_search(provenance);
