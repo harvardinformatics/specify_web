@@ -425,53 +425,25 @@ function details() {
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
       								$ucollectorname = urlencode($collectorname);
-								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltr=$ucollectorname'>Search for specimens collected by $collectorname</a></td></tr>";
+								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltrid=$botanistid'>Search for specimens collected by $collectorname</a></td></tr>";
                                                                 $collist = "";
                                                                 $collistseparator = "";
 								while ($statement_geo->fetch()) {
-									// for each year
-									// obtain the list of collection objects collected by this collector in this year
+									$searchyear = $year;
 									if ($year=="") {
-										$query = "select collectionobjectid " .
-											" from collector left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
-											" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
-											" where agentid = ? and year(startdate) is null ";
-									} else {
-										$query = "select collectionobjectid " .
-											" from collector left join collectingevent on collector.collectingeventid = collectingevent.collectingeventid " .
-											" left join collectionobject on collectingevent.collectingeventid = collectionobject.collectingeventid " .
-											" where agentid = ? and year(startdate) = ? ";
+										$year = "[no date]";
+										$searchyear=0;
 									}
-									$statement_co = $connection->prepare($query);
-									$link = "";
-									if ($statement_co) {
-										$link = "href='specimen_search.php?mode=details";
-									    if ($year=="") {
-											$statement_co->bind_param("i",$agentid);
-									    } else {
-											$statement_co->bind_param("ii",$agentid,$year);
-									    }
-										$statement_co->execute();
-										$statement_co->bind_result($collectionobjectid);
-										$statement_co->store_result();
-								        while ($statement_co->fetch()) {
-								        	$link .= "&id[]=$collectionobjectid";
-										}
-										$link .= "'";
-									}
-									$statement_co->close();
-									// for each year, provide the count of the number of collections objects held with a link to those collection objects.
-									if ($year=="") { $year = "[no date]"; }
 									//$agent .= "<tr><td class='cap'>Collections in</td><td class='val'><a $link>$year ($count)</a></td></tr>";
-                                                                        $collist .= "$collistseparator<a $link>$year ($count)</a>";
-                                                                        $collistseparator = ",&nbsp; ";
+                  $collist .= "$collistseparator<a href='specimen_search.php?cltrid=$botanistid&year=$searchyear'>$year ($count)</a>";
+                  $collistseparator = ",&nbsp; ";
 								}
-							        $agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$collist</td></tr>";
+							    $agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$collist</td></tr>";
 							}
 						}
 						// If internal, check for out of range collecting events:
-						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-						    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+						    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 						    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 						    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 						    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
@@ -599,12 +571,12 @@ function details() {
 
 				}
 				// Don't display details for agents that are only involved in transactions to users outside the herbarium.
-				if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-				    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+				if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+				    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 				    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 				    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
 				    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
-				    
+
 					if ($numberofvariants==0) {
 						 $agent = "[Redacted]";
 					}
