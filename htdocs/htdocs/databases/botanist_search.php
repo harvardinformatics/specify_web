@@ -435,7 +435,7 @@ function details() {
 										$searchyear=0;
 									}
 									//$agent .= "<tr><td class='cap'>Collections in</td><td class='val'><a $link>$year ($count)</a></td></tr>";
-                  $collist .= "$collistseparator<a href='specimen_search.php?cltrid=$botanistid&yearcollected=$searchyear'>$year ($count)</a>";
+                  $collist .= "$collistseparator<a href='specimen_search.php?cltrid=$id&yearcollected=$searchyear'>$year ($count)</a>";
                   $collistseparator = ",&nbsp; ";
 								}
 							    $agent .= "<tr><td class='cap'>Collections in</td><td class='val'>$collist</td></tr>";
