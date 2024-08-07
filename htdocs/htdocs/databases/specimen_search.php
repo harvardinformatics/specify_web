@@ -1505,17 +1505,20 @@ function search() {
 		$yearcollected = str_replace("*","%",$yearcollected);
 		if ($yearcollected!="") {
 			$hasquery = true;
-			$question .= "$and year collected:[$yearcollected]";
-			$types .= "s";
-			$operator = "=";
-			$parameters[$parametercount] = &$yearcollected;
-			$parametercount++;
-			if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
+
 			if ($yearcollected=='0') {
+				$question .= "$and year collected:[null]";
 				$wherebit .= "$and web_search.yearcollected is null ";
 			} else {
+				$question .= "$and year collected:[$yearcollected]";
+				$types .= "s";
+				$operator = "=";
+				$parameters[$parametercount] = &$yearcollected;
+				$parametercount++;
+				if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
 				$wherebit .= "$and web_search.yearcollected $operator ? ";
 			}
+			
 			$and = " and ";
 		}
 		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
