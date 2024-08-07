@@ -1511,7 +1511,11 @@ function search() {
 			$parameters[$parametercount] = &$yearcollected;
 			$parametercount++;
 			if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
-			$wherebit .= "$and web_search.yearcollected $operator ? ";
+			if ($yearcollected=='0') {
+				$wherebit .= "$and web_search.yearcollected is null ";
+			} else {
+				$wherebit .= "$and web_search.yearcollected $operator ? ";
+			}
 			$and = " and ";
 		}
 		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
