@@ -184,11 +184,14 @@ function details() {
 	$barcode = preg_replace("/[^0-9]/","",$_GET['barcode']);
 	if ($barcode != "") {
 		// Barcode number most likely in fragment.identifier, may also be in preparation.identifier.
-		$sql = "select collectionobjectid from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
+		//$sql = "select collectionobjectid from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
 			"  where fragment.identifier = ? or preparation.identifier = ? ";
+		$sql = "select f.collectionobjectid as coid from fragment f where f.identifier = ?
+            union
+            select f.collectionobjectid as coid from preparation p left join fragment f on p.preparationid=f.preparationid where p.identifier = ?";
 		$statement = $connection->prepare($sql);
 		if ($statement) {
-			$statement->bind_param("ii",$barcode,$barcode);
+			$statement->bind_param("ss",$barcode,$barcode);
 			$statement->execute();
 			$statement->bind_result($id);
 			$statement->store_result();
@@ -1518,7 +1521,7 @@ function search() {
 				if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
 				$wherebit .= "$and web_search.yearcollected $operator ? ";
 			}
-			
+
 			$and = " and ";
 		}
 		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
