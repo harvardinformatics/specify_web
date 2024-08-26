@@ -1217,7 +1217,7 @@ function search() {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
 		$question .= "Quick Search :[$quick] <BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below.
-		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector, c.sensitive_flag " .
+		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector " .
 			" from web_quicksearch  q left join web_search c on q.collectionobjectid = c.collectionobjectid " .
 			" left join IMAGE_SET_collectionobject i on q.collectionobjectid = i.collectionobjectid " .
 			" where q.collectionobjectid > 0 and match (searchable) against (? in BOOLEAN MODE) limit $start, $limit";
@@ -1525,7 +1525,7 @@ function search() {
 
 		$query = "select distinct web_search.collectionobjectid, web_search.family, web_search.genus, web_search.species, web_search.infraspecific, " .
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
-			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector, web_search.sensitive_flag " .
+			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector " .
 			" from web_search " .
 			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
 			" limit $start, $limit ";
@@ -1537,7 +1537,8 @@ function search() {
 
 	// ***** Step 2: Run the query and assemble the results ***********
 	if ($hasquery===true) {
-	        $redactlocality = true;
+	        //$redactlocality = true;
+					$redactlocality = false;
 
 		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
     		preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
@@ -1571,7 +1572,7 @@ function search() {
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above.
 		    $CollectionObjectID = ""; $family = ""; $genus = ""; $species = ""; $infraspecific = "";
 		    $author = ""; $country = ""; $state = ""; $locality = ""; $herbaria = ""; $barcode = ""; $imagesetid = ""; $datecollected = "";
-			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector, $sensitive_flag);
+			$statement->bind_result($CollectionObjectID,  $family, $genus, $species, $infraspecific, $author, $country, $state, $locality, $herbaria, $barcode, $imagesetid, $datecollected, $collectornumber, $collector);
 			$statement->store_result();
 			$resultcount = $statement->num_rows;
 
@@ -1637,7 +1638,7 @@ function search() {
 						 echo "$familylink<BR>";
 					}
 					$oldfamilylink = $familylink;
-                                        if ($redactlocality===true && $sensitive_flag==1 && strlen($locality>0)) { $locality = '[Redacted]'; }
+
 					if (strlen($locality) > 45) {
 						$locality = substr($locality,0,44) . "...";
 					}
