@@ -426,7 +426,7 @@ function details() {
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
       								$ucollectorname = urlencode($collectorname);
-								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltrid=$collectorid'>Search for specimens collected by $collectorname</a></td></tr>";
+								$agent .= "<tr><td class='cap'>Holdings</td><td class='val'><a href='specimen_search.php?start=1&cltrid=$id'>Search for specimens collected by $collectorname</a></td></tr>";
                                                                 $collist = "";
                                                                 $collistseparator = "";
 								while ($statement_geo->fetch()) {
