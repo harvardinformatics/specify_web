@@ -448,7 +448,7 @@ update temp_web_search w left join collectionobject c on w.collectionobjectid = 
    left join agentvariant on coll.agentid = agentvariant.agentid
    set w.collector =  trim(concat(ifnull(agentvariant.name,''), ' ', ifnull(coll.etal,''))),
        w.collectorid = agentvariant.agentid,
-       w.collectornumber =  e.stationfieldnumber
+       w.collectornumber =  ce.stationfieldnumber
    where agentvariant.agentid is not null and agentvariant.vartype = 4 ;
 
 -- set collectornumber using series id

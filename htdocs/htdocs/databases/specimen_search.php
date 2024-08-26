@@ -1464,6 +1464,17 @@ function search() {
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
+		$collectorid = preg_replace("/[^0-9]/","", $_GET['cltrid']);
+		if ($collectorid!="") {
+			$hasquery = true;
+			$question .= "$and collectorid:[$collectorid]";
+			$types .= "i";
+			$operator = "=";
+			$parameters[$parametercount] = &$collectorid;
+			$parametercount++;
+			$wherebit .= "$and web_search.collectorid $operator ? ";
+			$and = " and ";
+		}
 		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*\-]/","", $_GET['collectornumber']),0,59);
 		$collectornumber = str_replace("*","%",$collectornumber);
 		if ($collectornumber!="") {
@@ -1494,13 +1505,20 @@ function search() {
 		$yearcollected = str_replace("*","%",$yearcollected);
 		if ($yearcollected!="") {
 			$hasquery = true;
-			$question .= "$and year collected:[$yearcollected]";
-			$types .= "s";
-			$operator = "=";
-			$parameters[$parametercount] = &$yearcollected;
-			$parametercount++;
-			if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
-			$wherebit .= "$and web_search.yearcollected $operator ? ";
+
+			if ($yearcollected=='0') {
+				$question .= "$and year collected:[null]";
+				$wherebit .= "$and web_search.yearcollected is null ";
+			} else {
+				$question .= "$and year collected:[$yearcollected]";
+				$types .= "s";
+				$operator = "=";
+				$parameters[$parametercount] = &$yearcollected;
+				$parametercount++;
+				if (preg_match("/[%_]/",$yearcollected))  { $operator = " like "; }
+				$wherebit .= "$and web_search.yearcollected $operator ? ";
+			}
+			
 			$and = " and ";
 		}
 		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
