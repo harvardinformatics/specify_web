@@ -615,6 +615,7 @@ function search() {
 		$hasquery = true;
 
 		foreach ($nameparts as &$part) {
+			$part = preg_replace("/\"/", "", $part);
 			$question .= "$and name like:[$part]";
 			$wherebit .= "$and agentvariant.name like ? ";
 			$and = " and ";
