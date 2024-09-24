@@ -1,0 +1,146 @@
+<?php
+include_once('specify_library.php');
+
+echo pageheader("agent","off");
+
+?>
+
+<div id="sidenav">
+  <ul>
+    <li><a href="addenda.html">Search Hints</a></li>
+    <li><a href="addenda.html#policy">Distribution and use policy</a></li>
+  <hr />
+    <li><a href="botanist_index.html" class="active">Botanists</a></li>
+    <li><a href="publication_index.html">Publications</a></li>
+    <li><a href="specimen_index.html">Specimens</a></li>
+    <li><a href="image_search.php" >Images</a></li>
+  <hr />
+    <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
+    <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
+    <li><a href="add_correct.html">Contribute additions/corrections</a></li>
+    <li><a href="comment.html">Send comments/questions</a></li>
+
+  </ul>
+</div>  <!-- sidenav ends -->
+
+
+<div id="main">
+		<!-- main content begins -->
+		<div id="main_text">
+        <h3>Index of Botanists</h3>
+
+<p>Search the HUH index of botanical authors and collectors.
+</p>
+
+<form class="searchform" action="botanist_search_2.php" method="get">
+    <input type="hidden" name="start" value="1">
+     <table align="center">
+      <tr>
+            <td>Name</td>
+            <td colspan=2><input type="text" name="name" value="" size="50" maxlength="59"></td>
+            <td valign=top><input type="text" name="id" value="" size=10 maxlength=30>ID</td>
+       </tr>
+       <tr>
+            <td></td>
+            <td colspan=2>Find similar sounding names <input type="checkbox" name="soundslike" value="true"></td>
+            <td valign=top>Show internal IDs<input type="checkbox" name="showid" value="true"></td>
+       </tr>
+        <tr>
+            <td>Remarks</td>
+            <td colspan=2><input type="text" name="remarks" value="" size="50" maxlength="59"></td>
+            <td valign=top></td>
+       </tr>
+       <tr>
+           <td></td>
+           <td rowspan=2>
+              <table style="background-color: #b8c0d2;">
+                <tr>
+                    <td colspan=2>Areas of Publication or Collection</td>
+                </tr>
+                <tr>
+                    <td>Specialty</td>
+                    <td size=52><select name="specialty" size=1>
+                                 <option value="">any</option>
+
+                                 <option value="Algae">Algae</option>
+                                 <option value="Bryophytes">Bryophytes</option>
+                                 <option value="Cryptogams">Cryptogams</option>
+                                 <option value="Fossils">Fossils</option>
+                                 <option value="Fungi and Lichens">Fungi and Lichens</option>
+                                 <option value="Pre-Linnean">Pre-Linnean</option>
+                                 <option value="Pteridophytes">Pteridophytes</option>
+                                 <option value="Spermatophytes">Spermatophytes</option>
+                    </select></td>
+                </tr>
+                <tr>
+                    <td>Country</td>
+                    <td>
+                    <!-- input type="text" name="country" value="" size=25 maxlength=19 -->
+                    <select name="country" size=1>
+                                <option value="">any</option>
+<?php
+
+  @include_once("connection_library.php");
+  $query = "select name from geography where rankid = 200 order by name ";
+  @$connection = specify_connect();
+  if ($connection) {
+		@$statement = $connection->prepare($query);
+		if ($statement) {
+			@$statement->execute();
+			@$statement->bind_result($country);
+			@$statement->store_result();
+			while (@$statement->fetch()) {
+                echo "<option value = '$country'>$country</option>\n";
+            }
+        }
+  }
+?>
+
+                    </select></td></tr>
+
+              </table>
+              </td>
+              <td>
+                <table style="background-color: #b8c0d2;">
+                   <tr><td>Restrict to:</td></tr>
+                   <tr><td colspan=1><input type="checkbox" name="is_author" value="on">Authors</td></tr>
+                   <tr><td colspan=1><input type="checkbox" name="is_collector" value="on">Collectors</td></tr>
+                   <tr><td colspan=1><input type="checkbox" name="individual" value="on" CHECKED>Individuals</td></tr>
+                   <tr><td colspan=1><input type="checkbox" name="team" value="on">Teams</td></tr>
+                 </table>
+              </td>
+            </tr>
+        </table>
+
+<br>
+            <table align="CENTER">
+            <tr>
+            <td width="10"><input type="submit" value="Search"></td>
+            <td width="10"><input type="reset" value="Clear"></td></tr>
+            </table>
+
+</form>
+
+<p>Please help us keep the index up to date! Send us corrections,
+	suggest botanist additions, or report issues <a href='add_correct.html'>here</a>.</p>
+
+<?php
+  @include_once("connection_library.php");
+  @$connection = specify_connect();
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";
+   }
+?>
+		    </div>
+	</div>
+</div>
+
+	<!-- main content ends -->
+
+<?php
+  echo pagefooter();
+?>
