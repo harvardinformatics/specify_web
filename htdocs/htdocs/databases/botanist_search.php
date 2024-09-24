@@ -93,7 +93,7 @@ if ($errormessage!="") {
 }
 
 if (!$json) {
-   echo pagefooter1();
+   //echo pagefooter();
 }
 
 // ******* main code block ends here, supporting functions follow. *****
@@ -810,7 +810,6 @@ function search() {
         if (!$json) {
 		   echo "</div>\n";
 		   echo "<HR>\n";
-  		   echo stats();
         }
 	}
 
