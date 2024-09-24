@@ -21,7 +21,7 @@
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  *
  */
-$debug=false;
+$debug=true;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
