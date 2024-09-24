@@ -608,7 +608,7 @@ function search() {
 	$showid = substr(preg_replace("/[^a-z]/","", $_GET['showid']),0,4);
 
 	$name = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['name']),0,59);
-	$nameparts = prep_split('/("[^"]*")|\h+/', $name, -1, PREG_SPLIT_NO_EMPTY);
+	$nameparts = preg_split('/("[^"]*")|\h+/', $name, -1, PREG_SPLIT_NO_EMPTY);
 
 	if ($name!="") {
 	  $soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
