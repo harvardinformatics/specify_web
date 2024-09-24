@@ -93,7 +93,7 @@ if ($errormessage!="") {
 }
 
 if (!$json) {
-   echo pagefooter1();
+   echo pagefooter();
 }
 
 // ******* main code block ends here, supporting functions follow. *****
@@ -620,7 +620,7 @@ function search() {
 			$and = " and ";
 			$types .= "s";
 			$operator = " like ";
-			$parameters[$parametercount] = '%'.&$namepart.'%';
+			$parameters[$parametercount] = '%'.$namepart.'%';
 			$parametercount++;
 		}
 
