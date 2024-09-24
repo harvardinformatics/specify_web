@@ -93,7 +93,7 @@ if ($errormessage!="") {
 }
 
 if (!$json) {
-   //echo pagefooter();
+   echo pagefooter();
 }
 
 // ******* main code block ends here, supporting functions follow. *****
