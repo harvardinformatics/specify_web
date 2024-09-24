@@ -620,7 +620,7 @@ function search() {
 			$and = " and ";
 			$types .= "s";
 			$operator = " like ";
-			$parameters[$parametercount] = '%'.$namepart.'%';
+			$parameters[$parametercount] = '%'.$part.'%';
 			$parametercount++;
 		}
 
