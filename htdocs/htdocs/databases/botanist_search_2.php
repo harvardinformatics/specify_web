@@ -669,14 +669,14 @@ function search() {
 	if ($is_author=="on") {
 		$hasquery = true;
 		$question .= "$and is a taxon author ";
-		$wherebit .= "$and agent.agentid in (select agentid from agentspecialy where role='Author') ";
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialty where role='Author') ";
 		$and = " and ";
 	}
 	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
 	if ($is_collector=="on") {
 		$hasquery = true;
 		$question .= "$and is a collector ";
-		$wherebit .= "$and agent.agentid in (select agentid from agentspecialy where role='Collector') ";
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialty where role='Collector') ";
 		//$wherebit .= "$and agentspecialty.role = 'Collector' ";
 		//if (!$joined_to_specialty) {
 		//    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
