@@ -599,7 +599,6 @@ function search() {
 	$question = "";
 	$country = "";
 	$joins = "";
-	$joined_to_specialty = false;
 	$joined_to_geography = false;
 	$wherebit = " where ";
 	$and = "";
@@ -663,24 +662,26 @@ function search() {
 		}
 	}
 
+//	if ($is_author=="on" || $is_collector=="on" || $individual=="on" || )
+//	$wherebit .= "$and (";
+
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
 	if ($is_author=="on") {
 		$hasquery = true;
 		$question .= "$and is a taxon author ";
-		$wherebit .= "$and agentspecialty.role = 'Author' ";
-		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		$joined_to_specialty = true;
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialy where role='Author') ";
 		$and = " and ";
 	}
 	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
 	if ($is_collector=="on") {
 		$hasquery = true;
 		$question .= "$and is a collector ";
-		$wherebit .= "$and agentspecialty.role = 'Collector' ";
-		if (!$joined_to_specialty) {
-		    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		}
-		$joined_to_specialty = true;
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialy where role='Collector') ";
+		//$wherebit .= "$and agentspecialty.role = 'Collector' ";
+		//if (!$joined_to_specialty) {
+		//    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		//}
+		//$joined_to_specialty = true;
 		$and = " and ";
 	}
 	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
@@ -710,9 +711,7 @@ function search() {
 		$parametercount++;
 		if (preg_match("/[%_]/",$specialty))  { $operator = " like "; }
 		$wherebit .= "$and agentspecialty.specialtyname $operator ? ";
-		if (!$joined_to_specialty) {
-			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		}
+		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
 		$and = " and ";
 	}
 	$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
