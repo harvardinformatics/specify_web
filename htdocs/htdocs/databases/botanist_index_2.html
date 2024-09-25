@@ -27,7 +27,12 @@ echo pageheader("agent","off");
 <div id="main">
 		<!-- main content begins -->
 		<div id="main_text">
-<p>Search the HUH index of botanical authors and collectors.</p>
+<p>
+	Search the HUH index of botanical authors and collectors. You may search for
+	people using one or more name in the search box. Double quotes ("") can be used
+	to search for exact names. When searching exact names, use one of the
+	following formats: "initials lastname" (ex: "C. S. Sargent"), "lastname, firstname" (ex: "Sargent, Charles").
+</p>
 
 <form class="searchform" action="botanist_search_2.php" method="get">
     <input type="hidden" name="start" value="1">
@@ -42,8 +47,6 @@ echo pageheader("agent","off");
        </tr>
        <tr>
             <td></td>
-            <td colspan=2>Find similar sounding names <input type="checkbox" name="soundslike" value="true"></td>
-            <td valign=top>Show internal IDs<input type="checkbox" name="showid" value="true"></td>
        </tr>
         <tr>
             <td>Remarks</td>

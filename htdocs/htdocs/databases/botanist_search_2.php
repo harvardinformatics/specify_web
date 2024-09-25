@@ -611,7 +611,7 @@ function search() {
 	$nameparts = preg_split('/("[^"]*")|\h+/', $name, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 
 	if ($name!="") {
-	  $soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
+	  //$soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
 		$hasquery = true;
 
 		foreach ($nameparts as &$part) {
@@ -645,18 +645,36 @@ function search() {
 		//$wherebit .= " )";
 		//$and = " and ";
 	}
-	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['remarks']),0,59);
+	if ($name!="") {
+		$hasquery = true;
+
+		foreach ($nameparts as &$part) {
+			$part = preg_replace("/\"/", "", $part);
+			$question .= "$and name like:[$part]";
+			$wherebit .= "$and agentvariant.name like ? ";
+			$and = " and ";
+			$types .= "s";
+			$operator = " like ";
+			$parameters[$parametercount] = '%'.$part.'%';
+			$parametercount++;
+		}
+
+	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['remarks']),0,59);
 	if ($remarks!="") {
 		$hasquery = true;
-		$remarkpad = "%$remarks%";
-		$question .= "$and remarks like:[$remarkpad] ";
-		$types .= "s";
-		$operator = "=";
-		$parameters[$parametercount] = &$remarkpad;
-		$parametercount++;
-		$wherebit .= "$and agent.remarks like ? ";
-		$and = " and ";
+
+		foreach ($remarks as &$part) {
+			$part = preg_replace("/\"/", "", $part);
+			$question .= "$and remarks like:[$part]";
+			$wherebit .= "$and agent.remarks like ? ";
+			$and = " and ";
+			$types .= "s";
+			$operator = " like ";
+			$parameters[$parametercount] = '%'.$part.'%';
+			$parametercount++;
+		}
 	}
+
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
 	if ($is_author=="on") {
 		$hasquery = true;
