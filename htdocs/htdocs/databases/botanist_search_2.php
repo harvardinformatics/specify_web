@@ -645,26 +645,13 @@ function search() {
 		//$wherebit .= " )";
 		//$and = " and ";
 	}
-	if ($name!="") {
-		$hasquery = true;
-
-		foreach ($nameparts as &$part) {
-			$part = preg_replace("/\"/", "", $part);
-			$question .= "$and name like:[$part]";
-			$wherebit .= "$and agentvariant.name like ? ";
-			$and = " and ";
-			$types .= "s";
-			$operator = " like ";
-			$parameters[$parametercount] = '%'.$part.'%';
-			$parametercount++;
-		}
-	}
 
 	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['remarks']),0,59);
+	$rparts = preg_split('/("[^"]*")|\h+/', $remarks, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 	if ($remarks!="") {
 		$hasquery = true;
 
-		foreach ($remarks as &$part) {
+		foreach ($rparts as &$part) {
 			$part = preg_replace("/\"/", "", $part);
 			$question .= "$and remarks like:[$part]";
 			$wherebit .= "$and agent.remarks like ? ";
