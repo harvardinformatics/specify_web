@@ -756,7 +756,7 @@ function search() {
 	$query =
 	  "select * from (" .
 		"select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, year(agent.dateofbirth) dateofbirth, year(agent.dateofdeath) dateofdeath, datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
