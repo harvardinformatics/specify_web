@@ -755,7 +755,7 @@ function search() {
 	}
 	$query =
 		"select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(DISTINCT agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
@@ -806,9 +806,11 @@ function search() {
 					if (preg_match("/(^.+?)\|\s(.+)$/", $allnames, $matches)) {
 					 		$fullname = $matches[1];
 							$othernames = $matches[2];
+							$alsoknownas=",  also known as: $othernames";
 				 	} else {
 							$fullname = $allnames;
-						  $othernames = "none";
+						  $othernames = null;
+							$alsoknownas='';
 					}
 					if ($lastpair != "$agentid$fullname")  {
 						// omit identical agent records with identical names
@@ -827,7 +829,7 @@ function search() {
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
-					       echo "<div style='padding-left:5em;text-indent:-5em'><input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team,  also known as: $othernames</div>";
+					       echo "<div style='padding-left:5em;text-indent:-5em'><input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team$alsoknownas</div>";
 								 //echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
