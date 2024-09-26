@@ -666,13 +666,21 @@ function search() {
 //	$wherebit .= "$and (";
 
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
+	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+
+	if ($is_author=="on" && $is_collector=="on") {
+		$is_author="";
+		$is_collector="";
+		$question .= "$and is a collector or author ";
+	}
+
 	if ($is_author=="on") {
 		$hasquery = true;
 		$question .= "$and is a taxon author ";
 		$wherebit .= "$and agent.agentid in (select agentid from agentspecialty where role='Author') ";
 		$and = " and ";
 	}
-	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+
 	if ($is_collector=="on") {
 		$hasquery = true;
 		$question .= "$and is a collector ";
@@ -684,18 +692,23 @@ function search() {
 		//$joined_to_specialty = true;
 		$and = " and ";
 	}
+
+	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
+	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+
 	if ($individual=="on" && $team=="on") {
 		$individual="";
 		$team="";
+		$question .= "$and is an individual or team ";
 	}
-	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
+
 	if ($individual=="on") {
 		$hasquery = true;
 		$question .= "$and is an individual ";
 		$wherebit .= "$and agent.agenttype <> 3 ";
 		$and = " and ";
 	}
-	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+
 	if ($team=="on") {
 		$hasquery = true;
 		$question .= "$and is a team/group ";
