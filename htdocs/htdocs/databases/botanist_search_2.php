@@ -761,7 +761,7 @@ function search() {
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
 		" $wherebit " .
-		" order by agent.agentid, agent.vartype desc " .
+		" order by agent.agentid, agentvariant.vartype desc " .
 		") t" .
 		" group by t.agentid " .
 		" order by t.agenttype, t.name, t.allnames, t.lastname, t.firstname, t.dateofbirth limit 1000";
