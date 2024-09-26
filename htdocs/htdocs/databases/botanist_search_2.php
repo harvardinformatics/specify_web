@@ -668,11 +668,11 @@ function search() {
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
 	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
 
-	if ($is_author=="on" && $is_collector=="on") {
-		$is_author="";
-		$is_collector="";
-		$question .= "$and is a collector or author ";
-	}
+//	if ($is_author=="on" && $is_collector=="on") {
+//		$is_author="";
+//		$is_collector="";
+//		$question .= "$and is a collector or author ";
+//	}
 
 	if ($is_author=="on") {
 		$hasquery = true;
