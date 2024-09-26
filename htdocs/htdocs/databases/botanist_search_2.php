@@ -754,12 +754,15 @@ function search() {
 		$question = "No search criteria provided.";
 	}
 	$query =
+	  "select * from (" .
 		"select agent.agentid, " .
 		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
 		" $wherebit " .
+		" order by agent.agentid, agent.vartype desc " .
+		")" .
 		" group by agent.agentid " .
 		" order by agent.agenttype, agentvariant.name, allnames, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
@@ -821,7 +824,7 @@ function search() {
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
 					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-								 echo "&nbsp;&nbsp;&nbsp;&nbsp;also known as: $allnames";
+								 echo "<br>&nbsp;&nbsp;&nbsp;&nbsp;also known as: $allnames";
 								 echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
