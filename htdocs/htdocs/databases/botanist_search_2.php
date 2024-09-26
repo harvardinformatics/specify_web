@@ -754,17 +754,14 @@ function search() {
 		$question = "No search criteria provided.";
 	}
 	$query =
-	  "select * from (" .
 		"select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, year(agent.dateofbirth) dateofbirth, year(agent.dateofdeath) dateofdeath, datestype " .
+		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, substr(allname, 1, instr(allnames, ' | ')-1) fullname, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
 		" $wherebit " .
-		" order by agent.agentid, agentvariant.vartype desc " .
-		") t" .
-		" group by t.agentid " .
-		" order by t.agenttype, t.name, t.allnames, t.lastname, t.firstname, t.dateofbirth limit 1000";
+		" group by agent.agentid " .
+		" order by agent.agenttype, allnames, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 		echo "[".phpversion()."]<BR>\n";
@@ -785,7 +782,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $allnames, $yearofbirth, $yearofdeath, $datestype);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
             if (!$json) {
 			   echo "<div>\n";
