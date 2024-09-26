@@ -762,9 +762,9 @@ function search() {
 		" $joins " .
 		" $wherebit " .
 		" order by agent.agentid, agent.vartype desc " .
-		")" .
-		" group by agent.agentid " .
-		" order by agent.agenttype, agentvariant.name, allnames, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
+		") t" .
+		" group by t.agentid " .
+		" order by t.agenttype, t.name, t.allnames, t.lastname, t.firstname, t.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 		echo "[".phpversion()."]<BR>\n";
