@@ -753,10 +753,15 @@ function search() {
 	} else {
 		$question = "No search criteria provided.";
 	}
-	$query = "select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+	$query =
+		"select agent.agentid, " .
+		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as name, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
-		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agentvariant.name, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
+		" left join agentvariant on agent.agentid = agentvariant.agentid " .
+		" $joins " .
+		" $wherebit " .
+		" group by agent.agentid " .
+		" order by agent.agenttype, name, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 		echo "[".phpversion()."]<BR>\n";
