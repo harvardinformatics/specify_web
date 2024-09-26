@@ -21,7 +21,7 @@
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  *
  */
-$debug=false;
+$debug=true;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
@@ -613,6 +613,8 @@ function search() {
 	  //$soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
 		$hasquery = true;
 
+		$wherebit .= "agent.agentid in (select agentid from agentvariant where ";
+
 		foreach ($nameparts as &$part) {
 			$part = preg_replace("/\"/", "", $part);
 			$question .= "$and name like:[$part]";
@@ -623,6 +625,8 @@ function search() {
 			$parameters[$parametercount] = '%'.$part.'%';
 			$parametercount++;
 		}
+
+		$wherebit .= ") ";
 
 		//$namepad = "%$name%";
 		//$question .= "$and name:[$name] or name like:[$namepad]  ";
