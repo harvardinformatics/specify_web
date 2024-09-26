@@ -827,8 +827,7 @@ function search() {
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
-					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-								 echo "<br>&nbsp;&nbsp;&nbsp;&nbsp;other variants: $othernames";
+					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team,  variants: $othernames";
 								 echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
