@@ -782,7 +782,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $yearofbirth, $yearofdeath, $datestype);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $fullname, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
             if (!$json) {
 			   echo "<div>\n";
