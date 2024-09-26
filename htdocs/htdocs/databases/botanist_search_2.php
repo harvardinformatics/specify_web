@@ -21,7 +21,7 @@
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
  *
  */
-$debug=true;
+$debug=false;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
@@ -827,7 +827,7 @@ function search() {
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
-					       echo "<div style='padding-left:5em;text-indent:-5em'><input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team,  variants: $othernames</div>";
+					       echo "<div style='padding-left:5em;text-indent:-5em'><input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team,  also known as: $othernames</div>";
 								 //echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
