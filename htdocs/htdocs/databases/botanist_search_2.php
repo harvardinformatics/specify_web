@@ -755,7 +755,7 @@ function search() {
 	}
 	$query =
 		"select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, @allnames := GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') allnames, substr(@allnames, 1, instr(@allnames, ' | ')-1) fullname, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
@@ -782,7 +782,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $fullname, $yearofbirth, $yearofdeath, $datestype);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
             if (!$json) {
 			   echo "<div>\n";
@@ -803,6 +803,9 @@ function search() {
                 }
 				$lastpair = "";
 				while ($statement->fetch()) {
+					if (preg_match("/(^.+)\s\|/", $allnames, $matches)) {
+					 		$fullname = $matches[1];
+				 	}
 					if ($lastpair != "$agentid$fullname")  {
 						// omit identical agent records with identical names
 					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
