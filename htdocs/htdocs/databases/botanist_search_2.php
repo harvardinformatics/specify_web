@@ -803,7 +803,7 @@ function search() {
                 }
 				$lastpair = "";
 				while ($statement->fetch()) {
-					if (preg_match("/(^.+)\s\|/", $allnames, $matches)) {
+					if (preg_match("/(^.+?)\s\|/", $allnames, $matches)) {
 					 		$fullname = $matches[1];
 				 	}
 					if ($lastpair != "$agentid$fullname")  {
