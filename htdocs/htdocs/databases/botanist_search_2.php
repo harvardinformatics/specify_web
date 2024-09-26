@@ -803,9 +803,13 @@ function search() {
                 }
 				$lastpair = "";
 				while ($statement->fetch()) {
-					if (preg_match("/(^.+?)\s\|/", $allnames, $matches)) {
+					if (preg_match("/(^.+?)\|\s(.+)$/", $allnames, $matches)) {
 					 		$fullname = $matches[1];
-				 	}
+							$othernames = $matches[2];
+				 	} else {
+							$fullname = $allnames;
+						  $othernames = "none";
+					}
 					if ($lastpair != "$agentid$fullname")  {
 						// omit identical agent records with identical names
 					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
@@ -824,7 +828,7 @@ function search() {
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
 					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-								 echo "<br>&nbsp;&nbsp;&nbsp;&nbsp;also known as: $allnames";
+								 echo "<br>&nbsp;&nbsp;&nbsp;&nbsp;other variants: $othernames";
 								 echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
