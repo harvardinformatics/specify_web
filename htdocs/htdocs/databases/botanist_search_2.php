@@ -755,13 +755,13 @@ function search() {
 	}
 	$query =
 		"select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as name, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, GROUP_CONCAT(agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') as allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
 		" left join agentvariant on agent.agentid = agentvariant.agentid " .
 		" $joins " .
 		" $wherebit " .
 		" group by agent.agentid " .
-		" order by agent.agenttype, name, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
+		" order by agent.agenttype, agentvariant.name, allnames, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 		echo "[".phpversion()."]<BR>\n";
@@ -782,7 +782,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath, $datestype);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $allnames, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
             if (!$json) {
 			   echo "<div>\n";
@@ -807,12 +807,12 @@ function search() {
 						// omit identical agent records with identical names
 					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
 					    if ($fullname=="") { $fullname = "$firstname $lastname"; }
-					    if ($name != '') {
-					       $plainname = preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ ]/","",$name);
-					       $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
-					    } else {
-					       $highlightedname = $fullname;
-					    }
+					    //if ($name != '') {
+					    //   $plainname = preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ ]/","",$name);
+					    //   $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
+					    //} else {
+					    //   $highlightedname = $fullname;
+					    //}
                                             $datemod = "";
                                             if ($datestype==1) { $datemod = "fl. "; }
                                             if ($datestype==2) { $datemod = "col. "; }
@@ -820,8 +820,9 @@ function search() {
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
-					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-					       echo "<BR>\n";
+					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath) $team";
+								 echo "&nbsp;&nbsp;&nbsp;&nbsp;also known as: $allnames";
+								 echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
 					       echo "$comma { \"name\" : \"$fullname\", \"type\" : \"$datemod\", \"start\" : \"$yearofbirth\", \"end\" : \"$yearofdeath\" }";
