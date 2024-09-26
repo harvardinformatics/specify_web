@@ -684,7 +684,7 @@ function search() {
 		//$joined_to_specialty = true;
 		$and = " and ";
 	}
-	if ($individual=="on" and $team=="on") {
+	if ($individual=="on" && $team=="on") {
 		$individual="";
 		$team="";
 	}
