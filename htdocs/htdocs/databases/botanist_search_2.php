@@ -684,6 +684,10 @@ function search() {
 		//$joined_to_specialty = true;
 		$and = " and ";
 	}
+	if ($individual=="on" and $team=="on") {
+		$individual="";
+		$team="";
+	}
 	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
 	if ($individual=="on") {
 		$hasquery = true;
@@ -692,9 +696,6 @@ function search() {
 		$and = " and ";
 	}
 	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
-	if ($individual=="on") {
-            $team = "";   // individual and team are mutually exclusive.
-        }
 	if ($team=="on") {
 		$hasquery = true;
 		$question .= "$and is a team/group ";
