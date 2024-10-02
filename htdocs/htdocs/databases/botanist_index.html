@@ -3,8 +3,8 @@ include_once('specify_library.php');
 
 echo pageheader("agent","off");
 
-?>		
-		
+?>
+
 <div id="sidenav">
   <ul>
     <li><a href="addenda.html">Search Hints</a></li>
@@ -14,49 +14,39 @@ echo pageheader("agent","off");
     <li><a href="publication_index.html">Publications</a></li>
     <li><a href="specimen_index.html">Specimens</a></li>
     <li><a href="image_search.php" >Images</a></li>
-  <hr />   
+  <hr />
     <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
     <li><a href="add_correct.html">Contribute additions/corrections</a></li>
     <li><a href="comment.html">Send comments/questions</a></li>
-    
+
   </ul>
-</div>  <!-- sidenav ends -->		
-		
-		
+</div>  <!-- sidenav ends -->
+
+
 <div id="main">
 		<!-- main content begins -->
 		<div id="main_text">
-        <h3>Index of Botanists</h3>
-
-<p>Authors of plant names, botanical and mycological collectors, and authors
-of publications of importance to systematic botany and mycology, are
-combined into a single resource.  To search: enter the person's name either
-as <i>lastname, firstname</i>, e.g. <i>jones, david</i>
-or by the standard abbreviation, e.g. <i>d r jones</i>.
-The name of an author or collector
-sometimes consists of multiple names and can be entered as such. Team
-records can be located by searching for the name of any of its members.
-Check the <strong>Team</strong> box when searching for a team. Checking the botanist's
-role (Authors, Collectors, Individuals, Teams) will constrain the search
-further, otherwise all records  in the database that satisfy the search
-criteria will be matched. Herbaria in which material is known to have been
-deposited by a botanist can be searched in <strong>Remarks</strong>. Place names and taxon
-names sporadically occur within <strong>Remarks</strong>.
+<p>
+	Search the HUH index of botanical authors, collectors, and collecting teams.
+	Search for people using one or more names below. To search for exact names, use
+	double quotes ("") with one of the following name formats:
+	"initials lastname" (ex: "C. S. Sargent"), "lastname, firstname" (ex: "Sargent, Charles").
 </p>
 
-<form class="searchform" action="botanist_search.php" method="get">
-    <input type="hidden" name="start" value="1"> 
+<form class="searchform" action="botanist_search_2.php" method="get">
+    <input type="hidden" name="start" value="1">
      <table align="center">
-        <tr>
+			 <tr>
+             <td colspan=4><br></td>
+			 </tr>
+      <tr>
             <td>Name</td>
             <td colspan=2><input type="text" name="name" value="" size="50" maxlength="59"></td>
             <td valign=top><input type="text" name="id" value="" size=10 maxlength=30>ID</td>
        </tr>
        <tr>
             <td></td>
-            <td colspan=2>Find similar sounding names <input type="checkbox" name="soundslike" value="true"></td>
-            <td valign=top>Show internal IDs<input type="checkbox" name="showid" value="true"></td>
        </tr>
         <tr>
             <td>Remarks</td>
@@ -65,8 +55,8 @@ names sporadically occur within <strong>Remarks</strong>.
        </tr>
        <tr>
            <td></td>
-           <td rowspan=2> 
-              <table style="background-color: #b8c0d2;"> 
+           <td rowspan=2>
+              <table style="background-color: #b8c0d2;">
                 <tr>
                     <td colspan=2>Areas of Publication or Collection</td>
                 </tr>
@@ -94,7 +84,7 @@ names sporadically occur within <strong>Remarks</strong>.
 <?php
 
   @include_once("connection_library.php");
-  $query = "select name from geography where rankid = 200 order by name "; 
+  $query = "select name from geography where rankid = 200 order by name ";
   @$connection = specify_connect();
   if ($connection) {
 		@$statement = $connection->prepare($query);
@@ -106,22 +96,22 @@ names sporadically occur within <strong>Remarks</strong>.
                 echo "<option value = '$country'>$country</option>\n";
             }
         }
-  } 
+  }
 ?>
 
                     </select></td></tr>
 
               </table>
-              </td>   
-              <td> 
-                <table style="background-color: #b8c0d2;"> 
+              </td>
+              <td>
+                <table style="background-color: #b8c0d2;">
                    <tr><td>Restrict to:</td></tr>
                    <tr><td colspan=1><input type="checkbox" name="is_author" value="on">Authors</td></tr>
                    <tr><td colspan=1><input type="checkbox" name="is_collector" value="on">Collectors</td></tr>
                    <tr><td colspan=1><input type="checkbox" name="individual" value="on" CHECKED>Individuals</td></tr>
                    <tr><td colspan=1><input type="checkbox" name="team" value="on">Teams</td></tr>
                  </table>
-              </td>   
+              </td>
             </tr>
         </table>
 
@@ -134,18 +124,18 @@ names sporadically occur within <strong>Remarks</strong>.
 
 </form>
 
-<p>This search is also available as a simple rest service returning JSON, just add the parameter &json=y e.g.<a href='botanist_search.php?name=Asa+Gray&individual=on&json=y'>Asa Gray</a>.</p>
-<p>Please feel free to report any issues that you observe with the data through our <a href='add_correct.html'>comments and corrections form</a>.</p>
+<p>Please help us keep the index up to date! Send us corrections,
+	suggest botanist additions, or report issues <a href='add_correct.html'>here</a>.</p>
 
 <?php
   @include_once("connection_library.php");
   @$connection = specify_connect();
-if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
-    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
+if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
+    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
     preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
     preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
-      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";						
+    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
+      echo "<h3><a href='qc.php'>Quality Control Tests</a></h3>";
    }
 ?>
 		    </div>
@@ -154,6 +144,6 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 
 	<!-- main content ends -->
 
-<?php 
-  echo pagefooter(); 
+<?php
+  echo pagefooter();
 ?>

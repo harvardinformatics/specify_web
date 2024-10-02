@@ -599,7 +599,6 @@ function search() {
 	$question = "";
 	$country = "";
 	$joins = "";
-	$joined_to_specialty = false;
 	$joined_to_geography = false;
 	$wherebit = " where ";
 	$and = "";
@@ -607,73 +606,113 @@ function search() {
 	$parametercount = 0;
 	$showid = substr(preg_replace("/[^a-z]/","", $_GET['showid']),0,4);
 
-	$name = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['name']),0,59);
+	$name = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['name']),0,59);
+	$nameparts = preg_split('/("[^"]*")|\h+/', $name, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
+
 	if ($name!="") {
-	    $soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
+	  //$soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
 		$hasquery = true;
-		$namepad = "%$name%";
-		$question .= "$and name:[$name] or name like:[$namepad]  ";
-		$types .= "s";
-		$operator = "=";
-		$parameters[$parametercount] = &$namepad;
-		$parametercount++;
-		if ($soundslike=="true") {
-		    $question .= " or name sounds like [$name] ";
-		    $types .= "s";
-		    $parameters[$parametercount] = &$name;
-		    $parametercount++;
+
+		$wherebit .= "agent.agentid in (select agentid from agentvariant where ";
+
+		foreach ($nameparts as &$part) {
+			$part = preg_replace("/\"/", "", $part);
+			$question .= "$and name like:[$part]";
+			$wherebit .= "$and agentvariant.name like ? ";
+			$and = " and ";
+			$types .= "s";
+			$operator = " like ";
+			$parameters[$parametercount] = '%'.$part.'%';
+			$parametercount++;
 		}
-		if (preg_match("/[%_]/",$name))  { $operator = " like "; }
-		$wherebit .= "$and (agentvariant.name like ? ";
-		if ($soundslike=="true") {
-		    $wherebit .= " or soundex(agentvariant.name)=soundex(?) ";
-		}
-		$wherebit .= " )";
-		$and = " and ";
+
+		$wherebit .= ") ";
+
+		//$namepad = "%$name%";
+		//$question .= "$and name:[$name] or name like:[$namepad]  ";
+		//$types .= "s";
+		//$operator = "=";
+		//$parameters[$parametercount] = &$namepad;
+		//$parametercount++;
+		//if ($soundslike=="true") {
+		//    $question .= " or name sounds like [$name] ";
+		//    $types .= "s";
+		//    $parameters[$parametercount] = &$name;
+		//    $parametercount++;
+		//}
+		//if (preg_match("/[%_]/",$name))  { $operator = " like "; }
+		//$wherebit .= "$and (agentvariant.name like ? ";
+		//if ($soundslike=="true") {
+		//    $wherebit .= " or soundex(agentvariant.name)=soundex(?) ";
+		//}
+		//$wherebit .= " )";
+		//$and = " and ";
 	}
-	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\. _%]/","", $_GET['remarks']),0,59);
+
+	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['remarks']),0,59);
+	$rparts = preg_split('/("[^"]*")|\h+/', $remarks, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 	if ($remarks!="") {
 		$hasquery = true;
-		$remarkpad = "%$remarks%";
-		$question .= "$and remarks like:[$remarkpad] ";
-		$types .= "s";
-		$operator = "=";
-		$parameters[$parametercount] = &$remarkpad;
-		$parametercount++;
-		$wherebit .= "$and agent.remarks like ? ";
-		$and = " and ";
+
+		foreach ($rparts as &$part) {
+			$part = preg_replace("/\"/", "", $part);
+			$question .= "$and remarks like:[$part]";
+			$wherebit .= "$and agent.remarks like ? ";
+			$and = " and ";
+			$types .= "s";
+			$operator = " like ";
+			$parameters[$parametercount] = '%'.$part.'%';
+			$parametercount++;
+		}
 	}
+
+//	if ($is_author=="on" || $is_collector=="on" || $individual=="on" || )
+//	$wherebit .= "$and (";
+
 	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
+	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+
+//	if ($is_author=="on" && $is_collector=="on") {
+//		$is_author="";
+//		$is_collector="";
+//		$question .= "$and is a collector or author ";
+//	}
+
 	if ($is_author=="on") {
 		$hasquery = true;
 		$question .= "$and is a taxon author ";
-		$wherebit .= "$and agentspecialty.role = 'Author' ";
-		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		$joined_to_specialty = true;
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialty where role='Author') ";
 		$and = " and ";
 	}
-	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+
 	if ($is_collector=="on") {
 		$hasquery = true;
 		$question .= "$and is a collector ";
-		$wherebit .= "$and agentspecialty.role = 'Collector' ";
-		if (!$joined_to_specialty) {
-		    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		}
-		$joined_to_specialty = true;
+		$wherebit .= "$and agent.agentid in (select agentid from agentspecialty where role='Collector') ";
+		//$wherebit .= "$and agentspecialty.role = 'Collector' ";
+		//if (!$joined_to_specialty) {
+		//    $joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
+		//}
+		//$joined_to_specialty = true;
 		$and = " and ";
 	}
+
 	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
+	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+
+	if ($individual=="on" && $team=="on") {
+		$individual="";
+		$team="";
+		$question .= "$and is an individual or team ";
+	}
+
 	if ($individual=="on") {
 		$hasquery = true;
 		$question .= "$and is an individual ";
 		$wherebit .= "$and agent.agenttype <> 3 ";
 		$and = " and ";
 	}
-	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
-	if ($individual=="on") {
-            $team = "";   // individual and team are mutually exclusive.
-        }
+
 	if ($team=="on") {
 		$hasquery = true;
 		$question .= "$and is a team/group ";
@@ -690,9 +729,7 @@ function search() {
 		$parametercount++;
 		if (preg_match("/[%_]/",$specialty))  { $operator = " like "; }
 		$wherebit .= "$and agentspecialty.specialtyname $operator ? ";
-		if (!$joined_to_specialty) {
-			$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
-		}
+		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
 		$and = " and ";
 	}
 	$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
@@ -716,10 +753,15 @@ function search() {
 	} else {
 		$question = "No search criteria provided.";
 	}
-	$query = "select agent.agentid, " .
-		" agent.agenttype, agent.firstname, agent.lastname, agentvariant.name, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
+	$query =
+		"select agent.agentid, " .
+		" agent.agenttype, agent.firstname, agent.lastname, GROUP_CONCAT(DISTINCT agentvariant.name ORDER BY agentvariant.vartype DESC SEPARATOR ' | ') allnames, year(agent.dateofbirth), year(agent.dateofdeath), datestype " .
 		" from agent " .
-		" left join agentvariant on agent.agentid = agentvariant.agentid  $joins $wherebit order by agent.agenttype, agentvariant.name, agent.lastname, agent.firstname, agent.dateofbirth ";
+		" left join agentvariant on agent.agentid = agentvariant.agentid " .
+		" $joins " .
+		" $wherebit " .
+		" group by agent.agentid " .
+		" order by agent.agenttype, allnames, agent.lastname, agent.firstname, agent.dateofbirth limit 1000";
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
 		echo "[".phpversion()."]<BR>\n";
@@ -740,7 +782,7 @@ function search() {
 			   call_user_func_array(array($statement, 'bind_param'),$array);
 			}
 			$statement->execute();
-			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $fullname, $yearofbirth, $yearofdeath, $datestype);
+			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();
             if (!$json) {
 			   echo "<div>\n";
@@ -761,16 +803,25 @@ function search() {
                 }
 				$lastpair = "";
 				while ($statement->fetch()) {
+					if (preg_match("/(^.+?)\|\s(.+)$/", $allnames, $matches)) {
+					 		$fullname = $matches[1];
+							$othernames = $matches[2];
+							$alsoknownas=",  also known as: $othernames";
+				 	} else {
+							$fullname = $allnames;
+						  $othernames = null;
+							$alsoknownas='';
+					}
 					if ($lastpair != "$agentid$fullname")  {
 						// omit identical agent records with identical names
-					    if ($agenttype==3)  { $team = "[Team]"; } else { $team = ""; }
+					    if ($agenttype==3)  { $team = " [Team]"; } else { $team = ""; }
 					    if ($fullname=="") { $fullname = "$firstname $lastname"; }
-					    if ($name != '') {
-					       $plainname = preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ ]/","",$name);
-					       $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
-					    } else {
-					       $highlightedname = $fullname;
-					    }
+					    //if ($name != '') {
+					    //   $plainname = preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ ]/","",$name);
+					    //   $highlightedname = preg_replace("/$plainname/","<strong>$plainname</strong>","$fullname");
+					    //} else {
+					    //   $highlightedname = $fullname;
+					    //}
                                             $datemod = "";
                                             if ($datestype==1) { $datemod = "fl. "; }
                                             if ($datestype==2) { $datemod = "col. "; }
@@ -778,8 +829,8 @@ function search() {
                                             $showidvalue = "";
                                             if ($showid=="true") { $showidvalue = "[".str_pad($agentid,7,"0",STR_PAD_LEFT)."] "; }
                         if (!$json) {
-					       echo "<input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$highlightedname</a> ($datemod$yearofbirth - $yearofdeath) $team";
-					       echo "<BR>\n";
+					       echo "<div style='padding-left:5em;text-indent:-5em'><input type='checkbox' name='id[]' value='$agentid'>$showidvalue<a href='botanist_search.php?mode=details&id=$agentid'>$fullname</a> ($datemod$yearofbirth - $yearofdeath)$team$alsoknownas</div>";
+								 //echo "<BR>\n";
                         } else {
                            if ($datemod=="") { $datemod = "life"; }
 					       echo "$comma { \"name\" : \"$fullname\", \"type\" : \"$datemod\", \"start\" : \"$yearofbirth\", \"end\" : \"$yearofdeath\" }";
