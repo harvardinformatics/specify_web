@@ -623,7 +623,6 @@ function search() {
 		echo "No query parameters provided.";
 		echo "</div>\n";
 		echo "<HR>\n";
-		echo stats();
 	}
 
 }

@@ -185,7 +185,8 @@ function details() {
 	if ($barcode != "") {
 		// Barcode number most likely in fragment.identifier, may also be in preparation.identifier.
 		//$sql = "select collectionobjectid from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
-			"  where fragment.identifier = ? or preparation.identifier = ? ";
+		//	"  where fragment.identifier = ? or preparation.identifier = ? ";
+		$barcode = str_pad($barcode, 8, "0", STR_PAD_LEFT);
 		$sql = "select f.collectionobjectid as coid from fragment f where f.identifier = ?
             union
             select f.collectionobjectid as coid from preparation p left join fragment f on p.preparationid=f.preparationid where p.identifier = ?";
@@ -1879,7 +1880,6 @@ if (false) { //                if ($habitat!= "" && preg_match('/[%_]/',$habitat
 		echo "No query parameters provided.";
 		echo "</div>\n";
 		echo "<HR>\n";
-		echo stats();
 	}
 
 }
