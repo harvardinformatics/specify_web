@@ -337,7 +337,7 @@ function search() {
 }
 
 function form($name) {
-   echo "<form method='GET' action='taxon_search.php'><input type='hidden' name='mode' value='search' /><input type=text name=name value='$name'/><input type='submit' value='Search' /></td></form";
+   echo "<form method='GET' action='taxon_search.php'><input type='hidden' name='mode' value='search' /><input type=text name=name value='$name'/><input type='submit' value='Search' /></td></form>";
 }
 
 function lookupBotanist($botanistid) {
