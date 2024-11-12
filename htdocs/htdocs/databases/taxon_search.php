@@ -144,7 +144,7 @@ function details() {
 				$statement->store_result();
 				while ($statement->fetch()) {
 					$is_group = false;
-					$taxonresult .=  "<tr><td class='cap'>Name</td><td class='val'><em>$fullname</em> $author</td></tr>";
+					$taxonresult .=  "<tr><td class='cap'>Name</td><td class='val'><a href='taxon_search.php?mode=details&id=$id'><em>$fullname</em> $author</a></td></tr>";
 					$taxonresult .=  "<tr><td class='cap'>Authorship</td><td class='val'>";
 					if ($parauthorid>0) {
                                               $taxonresult .= "(";
