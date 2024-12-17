@@ -904,11 +904,24 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
   set temp_dwc_search.typestatus = picklistitem.title
   where determination.typestatusname is not null;
 
+-- Update determiner name
+update temp_dwc_search
+  set temp_dwc_search.identifiedby = (
+    select agentvariant.name
+    from agentvariant, determination
+    where agentvariant.agentid=determination.DeterminerID
+      and temp_dwc_search.temp_determinationid=determination.DeterminationID
+    order by agentvariant.VarType desc
+    limit 1
+  );
+
 -- text 1 is the determiner name for non-types, the type status verifier for types.
 -- 3 sec
-update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
+update temp_dwc_search
+  left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
   set temp_dwc_search.identifiedby = determination.text1
-  where determination.typestatusname is null and temp_dwc_search.temp_determinationid is not null;
+  where temp_dwc_search.identifiedby is null
+    and temp_dwc_search.temp_determinationid is not null;
 
 -- determination qualifier
 -- 12 sec
@@ -1046,7 +1059,7 @@ create table if not exists temp_dwc_identification_history (
   fragmentguid char(100), -- dwc_search.fragmentguid
   determinationid bigint,
   identificationid varchar(255), -- todo: future work, need to generate guids
-  identifiedby text, -- determination.text1
+  identifiedby text, -- determination.determinerid or determination.text1
   dateidentified varchar(50), -- determination.determineddate
   identificationqualifier varchar(50), -- determination.qualifier, picklistitem.title
   remarks text, -- determination.remarks | determination.text2
@@ -1087,9 +1100,23 @@ update temp_dwc_identification_history left join determination on temp_dwc_ident
   set temp_dwc_identification_history.typestatus = picklistitem.title
   where determination.typestatusname is not null;
 
-update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
+-- Update determiner name
+update temp_dwc_identification_history
+  set temp_dwc_identification_history.identifiedby = (
+    select agentvariant.name
+    from agentvariant, determination
+    where agentvariant.agentid=determination.DeterminerID
+      and temp_dwc_identification_history.determinationid=determination.DeterminationID
+    order by agentvariant.VarType desc
+    limit 1
+  );
+
+-- Where the determiner/agent doesn't exist, use the free text field (determination.text1)
+update temp_dwc_identification_history
+  left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
   set temp_dwc_identification_history.identifiedby = determination.text1
-  where determination.typestatusname is null;
+  where temp_dwc_identification_history.identifiedby is null
+    and temp_dwc_identification_history.determinationid is not null;
 
 -- determination qualifier
 update temp_dwc_identification_history left join determination on temp_dwc_identification_history.determinationid = determination.determinationid
