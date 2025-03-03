@@ -860,9 +860,8 @@ function details() {
 											} // end if $determinationid != ""
 										}  // end retrieve list of determination/annotations of this fragment(item)
 										if (count($nodes)>0) {
-											$oldhigher = "";
+											$oldhigher = array(); // to check for duplicate display values
 											$highertaxonomy = array();
-											$highertaxonomyids = array();
 											$highercount = 0;
 											foreach ($nodes as $nodenumber) {
 												$query = "select taxon.name, taxonid from taxon where taxon.nodenumber <= ? and taxon.highestchildnodenumber >= ? and rankid < 220 ";
@@ -885,8 +884,9 @@ function details() {
 													}
 													$statement_ht->close();
 												}
-												if ($higher!="" && $higher!=$oldhigher ) {
-													$oldhigher = $higher;
+
+												if ($higher!="" && !in_array($higher, $oldhigher) ) {
+													$oldhigher[] = $higher;
 													//$highertaxonomy.= "<tr><td class='cap'>Classification</td><td class='val'>$higher</td></tr>";
 													if ($highercount==0) {
 													    $highertaxonomy['Classification'] = "$higher";
