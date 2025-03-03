@@ -758,7 +758,7 @@ function details() {
 												// retrieve determination/annotation details and store in an array
 
 												if ($isfragment==1) { $fragment = ' [is a fragment]'; } else { $fragment = ""; }
-												if ($isfiledunder==1) { $filedunder = ' [is filed under name]'; } else { $filedunder = "[$isfiledunder]"; }
+												if ($isfiledunder==1) { $filedunder = ' [is filed under name]'; } else { $filedunder = ""; }
 												if ($islabel==1) { $label = ' [is label name]'; } else { $label = ""; }
 												if ($isCurrent==1) { $current = ' [is Current name]'; } else { $current = ""; }
 												$determinationRemarks .= "$fragment$filedunder$label$current";
@@ -864,7 +864,7 @@ function details() {
 											$highertaxonomy = array();
 											$highercount = 0;
 											foreach ($nodes as $nodenumber) {
-												$query = "select taxon.name, taxonid from taxon where taxon.nodenumber < ? and taxon.highestchildnodenumber > ? and rankid < 220 ";
+												$query = "select taxon.name, taxonid from taxon where taxon.nodenumber <= ? and taxon.highestchildnodenumber >= ? and rankid < 220 ";
 												$statement_ht = $connection->prepare($query);
 												if ($statement_ht) {
 													if ($debug===true) {  echo "[$query]<BR>"; }
