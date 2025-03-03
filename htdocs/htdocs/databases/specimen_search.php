@@ -875,11 +875,6 @@ function details() {
 													$statement_ht->bind_result($higherName, $higherTaxonId);
 													$statement_ht->store_result();
 
-													if (in_array($higherTaxonId, $highertaxonomyids))
-														continue; // don't repeat genus/family names
-													else
-														$highertaxonomyids[] = $higherTaxonId;
-
 													$colon = "";
 													$higher = "";
 													while ($statement_ht->fetch()) {
