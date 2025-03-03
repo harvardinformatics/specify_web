@@ -758,9 +758,9 @@ function details() {
 												// retrieve determination/annotation details and store in an array
 
 												if ($isfragment==1) { $fragment = ' [is a fragment]'; } else { $fragment = ""; }
-												if ($isfiledunder==1) { $filedunder = ' [is filed under name]'; } else { $filedunder = ""; }
-												if ($islabel==1) { $label = ' [is label name]'; } else { $label = ""; }
-												if ($isCurrent==1) { $current = ' [is Current name]'; } else { $current = ""; }
+												if ($isfiledunder==1) { $filedunder = ' [filed under]'; } else { $filedunder = ""; }
+												if ($islabel==1) { $label = ' [label name]'; } else { $label = ""; }
+												if ($isCurrent==1) { $current = ' [current name]'; } else { $current = ""; }
 												$determinationRemarks .= "$fragment$filedunder$label$current";
 												if (trim($typeStatusName)=="") {
 													$det = "Determination";
@@ -862,6 +862,7 @@ function details() {
 										if (count($nodes)>0) {
 											$oldhigher = "";
 											$highertaxonomy = array();
+											$highertaxonomyids = array();
 											$highercount = 0;
 											foreach ($nodes as $nodenumber) {
 												$query = "select taxon.name, taxonid from taxon where taxon.nodenumber <= ? and taxon.highestchildnodenumber >= ? and rankid < 220 ";
@@ -873,6 +874,12 @@ function details() {
 													$higherName = "";
 													$statement_ht->bind_result($higherName, $higherTaxonId);
 													$statement_ht->store_result();
+
+													if (in_array($higherTaxonId, $highertaxonomyids))
+														continue; // don't repeat genus/family names
+													else
+														$highertaxonomyids[] = $higherTaxonId;
+
 													$colon = "";
 													$higher = "";
 													while ($statement_ht->fetch()) {
