@@ -726,7 +726,7 @@ function details() {
 										" from fragment " .
 										" left join determination on fragment.fragmentid = determination.fragmentid " .
 										" left join taxon on determination.taxonid = taxon.taxonid " .
-										" where fragment.fragmentid = ? order by typeStatusName, isCurrent, determinedDate";
+										" where fragment.fragmentid = ? order by typeStatusName desc, isCurrent desc, isfiledunder desc, determinedDate desc";
 									if ($debug===true) {  echo "[$query]<BR>"; }
 									if ($debug===true) {  echo "FragmentId=[$fragmentid]<BR>"; }
 									$statement_det = $connection->prepare($query);
