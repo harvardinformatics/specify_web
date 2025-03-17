@@ -131,8 +131,27 @@ if ($connection) {
         <td>Year published</td>
         <td colspan="2"><input type="text" name="year" value="" size="30" maxlength="59" tabindex="13" /></td>
         <td></td>
-				<td>Images only</td>
-    	  <td colspan="2"><input type="checkbox" name="hasimage" value="on" tabindex="23" /></td>
+
+        <td colspan="2"><select name="project" size=1 tabindex="15" style="width: 30ch;">
+                              <option value="">any</option>
+
+<?php
+
+$query = "select distinct projectname,projectid from project order by projectname ";
+if ($connection) {
+  @$statement = $connection->prepare($query);
+  if ($statement) {
+    @$statement->execute();
+    @$statement->bind_result($projectname,$projectid);
+    @$statement->store_result();
+    while (@$statement->fetch()) {
+        echo "<option value = '$projectid|$projectname'>$projectname</option>\n";
+    }
+  }
+ }
+?>
+                  </select></td>
+
     		</tr>
       <tr>
 			    <td><a href="specimen_search.php?browsemode=types">Type status</a></td>
@@ -155,7 +174,12 @@ if ($connection) {
 								 <option value="PhotoOfType">photograph of type</option>
 								 <option value="NotType">Annotated as 'Not A Type'</option>
 								 <option value="Type">'Type'</option>
-					</select></td></tr>
+					</select></td>
+
+          <td>Images only</td>
+          <td colspan="2"><input type="checkbox" name="hasimage" value="on" tabindex="23" /></td>
+
+        </tr>
     </table>
 	<table align="center">
 			<tr><td width="10"><input type="submit" value="Search" tabindex="24" /></td>
