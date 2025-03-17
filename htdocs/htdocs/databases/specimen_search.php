@@ -1540,13 +1540,12 @@ function search() {
 			$wherebit .= "$and web_search.family $operator ? ";
 			$and = " and ";
 		}
-		//$project = explode(substr(preg_replace("/[^A-Za-z0-9 |%\_\*]/","", $_GET['project']),0,59));
-		$project = explode($_GET['project']);
+		$project = explode('|',substr(preg_replace("/[^A-Za-z0-9 \|%\_\*]/","", $_GET['project']),0,59));
 		$projid = $project[0];
 		$projname = $project[1];
-		if ($project!="") {
+		if ($projid!="") {
 			$hasquery = true;
-			$question .= "$and project:[$project]";
+			$question .= "$and project:[$projname]";
 			$types .= "i";
 			$operator = "=";
 			$parameters[$parametercount] = &$projid;
