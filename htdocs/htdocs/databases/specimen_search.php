@@ -1540,6 +1540,18 @@ function search() {
 			$wherebit .= "$and web_search.family $operator ? ";
 			$and = " and ";
 		}
+		$project = substr(preg_replace("/[^A-Za-z0-9 %\_\*]/","", $_GET['project']),0,59);
+		$projid = preg_replace("/[^0-9]/","", $_GET['projid']);
+		if ($projid!="") {
+			$hasquery = true;
+			$question .= "$and project:[$project]";
+			$types .= "i";
+			$operator = "=";
+			$parameters[$parametercount] = &$projid;
+			$parametercount++;
+			$wherebit .= "$and pco.projectid $operator ? ";
+			$and = " and ";
+		}
 		if ($question!="") {
 			$question = "Search for $question <BR>";
 		} else {
@@ -1551,7 +1563,9 @@ function search() {
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
 			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector " .
 			" from web_search " .
-			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid =  i.collectionobjectid  $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
+			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid = i.collectionobjectid  " .
+			" left join project_colobj pco on web_search.collectionobjectid = pco.collectionobjectid " .
+			" $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
 			" limit $start, $limit ";
 
 	}
