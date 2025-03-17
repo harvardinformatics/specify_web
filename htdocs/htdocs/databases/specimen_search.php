@@ -1544,9 +1544,9 @@ function search() {
 		$project = explode($_GET['project']);
 		$projid = $project[0];
 		$projname = $project[1];
-		if ($projid!="") {
+		if ($project!="") {
 			$hasquery = true;
-			$question .= "$and project:[$projname]";
+			$question .= "$and project:[$project]";
 			$types .= "i";
 			$operator = "=";
 			$parameters[$parametercount] = &$projid;
