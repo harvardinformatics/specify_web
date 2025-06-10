@@ -127,30 +127,35 @@ for sd in $BASE_DIR ; do # iterate through all image session directories
       target="$sd/Output/JPG/$basefile.jpg"
 			linkfile=$(./link_image.sh "$target" "$IMG_DIR/JPG" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
       echo "linked $target to $linkfile"
-			aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
+      ./aws_upload.sh "$linkfile" "$S3DIR/JPG/" &
+			#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG/" &
 			php copy_image_object.php "$jpgid" "$linkfile" 1 "$bc" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
       target="$sd/Output/JPG-Preview/$basefile.jpg"
 			linkfile=$(./link_image.sh "$target" "$IMG_DIR/JPG-Preview" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
       echo "linked $target to $linkfile"
-			aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Preview/" &
+      ./aws_upload.sh "$linkfile" "$S3DIR/JPG-Preview/" &
+			#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Preview/" &
 			php copy_image_object.php "$jpgpid" "$linkfile" 1 "$bc" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
       target="$sd/Output/JPG-Thumbnail/$basefile.jpg"
 			linkfile=$(./link_image.sh "$target" "$IMG_DIR/JPG-Thumbnail" "$b" "jpg") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
       echo "linked $target to $linkfile"
-			aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Thumbnail/" &
+      ./aws_upload.sh "$linkfile" "$S3DIR/JPG-Thumbnail/" &
+			#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/JPG-Thumbnail/" &
 			php copy_image_object.php "$jpgtid" "$linkfile" 1 "$bc" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
       target="$sd/Output/DNG/$basefile.dng"
 			linkfile=$(./link_image.sh "$target" "$IMG_DIR/DNG" "$b" "dng") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
       echo "linked $target to $linkfile"
-			aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/DNG/" &
+      ./aws_upload.sh "$linkfile" "$S3DIR/DNG/" &
+			#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/DNG/" &
 			php copy_image_object.php "$dngid" "$linkfile" 0 "$bc" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
       target="$sd/Capture/$basefile.CR2"
 			linkfile=$(./link_image.sh "$target" "$IMG_DIR/RAW" "$b" "CR2") || { echo "ERROR: link_image.sh failed for $b ($linkfile)" ; exit 1; }
       echo "linked $target to $linkfile"
+      #./aws_upload.sh "$linkfile" "$S3DIR/RAW/" &
 			#aws s3 cp --no-progress --quiet "$linkfile" "$S3DIR/RAW/" &
 			php copy_image_object.php "$cr2id" "$linkfile" 0 "$bc" || { echo "ERROR: copy_image_object.php failed for $linkfile" ; exit 1; }
 
