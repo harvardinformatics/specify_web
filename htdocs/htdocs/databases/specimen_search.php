@@ -273,7 +273,7 @@ function details() {
 
 							// Determine if this is a simple collection object (one collectionobject, one fragment, one preparation) or not.
 							$objectcomplexity = array();
-                                                        $query = "select count(distinct f1.fragmentid), count(distinct p.preparationid) from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid left join fragment f1 on p.preparationid = f1.preparationid where c.collectionobjectid = ? ";
+              $query = "select count(distinct f1.fragmentid), count(distinct p.preparationid) from collectionobject c left join fragment f on c.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid left join fragment f1 on p.preparationid = f1.preparationid where c.collectionobjectid = ? ";
 							if ($debug) { echo "[$query]<BR>"; }
 							$statement_cmp = $connection->prepare($query);
 							if ($statement_cmp) {
