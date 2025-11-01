@@ -1065,7 +1065,7 @@ function details() {
 						    echo "<table class='h-object'>";
 						    echo "<tr><td><table class='text'>\n";
 							foreach ($highertaxonomy as $key => $value) {
-							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value, ENT_QUOTES, 'UTF-8')</td></tr>"; }
+							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
 							}
 							foreach ($objectcomplexity as $key => $value) {
 							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
