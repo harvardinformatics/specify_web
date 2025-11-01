@@ -1065,7 +1065,7 @@ function details() {
 						    echo "<table class='h-object'>";
 						    echo "<tr><td><table class='text'>\n";
 							foreach ($highertaxonomy as $key => $value) {
-							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value, ENT_QUOTES, 'UTF-8')</td></tr>"; }
 							}
 							foreach ($objectcomplexity as $key => $value) {
 							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
@@ -1077,7 +1077,7 @@ function details() {
 							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>".htmlspecialchars($typeStatus, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
-							echo "<tr><td class='cap'>Collector</td><td class='val'>".htmlspecialchars($collector, ENT_QUOTES, 'UTF-8')."</td></tr>";
+							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
 							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>".htmlspecialchars($fieldnumber, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>".htmlspecialchars($stationfieldnumber, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>".htmlspecialchars($country, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
