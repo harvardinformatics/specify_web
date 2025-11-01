@@ -1065,56 +1065,57 @@ function details() {
 						    echo "<table class='h-object'>";
 						    echo "<tr><td><table class='text'>\n";
 							foreach ($highertaxonomy as $key => $value) {
-							      if (trim(value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
+							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
 							foreach ($objectcomplexity as $key => $value) {
-							      if (trim(value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>$value</td></tr>"; }
+							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
-							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Harvard University Herbaria Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
-							if (trim($otheritems!=""))   { echo $otheritems; }
+							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Harvard University Herbaria Barcode(s)</td><td class='val'>".htmlspecialchars($barcodelist, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($otheritems!=""))   { echo htmlspecialchars($otheritems, ENT_QUOTES, 'UTF-8'); }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) {
-							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
+							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
-							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>$typeStatus</td></tr>"; }
-							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
-							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$fieldnumber</td></tr>"; }
-							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>$stationfieldnumber</td></tr>"; }
-							if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>$country</td></tr>"; }
-							if (trim($state!=""))   { echo "<tr><td class='cap'>State</td><td class='val'>$state</td></tr>"; }
-							echo "<tr><td class='cap'>Geography</td><td class='val'>$geography</td></tr>";
+							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>".htmlspecialchars($typeStatus, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							echo "<tr><td class='cap'>Collector</td><td class='val'>".htmlspecialchars($collector, ENT_QUOTES, 'UTF-8')."</td></tr>";
+							if (trim($fieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>".htmlspecialchars($fieldnumber, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($stationfieldnumber!="")) { echo "<tr><td class='cap'>Collector number</td><td class='val'>".htmlspecialchars($stationfieldnumber, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($country!="")) { echo "<tr><td class='cap'>Country</td><td class='val'>".htmlspecialchars($country, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($state!=""))   { echo "<tr><td class='cap'>State</td><td class='val'>".htmlspecialchars($state, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							echo "<tr><td class='cap'>Geography</td><td class='val'>".htmlspecialchars($geography, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							if (trim($lname !=""))  {
 								if ($redactlocality === true ) { $lname = "[Redacted]"; }
-								echo "<tr><td class='cap'>Locality</td><td class='val'>$lname</td></tr>";
+								echo "<tr><td class='cap'>Locality</td><td class='val'>".htmlspecialchars($lname, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							}
 							if (trim($verbatimlocality !=""))  {
 								if ($redactlocality === true ) { $verbatimlocality = "[Redacted]"; }
-								echo "<tr><td class='cap'>Verbatim Locality</td><td class='val'>$verbatimlocality</td></tr>";
+								echo "<tr><td class='cap'>Verbatim Locality</td><td class='val'>".htmlspecialchars($verbatimlocality, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							}
 							if (trim($georeference!=""))  {
 								if ($redactlocality === true ) { $georeference = "[Redacted]"; }
-								echo "<tr><td class='cap'>Georeference</td><td class='val'>$georeference</td></tr>";
+								echo "<tr><td class='cap'>Georeference</td><td class='val'>".htmlspecialchars($georeference, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							}
 							if (trim($localityremarks!=""))  {
 								if ($redactlocality === true ) { $localityremarks = "[Redacted]"; }
-								echo "<tr><td class='cap'>Locality Remarks</td><td class='val'>$localityremarks</td></tr>";
+								echo "<tr><td class='cap'>Locality Remarks</td><td class='val'>".htmlspecialchars($localityremarks, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							}
-							if (trim($dateCollected!="")) { echo "<tr><td class='cap'>Date Collected</td><td class='val'>$dateCollected</td></tr>"; }
+							if (trim($dateCollected!="")) { echo "<tr><td class='cap'>Date Collected</td><td class='val'>".htmlspecialchars($dateCollected, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							if (trim($elevation!="")) {
 								if ($redactlocality === true ) { $elevation = "[Redacted]"; }
-								echo "<tr><td class='cap'>Elevation</td><td class='val'>$elevation m</td></tr>";
+								echo "<tr><td class='cap'>Elevation</td><td class='val'>".htmlspecialchars($elevation, ENT_QUOTES, 'UTF-8')." m</td></tr>";
 							}
 							if (trim($verbatimelevation!="")) {
 								if ($redactlocality === true ) { $verbatimelevation = "[Redacted]"; }
-								echo "<tr><td class='cap'>Verbatim Elevation</td><td class='val'>$verbatimelevation</td></tr>";
+								echo "<tr><td class='cap'>Verbatim Elevation</td><td class='val'>".htmlspecialchars($verbatimelevation, ENT_QUOTES, 'UTF-8')."</td></tr>";
 							}
-							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>$habitat</td></tr>"; }
-							if (trim($container!=""))   { echo "<tr><td class='cap'>Container</td><td class='val'>$container</td></tr>"; }
-							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Substrate</td><td class='val'>$substrate</td></tr>"; }
-							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>$host</td></tr>"; }
-							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>$vernacularname</td></tr>"; }
-							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>$frequency</td></tr>"; }
-							if (trim($projectname!=""))   { echo "<tr><td class='cap'>Project</td><td class='val'>$projectname</td></tr>"; }
+							if (trim($habitat!=""))   { echo "<tr><td class='cap'>Habitat</td><td class='val'>".htmlspecialchars($habitat, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($container!=""))   { echo "<tr><td class='cap'>Container</td><td class='val'>".htmlspecialchars($container, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($substrate!=""))   { echo "<tr><td class='cap'>Substrate</td><td class='val'>".htmlspecialchars($substrate, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($host!=""))   { echo "<tr><td class='cap'>Host</td><td class='val'>".htmlspecialchars($host, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($vernacularname!=""))   { echo "<tr><td class='cap'>Vernacular Name</td><td class='val'>".htmlspecialchars($vernacularname, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($frequency!=""))   { echo "<tr><td class='cap'>Frequency</td><td class='val'>".htmlspecialchars($frequency, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($projectname!=""))   { echo "<tr><td class='cap'>Project</td><td class='val'>".htmlspecialchars($projectname, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($specimenRemarks!=""))   { echo "<tr><td class='cap'>Remarks</td><td class='val'>".htmlspecialchars($specimenRemarks, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							$itemcounter = 0;  // check if even or odd to distinguish alternate pairs of items.
 							foreach ($itemarray as  $item) {
 								$itemcounter ++;
@@ -1167,15 +1168,15 @@ function details() {
 //                                 }
 //					 	       }
 							   foreach ($paths as $value) {
-							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
+							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>".htmlspecialchars($barcodelist, ENT_QUOTES, 'UTF-8')."$value</td></tr>"; }
 					 	       }
 							echo "</table></td>";
                             echo "</tr>\n";
-							if (trim($specimenRemarks!="")) {
-								echo "<tr><td colspan='2'><table class='remarks'>";
-								echo "<td class='cap'>Remarks</td><td class='val'>$specimenRemarks</td></tr>";
-								echo "</table></td></tr>";
-							}
+							// if (trim($specimenRemarks!="")) {
+							// 	echo "<tr><td colspan='2'><table class='remarks'>";
+							// 	echo "<td class='cap'>Remarks</td><td class='val'>".htmlspecialchars($specimenRemarks, ENT_QUOTES, 'UTF-8')."</td></tr>";
+							// 	echo "</table></td></tr>";
+							// }
 						    echo "</table>";
 						    echo "<BR>\n";
 						}
