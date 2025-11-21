@@ -1074,7 +1074,7 @@ function details() {
 							if (trim($otheritems!=""))   { echo htmlspecialchars($otheritems, ENT_QUOTES, 'UTF-8'); }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) {
-							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
 							}
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>".htmlspecialchars($typeStatus, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
