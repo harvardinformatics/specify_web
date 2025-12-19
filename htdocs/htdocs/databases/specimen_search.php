@@ -650,7 +650,7 @@ function details() {
 										while ($statement_bar->fetch()) {
  										    if ($showBarcodeLink) {
 											if ($identifierf!="") {
-												$CatalogNumber .= "$separator<a href='specimen_search.php?barcode=$identifeirf'>$identifierf</a>";
+												$CatalogNumber .= "$separator<a href='specimen_search.php?barcode=$identifierf'>$identifierf</a>";
 												$separator="; ";
 											}
 											if ($identifierp!="") {
