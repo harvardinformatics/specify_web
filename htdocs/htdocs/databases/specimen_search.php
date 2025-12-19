@@ -1070,7 +1070,7 @@ function details() {
 							foreach ($objectcomplexity as $key => $value) {
 							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
-							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Barcode(s)</td><td class='val'>".htmlspecialchars($barcodelist, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
+							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
 							if (trim($otheritems!=""))   { echo htmlspecialchars($otheritems, ENT_QUOTES, 'UTF-8'); }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) {
@@ -1168,7 +1168,7 @@ function details() {
 //                                 }
 //					 	       }
 							   foreach ($paths as $value) {
-							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>".htmlspecialchars($barcodelist, ENT_QUOTES, 'UTF-8')."$value</td></tr>"; }
+							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$barcodelist$value</td></tr>"; }
 					 	       }
 							echo "</table></td>";
                             echo "</tr>\n";
