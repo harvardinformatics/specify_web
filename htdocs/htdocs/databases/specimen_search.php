@@ -1071,7 +1071,7 @@ function details() {
 							      if (trim($value!=""))   { echo "<tr><td class='cap'>$key</td><td class='val'>".htmlspecialchars($value, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							}
 							if (trim($barcodelist!=""))   { echo "<tr><td class='cap'>Barcode(s)</td><td class='val'>$barcodelist</td></tr>"; }
-							if (trim($otheritems!=""))   { echo htmlspecialchars($otheritems, ENT_QUOTES, 'UTF-8'); }
+							if (trim($otheritems!=""))   { echo $otheritems; }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) {
 							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
