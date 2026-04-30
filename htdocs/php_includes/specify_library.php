@@ -183,6 +183,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
 <head>
 	<meta http-equiv='content-type' content='text/html; charset=utf-8' />
+  <meta name="robots" content="noindex, nofollow">
 	<title>HUH - Databases - $title</title>
 	<link rel='stylesheet' type='text/css' media='print' href='print.css'></link>
 	<link rel='stylesheet' type='text/css' href='dbstyles.css'></link>
@@ -422,8 +423,9 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
 <head>
 	<meta http-equiv='content-type' content='text/html; charset=utf-8' />
-    <meta property='og:type' content='university' />
-    <meta property='og:title' content='Harvard University Herbaria &amp; Libraries' />
+  <meta name="robots" content="noindex, nofollow">
+  <meta property='og:type' content='university' />
+  <meta property='og:title' content='Harvard University Herbaria &amp; Libraries' />
 <link rel='shortcut icon' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/favicon.ico' type='image/vnd.microsoft.icon' />
 	<title>HUH - Databases - $title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
