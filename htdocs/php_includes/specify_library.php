@@ -810,6 +810,7 @@ function browse($target = 'families') {
 /**
  * Workaround for missing json_encode in old php
  */
+if (!function_exists('json_encode')) {
 function json_encode( $array ){
 
     if( !is_array( $array ) ){
@@ -866,6 +867,7 @@ function json_encode( $array ){
     }
 
     return $result;
+}
 }
 
 ?>
