@@ -962,9 +962,9 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
 
 -- update taxon info from temp_taxon table
 -- 5 min
-update temp_dwc_search left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
-       left join taxon on determination.taxonid = taxon.taxonid
-       left join temp_taxon on taxon.nodenumber = temp_taxon.nodenumber
+update temp_dwc_search
+       left join determination on temp_dwc_search.temp_determinationid = determination.determinationid
+       left join temp_taxon on determination.taxonid = temp_taxon.taxonid
        set temp_dwc_search.taxonomicgroup = temp_taxon.groupnumber,
            temp_dwc_search.family = temp_taxon.family,
            temp_dwc_search.genus = temp_taxon.genus,
@@ -979,7 +979,7 @@ update temp_dwc_search left join determination on temp_dwc_search.temp_determina
                when (temp_taxon.rankid > 220) then temp_taxon.name
                else null
              end
-       where taxon.taxonid is not null;
+       where temp_taxon.taxonid is not null;
 
 -- Run setCitesChildren(); to make sure that all children of cites genera/families are also marked as cites listed, then queries can run
 -- on the children without having to look up the parents.
