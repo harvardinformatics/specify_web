@@ -3,32 +3,38 @@
  * Created on Jan 14, 2014
  *
  * Copyright 2014 The President and Fellows of Harvard College
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * @Author: Paul J. Morris  bdim@oeb.harvard.edu
- * 
+ *
  */
+
+ // Temporary maintenance flag
+ echo "<h1>Inactive page</h1>";
+ echo "<p>This page has been deactivated. If you need assistance, please contact huh-requests@oeb.harvard.edu</p>";
+ exit; // Stops the rest of the script from executing
+
 $debug=FALSE;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
 include_once('ajax/DataExplorer.php');
 
-if ($debug) { 
+if ($debug) {
 	mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
-} else { 
+} else {
 	mysqli_report(MYSQLI_REPORT_OFF);
 }
 
@@ -40,21 +46,21 @@ $mode = "search";
 $passon = "image";
 if ($_GET['mode']!="")  {
 	if ($_GET['mode']=="search") {
-		$mode = "search"; 
+		$mode = "search";
 	}
 	if ($_GET['mode']=="qc") {
-		$mode = "qc"; 
+		$mode = "qc";
 	}
 	if ($_GET['mode']=="details") {
-		$mode = "details"; 
+		$mode = "details";
         $passon = "imagedetails";
 	}
-} 
+}
 
-echo pageheader($passon); 
+echo pageheader($passon);
 if ($connection) {
-    if ($debug===TRUE) {  echo "[$mode]"; } 
-		
+    if ($debug===TRUE) {  echo "[$mode]"; }
+
 	switch ($mode) {
 		    case "qc":
                 echo "<h2>Image Batch Quality Control</h2>";
@@ -65,55 +71,55 @@ if ($connection) {
 		        break;
 		    case "search":
 		    default:
-			    echo search(); 
+			    echo search();
 	}
-		
+
     $connection->close();
-		
-} else { 
+
+} else {
     $errormessage .= "Unable to connect to database. ";
 }
 if ($errormessage!="") {
     echo "<strong>Error: $errormessage</strong>";
 }
 echo pagefooter();
-	
+
 
 // ******* main code block ends here, supporting functions follow. *****
 
-function search() { 
+function search() {
    global $connection;
    $returnvalue = "";
    $start = preg_replace('/[^0-9]/','',$_GET['start']);
- 
+
    $query = "";
    $genus = preg_replace('/[^A-Za-z,]/','',$_GET['genus']);
-   if (strlen($genus)>0) { 
+   if (strlen($genus)>0) {
      $bits = explode(",",$genus);
-     foreach($bits as $bit) { 
+     foreach($bits as $bit) {
        $query .= "genus: $bit ";
      }
-   } 
+   }
    $family = preg_replace('/[^A-Za-z,]/','',$_GET['family']);
-   if (strlen($family)>0) { $query .= "family: $family "; } 
+   if (strlen($family)>0) { $query .= "family: $family "; }
    $typestatus = preg_replace('/[^A-Za-z,]/','',$_GET['typestatus']);
-   if (strlen($typestatus)>0) { 
+   if (strlen($typestatus)>0) {
      $bits = explode(",",$typestatus);
-     foreach($bits as $bit) { 
+     foreach($bits as $bit) {
        $query .= "typestatus: $bit ";
      }
-   } 
+   }
    $country = preg_replace('/[^A-Za-z,]/','',$_GET['country']);
-   if (strlen($country)>0) { $query .= "country: $country "; } 
+   if (strlen($country)>0) { $query .= "country: $country "; }
    $state = preg_replace('/[^A-Za-z,]/','',$_GET['state']);
-   if (strlen($state)>0) { $query .= "state: $state "; } 
-   
-   if ($query=="" ) {  $query = "genus: Croton"; } 
+   if (strlen($state)>0) { $query .= "state: $state "; }
+
+   if ($query=="" ) {  $query = "genus: Croton"; }
 
    if (strlen($start)==0) { $start = 0; }
 
-   $dataexplorer = new DataExplorer(); 
-   
+   $dataexplorer = new DataExplorer();
+
    // obtain a list of type status terms with counts of images
    $tsList = array();
    foreach($dataexplorer->getTypestatusList() as $row => $tsArr){
@@ -146,8 +152,8 @@ function search() {
    $returnvalue .= "<div>";
    $returnvalue .= "  <div class='visual_search'></div> ";
    $returnvalue .= "</div>";
-   $returnvalue .= " 
-                   <script type='text/javascript' charset='utf-8'> 
+   $returnvalue .= "
+                   <script type='text/javascript' charset='utf-8'>
                      $declareTypestatus
                      $declareCountry
                      $declareFamily
@@ -160,7 +166,7 @@ function search() {
                               var \$focused = $(':focus');
                               \$focused.blur();
                               $.post('ajax/imagesearch.php', { 'query' : visualSearch.searchBox.value() , 'start' : '$start' }, function(result) {
-                                   $('#results').html(result); 
+                                   $('#results').html(result);
                                    });
                               var \$focused = $(':focus');
                               \$focused.blur();
@@ -183,10 +189,10 @@ function search() {
                                    break;
                                  }
                            } )
-                         } // end callbacks 
+                         } // end callbacks
                        }); // end VS.init
                        $.post('ajax/imagesearch.php', { 'query' : visualSearch.searchBox.value() }, function(result) {
-                           $('#results').html(result); 
+                           $('#results').html(result);
                            });
                      }); // end document ready
                    </script>
@@ -195,7 +201,7 @@ function search() {
    $returnvalue .= "<div id='results'>";
    $returnvalue .= "</div>";
    $returnvalue .= "<br clear='All'/><br/><br/><br/>";
-   
+
    return $returnvalue;
 }
 
@@ -215,7 +221,7 @@ function details() {
   'WHERE i.id = ? and iot.object_type_id = 2  '.
   ' and iof.object_type_id = 4 ';
   $stmt = $connection->stmt_init();
-  if ($stmt->prepare($sql)) { 
+  if ($stmt->prepare($sql)) {
      $stmt->bind_param('i',$imagesetid);
      $stmt->execute();
      $stmt->bind_result($thumburi,$fulluri,$thumbwidth,$thumbheight, $fullwidth, $fullheight);
@@ -226,8 +232,8 @@ function details() {
   $sql = "select uuid " .
          "from IMAGE_SET_collectionobject i left join fragment f on i.collectionobjectid = f.collectionobjectid left join guids g on f.fragmentid = g.primarykey where g.tablename = 'fragment' and i.imagesetid = ? ";
   $stmt = $connection->stmt_init();
-  if ($stmt->prepare($sql)) { 
-     if ($debug) { echo "[$sql]"; } 
+  if ($stmt->prepare($sql)) {
+     if ($debug) { echo "[$sql]"; }
      $stmt->bind_param('i',$imagesetid);
      $stmt->execute();
      echo "$stmt->error";
@@ -238,15 +244,15 @@ function details() {
   $sql = "select collectioncode, catalognumber, scientificname, scientificnameauthorship, country, stateprovince, locality, collectionobjectid, typestatus, collectornumber, collector, eventdate, verbatimdate, habitat, verbatimelevation, preparations, temp_prepmethod, identifiedby, dateidentified, identificationqualifier " .
          "from dwc_search where fragmentguid = ? ";
   $stmt = $connection->stmt_init();
-  if ($stmt->prepare($sql)) { 
-     if ($debug) { echo "[$sql]"; } 
+  if ($stmt->prepare($sql)) {
+     if ($debug) { echo "[$sql]"; }
      $guid = "http://purl.oclc.org/net/edu.harvard.huh/guid/uuid/$uuid";
      $stmt->bind_param('s',$guid);
      $stmt->execute();
      $stmt->bind_result($collectioncode, $catalognumber, $scientificname, $author, $country, $stateprovince, $locality, $collectionobjectid, $typestatus,$collectornumber, $collector, $eventdate, $verbatimdate, $habitat,$verbatimelevation,$preparations,$prepmethod,$identifiedby, $dateidentified, $identificationqualifier);
      $stmt->fetch();
      $stmt->close();
-  } else {  
+  } else {
      echo "$stmt->error";
   }
   $result .= "
@@ -256,19 +262,19 @@ function details() {
           // as first seen in http://www.dynamicdrive.com/forums/
           // username: jscheuer1 - This Notice Must Remain for Legal Use
           // Visit Dynamic Drive at http://www.dynamicdrive.com/ for this script and 100s more
-          
+
           jQuery(document).ready(function($){
-          
-              $('#imagedetail1').addimagezoom({ // 
+
+              $('#imagedetail1').addimagezoom({ //
                   zoomrange: [10, 20],
                   magnifiersize: [800,600],
                   magnifierpos: 'right',
                   cursorshade: true,
-                  largeimage: '$fulluri' 
+                  largeimage: '$fulluri'
               })
-              
+
           })
-          
+
           </script>
   ";
 
@@ -283,15 +289,15 @@ function details() {
   $result .= "<a href='specimen_search.php?mode=details&id=$collectionobjectid'>$collectioncode $catalognumber</a>";
   $result .= " <strong style='color:RED; '>$typestatus</strong><br/>";
   $result .= trim("$identificationqualifier <em>$scientificname</em> $authorship<br/>");
-  if ($identifiedby!="") { 
+  if ($identifiedby!="") {
      $result .= "Determiner: $identifiedby $dateidentified<br/>";
   }
   $result .= "Collector: $collector $collectornumber<br/>";
-  if ($verbatimdate != "") { $verbatimdate = "(".trim($verbatimdate).")"; } 
+  if ($verbatimdate != "") { $verbatimdate = "(".trim($verbatimdate).")"; }
   $result .= "Date Collected: $eventdate $verbatimdate<br/>";
   $result .= "$country $stateprovince<br/>";
   $result .= "$locality<br/>";
-  if (trim($habitat.$verbatimelevation)!="") { 
+  if (trim($habitat.$verbatimelevation)!="") {
      $result .= "$habitat $verbatimelevation<br/>";
   }
   $result .= "Format: $preparations $prepmethod<br/>";
@@ -300,13 +306,13 @@ function details() {
   return $result;
 }
 
-function batch_qc() { 
+function batch_qc() {
   global $connection;
 
   $batchid = preg_replace('/[^0-9]/','',$_GET['batchid']);
-  if (strlen($batchid>0)) { 
+  if (strlen($batchid>0)) {
      return batch_details($batchid);
-  } else { 
+  } else {
      $result = "<h2><a href='image_search.php?mode=qc&batch=HUH-orchid'>Orchid Batches</a> <a href='image_search.php?mode=qc&batch=GPI-Types'>GPI/LAPI Batches</a> <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a> <a href='image_search.php?mode=qc'>All Batches</a></h2>";
 
      $result .=  list_batches();
@@ -315,13 +321,13 @@ function batch_qc() {
 
 }
 
-function batch_details($batchid) { 
+function batch_details($batchid) {
   global $connection;
   $result = "<br/>";
 
   $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks, s.caption, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
   $stmt = $connection->stmt_init();
-  if ($stmt->prepare($sql)) { 
+  if ($stmt->prepare($sql)) {
     $stmt->bind_param('i',$batchid);
     $stmt->execute();
     $stmt->bind_result($imagesetid, $date, $name, $remarks, $project, $lab, $activeflag, $description, $owner, $copyright, $setremarks,$caption,$filename);
@@ -329,83 +335,83 @@ function batch_details($batchid) {
     $links = "";
     $stmt->store_result();
     $subresult = "";
-    while ($stmt->fetch()) { 
+    while ($stmt->fetch()) {
        $setcount++;
-       if ($row==0) { 
+       if ($row==0) {
           $result .= "<strong>Batch:</strong> <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a><br/><strong>Date:</strong> $date<br/><strong>Project:</strong> $project.<br/><strong>Facility:</strong> $lab<br/><strong>Remarks:</strong> $remarks<br/><strong>File:</strong> <a href='$filename'>$filename</a><br/>\n";
-       } 
+       }
        $links = "";
        $sql = "select distinct j.collectionobjectid, f.text1, f.identifier, p.identifier from IMAGE_SET_collectionobject j left join fragment f on j.collectionobjectid = f.collectionobjectid left join preparation p on f.preparationid = p.preparationid where j.imagesetid = ? ";
        $stmt1 = $connection->stmt_init();
-       if ($stmt1->prepare($sql)) { 
+       if ($stmt1->prepare($sql)) {
           $stmt1->bind_param('i',$imagesetid);
           $stmt1->execute();
           $stmt1->bind_result($collectionobjectid, $collectioncode, $fbarcode, $pbarcode);
           $stmt1->store_result();
-          while ($stmt1->fetch()) { 
+          while ($stmt1->fetch()) {
             $collcount++;
             $links .= "<a href='specimen_search.php?mode=details&id[]=$collectionobjectid'>$collectioncode $fbarcode $pbarcode</a>";
           }
           $stmt1->close();
        }
-       $images = ""; 
+       $images = "";
        $sql = "select url_prefix, uri, r.name, t.name from IMAGE_OBJECT i left join REPOSITORY r on i.repository_id = r.id left join IMAGE_OBJECT_TYPE t on i.object_type_id = t.id where image_set_id = ?";
        $stmt1 = $connection->stmt_init();
-       if ($stmt1->prepare($sql)) { 
+       if ($stmt1->prepare($sql)) {
           $stmt1->bind_param('i',$imagesetid);
           $stmt1->execute();
           $stmt1->bind_result($prefix,$url,$repository,$type);
           $stmt1->store_result();
-          while ($stmt1->fetch()) { 
+          while ($stmt1->fetch()) {
             $imagecount++;
             $images .= "$repository <a href='$prefix$url'>$type</a> $url<br/>";
-            if ($type=="Thumbnail") { 
-               $images .= "<img src='$prefix$url'><br/>"; 
+            if ($type=="Thumbnail") {
+               $images .= "<img src='$prefix$url'><br/>";
             }
           }
           $stmt1->close();
        }
-       if ($activeflag==1) {  $active = "Image set:"; } else { $active = "Image set <strong>(Inactive)</strong>:"; } 
-       if (strlen($imagesetid)>0) { 
+       if ($activeflag==1) {  $active = "Image set:"; } else { $active = "Image set <strong>(Inactive)</strong>:"; }
+       if (strlen($imagesetid)>0) {
            $subresult .= "<a href='image_search.php?mode=details&imagesetid=$imagesetid'>$active</a> $caption $description $links $owner $copyright $remarks $setremarks<br/>$images<br/>";
        } else {
            $subresult .= "<strong>Empty Image Set.</strong><br/><br/>";
        }
        $row++;
-    } 
+    }
     $result .= "Specimens: $collcount<br/>Image Sets: $setcount<br/>Images: $imagecount<br/><br/>$subresult";
     $stmt->close();
-  } else { 
+  } else {
     $result .= "Query Error: " . $connection->error . $stmt->error;
   }
 
   return $result;
 
-} 
+}
 
-function list_batches() { 
+function list_batches() {
   global $connection;
   $result = "";
 
   $batch = preg_replace('/[^a-zA-Z0-9\-:]/','',$_GET['batch']);
-  if (strlen($batch)>0) { 
+  if (strlen($batch)>0) {
       $batch = "%$batch%";
       $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.batch_name like ?  group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
-  } else { 
+  } else {
      $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";
   }
   $stmt = $connection->stmt_init();
-  if ($stmt->prepare($sql)) { 
-    if (strlen($batch)>0) { 
+  if ($stmt->prepare($sql)) {
+    if (strlen($batch)>0) {
        $stmt->bind_param('s',$batch);
     }
     $stmt->execute();
     $stmt->bind_result($specimencount, $batchid, $date, $name, $remarks, $project, $lab,$filename);
-    while ($stmt->fetch()) { 
+    while ($stmt->fetch()) {
        $result .= "Batch: <a href='image_search.php?mode=qc&batchid=$batchid'>$name</a> on $date with $specimencount sheets.  Project: $project. Lab: $lab. $remarks<br/>\n";
-    } 
+    }
     $stmt->close();
-  } else { 
+  } else {
     $result .= "Query Error: " . $connection->error . $stmt->error;
   }
 
@@ -413,5 +419,5 @@ function list_batches() {
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
- 
+
 ?>
