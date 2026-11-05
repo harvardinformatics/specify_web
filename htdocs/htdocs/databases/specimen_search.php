@@ -80,33 +80,33 @@ $errormessage = "";
 
 $mode = "search";
 
-if ($_GET['browsemode']!="")  {
-	if ($_GET['browsemode']=="families") {
+if (($_GET['browsemode'] ?? '')!="")  {
+	if (($_GET['browsemode'] ?? '')=="families") {
 		$mode = "browse_families";
 	}
-	if ($_GET['browsemode']=="countries") {
+	if (($_GET['browsemode'] ?? '')=="countries") {
 		$mode = "browse_countries";
 	}
-	if ($_GET['browsemode']=="types") {
+	if (($_GET['browsemode'] ?? '')=="types") {
 		$mode = "browse_types";
 	}
 }
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="details") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="details") {
 		$mode = "details";
 	}
-	if ($_GET['mode']=="stats") {
+	if (($_GET['mode'] ?? '')=="stats") {
 		$mode = "stats";
 	}
 }
 
 // Set up for special cases of requests for specific collection objects
 // Where an identifier is given for a single collection object
-if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['barcode'] ?? ''))!="") {
 	$mode = "details";
 }
-if (preg_replace("/[^0-9]/","",$_GET['fragmentid'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['fragmentid'] ?? ''))!="") {
 	$mode = "details";
 }
 
@@ -173,7 +173,8 @@ echo pagefooter();   // defined in function_lib.php
  */
 function details() {
 	global $connection, $errormessage, $debug;
-	$id = preg_replace("/[^0-9]/","",$_GET['id']);
+	$ids = array();
+	$id = preg_replace("/[^0-9]/","",($_GET['id'] ?? ''));
 	if ($id!="") {
 		if (is_array($id)) {
 			$ids = $id;
@@ -181,7 +182,7 @@ function details() {
 			$ids[0] = $id;
 		}
 	}
-	$barcode = preg_replace("/[^0-9]/","",$_GET['barcode']);
+	$barcode = preg_replace("/[^0-9]/","",($_GET['barcode'] ?? ''));
 	if ($barcode != "") {
 		// Barcode number most likely in fragment.identifier, may also be in preparation.identifier.
 		//$sql = "select collectionobjectid from fragment left join preparation on fragment.preparationid = preparation.preparationid " .
@@ -201,7 +202,7 @@ function details() {
 			}
 		}
 	}
-	$fragmentid = preg_replace("/[^0-9]/","",$_GET['fragmentid']);
+	$fragmentid = preg_replace("/[^0-9]/","",($_GET['fragmentid'] ?? ''));
 	if ($fragmentid != "") {
 		$sql = "select collectionobjectid from fragment where fragmentid = ? ";
 		$statement = $connection->prepare($sql);
@@ -267,6 +268,9 @@ function details() {
 						while ($statement->fetch()) {
                                                         $otheritems = "";
                                                         $itemList = "";
+                                                        $barcodelist = "";
+                                                        $barcodelistseparator = "";
+                                                        if (!isset($CatalogNumber)) { $CatalogNumber = ""; }
 							// Retrieve  each collection object
 							if ($debug) { echo "[$CollectionObjectID]"; }
 
@@ -445,9 +449,9 @@ function details() {
 							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
     							preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
-							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+							    preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+							    preg_match("/^128\.103\.155\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
 							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
 							// HUH images known as local files are in IMAGE_LOCAL_FILES table
@@ -680,7 +684,7 @@ function details() {
 									$itemcuration = array();
 									$itemcuration['Harvard University Herbaria Barcode'] = $CatalogNumber;
 									$itemcuration['Herbarium'] = $acronym;
-									if ($provenance != "") { $itemcuration['Previous ownership'].= "$provenance"; }
+									if ($provenance != "") { $itemcuration['Previous ownership'] = "$provenance"; }
 									$item[] = $itemcuration;
 									// get any references linked to the fragment.
  // excicatti example
@@ -964,9 +968,9 @@ function details() {
 									if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
     									preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
     									preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
-    									preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    									preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    									preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    									preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+    									preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+    									preg_match("/^128\.103\.155\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
     									$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
                                         	$lquery = "select loannumber, loan.isclosed, loan.dateclosed, loan.currentduedate, loanreturnpreparation.returneddate ".
@@ -992,7 +996,7 @@ function details() {
                                                                                                           $loannumber = "$loannumber (Due: $currentduedate)";
                                                                                                       }
                                                                                                 }
-												$attributes['Loan Number'] .= $separator.$loannumber;
+												$attributes['Loan Number'] = ($attributes['Loan Number'] ?? '') . $separator.$loannumber;
                                                                                                 $separator = "; ";
 									                        if ($debug===true) {  echo "loannumber[$loannumber]<BR>"; }
                                                                                 }
@@ -1052,9 +1056,9 @@ function details() {
 							if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 							    preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
-							    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-							    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-							    preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+							    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+							    preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+							    preg_match("/^128\.103\.155\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
 							    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
 
@@ -1074,7 +1078,7 @@ function details() {
 							if (trim($otheritems!=""))   { echo $otheritems; }
 							// list of other identifiers for collection object is just array of values, not key-value pairs.
 							foreach ($otheridentifiers as $value) {
-							      if (trim(value!=""))   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
+							      if (trim($value)!="")   { echo "<tr><td class='cap'>Other Number</td><td class='val'>$value</td></tr>"; }
 							}
 							if (trim($typeStatus!=""))   { echo "<tr><td class='cap'>Type Status</td><td class='val'>".htmlspecialchars($typeStatus, ENT_QUOTES, 'UTF-8')."</td></tr>"; }
 							echo "<tr><td class='cap'>Collector</td><td class='val'>$collector</td></tr>";
@@ -1155,7 +1159,7 @@ function details() {
 							                echo "<tr><td class='cap'></td><td class='val'>" . $ahreffullurl . $value . $aclosefullurl . "</td></tr>";
 							            }
 
-							           foreach ($images[$k] as $v) {
+							           foreach (($images[$k] ?? array()) as $v) {
 							               if (trim($v!=""))   {
 							                   echo "<tr><td class='cap'></td><td class='val'>$v</td></tr>";
 							               }
@@ -1167,7 +1171,7 @@ function details() {
 //							           if (trim(value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$value</td></tr>"; }
 //                                 }
 //					 	       }
-							   foreach ($paths as $value) {
+							   foreach (($paths ?? array()) as $value) {
 							       if (trim($value!=""))   { echo "<tr><td class='cap'></td><td class='val'>$barcodelist$value</td></tr>"; }
 					 	       }
 							echo "</table></td>";
@@ -1205,17 +1209,21 @@ function details() {
  */
 function search() {
 	global $connection, $errormessage, $debug;
+	$hasquery = false;
+	$types = "";
+	$parameters = array();
 	$question = "";
 	$locality = "";
 	$country = "";
 
 	// ***** Step 1: Obtain query parameters and assemble query ***********
-	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.\"0-9]/","", $_GET['quick']),0,59);
-	$start = intval(substr(preg_replace("/\D/", "", $_GET['start']), 0, 7));
-	$limit = intval(substr(preg_replace("/\D/", "", $_GET['limit']), 0, 5));
-	if ($start == "")
+	$quick = substr(preg_replace("/[^A-Za-z\ \%\*\.\"0-9]/","", ($_GET['quick'] ?? '')),0,59);
+	$start = intval(substr(preg_replace("/\D/", "", ($_GET['start'] ?? '')), 0, 7));
+	$limit = intval(substr(preg_replace("/\D/", "", ($_GET['limit'] ?? '')), 0, 5));
+	// PHP 8: 0 == "" is false, so test the integer value directly.
+	if ($start <= 0)
 		$start = 0;
-	if ($limit == "")
+	if ($limit <= 0)
 	  $limit = 1000;
 	if ($limit > 10000)
 	  $limit = 10000;
@@ -1240,7 +1248,7 @@ function search() {
 		$and = "";
 		$types = "";
 		$parametercount = 0;
-		$genus = substr(preg_replace("/[^A-Za-z_%*]/","", $_GET['gen']),0,59);
+		$genus = substr(preg_replace("/[^A-Za-z_%*]/","", ($_GET['gen'] ?? '')),0,59);
 		$genus = str_replace("*","%",$genus);
 		if ($genus!="") {
 			$hasquery = true;
@@ -1253,14 +1261,14 @@ function search() {
 			$wherebit .= "$and web_search.genus $operator ? ";
 			$and = " and ";
 		}
-		$istype = substr(preg_replace("/[^a-z]/","", $_GET['istype']),0,59);
+		$istype = substr(preg_replace("/[^a-z]/","", ($_GET['istype'] ?? '')),0,59);
 		if ($istype=="on") {
 			$hasquery = true;
 			$question .= "$and is a type ";
 			$wherebit .= "$and web_search.typestatus is not null and web_search.typestatus <> 'Not a type' ";
 			$and = " and ";
 		}
-		$typestatus = substr(preg_replace("/[^A-Za-z_%*]/","", $_GET['typestatus']),0,59);
+		$typestatus = substr(preg_replace("/[^A-Za-z_%*]/","", ($_GET['typestatus'] ?? '')),0,59);
 		$typestatus = str_replace("*","%",$typestatus);
 		if ($typestatus!="") {
 			if ($typestatus=="any") {
@@ -1285,14 +1293,14 @@ function search() {
 			    $and = " and ";
 			}
 		}
-		$hasimage = substr(preg_replace("/[^a-z]/","", $_GET['hasimage']),0,59);
+		$hasimage = substr(preg_replace("/[^a-z]/","", ($_GET['hasimage'] ?? '')),0,59);
 		if ($hasimage=="on") {
 			$hasquery = true;
 			$question .= "$and has an image ";
 			$wherebit .= "$and i.collectionobjectid is not null ";
 			$and = " and ";
 		}
-		$locality = substr(preg_replace("/[^A-Za-z%*]/","", $_GET['loc']),0,59);
+		$locality = substr(preg_replace("/[^A-Za-z%*]/","", ($_GET['loc'] ?? '')),0,59);
 		$locality = str_replace("*","%",$locality);
 		if ($locality!="") {
 			// Search on both specific locality and on country/state/county.
@@ -1313,7 +1321,7 @@ function search() {
 			$wherebit .= "$and ( web_search.location $operator ? or web_search.country $operator ? or web_search.state $operator ? or web_search.county $operator ? ) ";
 			$and = " and ";
 		}
-		$host = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['host']),0,100);
+		$host = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", ($_GET['host'] ?? '')),0,100);
 		$host = str_replace("*","%",$host);
 		if ($host!="") {
 			$hasquery = true;
@@ -1326,7 +1334,7 @@ function search() {
 			$wherebit .= "$and web_search.host $operator ? ";
 			$and = " and ";
 		}
-		$herbarium = substr(preg_replace("/[^A-Za-z]/","", $_GET['herbarium']),0,100);
+		$herbarium = substr(preg_replace("/[^A-Za-z]/","", ($_GET['herbarium'] ?? '')),0,100);
 		$herbarium = strtoupper($herbarium);
 		if ($herbarium!="") {
 			$hasquery = true;
@@ -1339,7 +1347,7 @@ function search() {
 			$wherebit .= "$and web_search.herbaria $operator ? ";
 			$and = " and ";
 		}
-		$provenance = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['provenance']),0,100);
+		$provenance = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", ($_GET['provenance'] ?? '')),0,100);
 		$provenance = str_replace("*","%",$provenance);
 		if ($provenance!="") {
 		    $provenance = "%$provenance%";   // automatic wildcard search for this field, values highly variable
@@ -1353,7 +1361,7 @@ function search() {
 			$wherebit .= "$and web_search.provenance $operator ? ";
 			$and = " and ";
 		}
-		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['substrate']),0,100);
+		$substrate = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", ($_GET['substrate'] ?? '')),0,100);
 		$substrate = str_replace("*","%",$substrate);
 		if ($substrate!="") {
 			$hasquery = true;
@@ -1366,7 +1374,7 @@ function search() {
 			$wherebit .= "$and web_search.substrate $operator ? ";
 			$and = " and ";
 		}
-		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", $_GET['habitat']),0,100);
+		$habitat = substr(preg_replace("/[^A-Za-z0-9 _%*\[\]\(\)\:\,\.]/","", ($_GET['habitat'] ?? '')),0,100);
 		$habitat = str_replace("*","%",$habitat);
 		if ($habitat!="") {
 			$hasquery = true;
@@ -1379,7 +1387,7 @@ function search() {
 			$wherebit .= "$and web_search.habitat $operator ? ";
 			$and = " and ";
 		}
-		$country = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['country']),0,59);
+		$country = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", ($_GET['country'] ?? '')),0,59);
 		$country = str_replace("*","%",$country);
 		if ($country!="") {
 			$hasquery = true;
@@ -1392,7 +1400,7 @@ function search() {
 			$wherebit .= "$and web_search.country $operator ? ";
 			$and = " and ";
 		}
-		$state = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['state']),0,59);
+		$state = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", ($_GET['state'] ?? '')),0,59);
 		$state = str_replace("*","%",$state);
 		if ($state!="") {
 			$hasquery = true;
@@ -1405,7 +1413,7 @@ function search() {
 			$wherebit .= "$and web_search.state $operator ? ";
 			$and = " and ";
 		}
-		$county = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", $_GET['county']),0,59);
+		$county = substr(preg_replace("/[^A-Za-z _%*\(\)\.\,]/","", ($_GET['county'] ?? '')),0,59);
 		$county = str_replace("*","%",$county);
 		if ($county!="") {
                         $county = "$county%";
@@ -1419,7 +1427,7 @@ function search() {
 			$wherebit .= "$and web_search.county $operator ? ";
 			$and = " and ";
 		}
-		$species = substr(preg_replace("/[^A-Za-z\- _%*]/","", $_GET['sp']),0,59);
+		$species = substr(preg_replace("/[^A-Za-z\- _%*]/","", ($_GET['sp'] ?? '')),0,59);
 		$species = str_replace("*","%",$species);
 		if ($species!="") {
 			$hasquery = true;
@@ -1432,7 +1440,7 @@ function search() {
 			$wherebit .= "$and web_search.species $operator ? ";
 			$and = " and ";
 		}
-		$infraspecific = substr(preg_replace("/[^A-Za-z\- _%*]/","", $_GET['infra']),0,59);
+		$infraspecific = substr(preg_replace("/[^A-Za-z\- _%*]/","", ($_GET['infra'] ?? '')),0,59);
 		$infraspecific = str_replace("*","%",$infraspecific);
 		if ($infraspecific!="") {
 			$hasquery = true;
@@ -1445,7 +1453,7 @@ function search() {
 			$wherebit .= "$and web_search.infraspecific $operator ? ";
 			$and = " and ";
 		}
-		$author = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*]/","", $_GET['author']),0,59);
+		$author = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _%*]/","", ($_GET['author'] ?? '')),0,59);
 		$author = str_replace("*","%",$author);
 		if ($author!="") {
 			$hasquery = true;
@@ -1458,7 +1466,7 @@ function search() {
 			$wherebit .= "$and web_search.author $operator ? ";
 			$and = " and ";
 		}
-		$collector = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,\]\[]/","", urldecode($_GET['cltr'])),0,59);
+		$collector = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ _&%*\.\,\]\[]/","", urldecode(($_GET['cltr'] ?? ''))),0,59);
 		$collector = str_replace("*","%",$collector);
 		if ($collector!="") {
 			$hasquery = true;
@@ -1471,7 +1479,7 @@ function search() {
 			$wherebit .= "$and web_search.collector $operator ? ";
 			$and = " and ";
 		}
-		$collectorid = preg_replace("/[^0-9]/","", $_GET['cltrid']);
+		$collectorid = preg_replace("/[^0-9]/","", ($_GET['cltrid'] ?? ''));
 		if ($collectorid!="") {
 			$hasquery = true;
 			$question .= "$and collectorid:[$collectorid]";
@@ -1482,7 +1490,7 @@ function search() {
 			$wherebit .= "$and web_search.collectorid $operator ? ";
 			$and = " and ";
 		}
-		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*\-]/","", $_GET['collectornumber']),0,59);
+		$collectornumber = substr(preg_replace("/[^01-9\.A-Za-z _%*\-]/","", ($_GET['collectornumber'] ?? '')),0,59);
 		$collectornumber = str_replace("*","%",$collectornumber);
 		if ($collectornumber!="") {
 			$hasquery = true;
@@ -1495,7 +1503,7 @@ function search() {
 			$wherebit .= "$and web_search.collectornumber $operator ? ";
 			$and = " and ";
 		}
-		$yearpublished = substr(preg_replace("/[^0-9 _%*]/","", $_GET['year']),0,59);
+		$yearpublished = substr(preg_replace("/[^0-9 _%*]/","", ($_GET['year'] ?? '')),0,59);
 		$yearpublished = str_replace("*","%",$yearpublished);
 		if ($yearpublished!="") {
 			$hasquery = true;
@@ -1508,7 +1516,7 @@ function search() {
 			$wherebit .= "$and web_search.yearpublished $operator ? ";
 			$and = " and ";
 		}
-		$yearcollected = substr(preg_replace("/[^0-9 _%*]/","", $_GET['yearcollected']),0,59);
+		$yearcollected = substr(preg_replace("/[^0-9 _%*]/","", ($_GET['yearcollected'] ?? '')),0,59);
 		$yearcollected = str_replace("*","%",$yearcollected);
 		if ($yearcollected!="") {
 			$hasquery = true;
@@ -1528,7 +1536,7 @@ function search() {
 
 			$and = " and ";
 		}
-		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", $_GET['family']),0,59);
+		$family = substr(preg_replace("/[^A-Za-z%\_\*]/","", ($_GET['family'] ?? '')),0,59);
 		if ($family!="") {
 			$family = str_replace("*","%",$family);   // change to sql wildcard.
 			$hasquery = true;
@@ -1541,9 +1549,9 @@ function search() {
 			$wherebit .= "$and web_search.family $operator ? ";
 			$and = " and ";
 		}
-		$project = explode('|',substr(preg_replace("/[^A-Za-z0-9 \|%\_\*]/","", $_GET['project']),0,59));
+		$project = explode('|',substr(preg_replace("/[^A-Za-z0-9 \|%\_\*]/","", ($_GET['project'] ?? '')),0,59));
 		$projid = $project[0];
-		$projname = $project[1];
+		$projname = $project[1] ?? '';
 		if ($projid!="") {
 			$hasquery = true;
 			$question .= "$and project:[$projname]";
@@ -1583,9 +1591,9 @@ function search() {
 		if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
     		preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
    			preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
-    		preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    		preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    		preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    		preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+    		preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+    		preg_match("/^128\.103\.155\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
     		$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
     			$redactlocality = false;
@@ -1595,18 +1603,10 @@ function search() {
 			if ($quick!="") {
 				$statement->bind_param("s",$quick);
 			} else {
-				$array = Array();
-				$array[] = $types;
-				foreach($parameters as $par)
-				   $array[] = $par;
-                		if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
-		                	// work around for bug in __call, or is it?
-                   			// http://bugs.php.net/bug.php?id=50394
-                   			// http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
-                   			call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
-                		} else {
-                   			call_user_func_array(array($statement, 'bind_param'),$array);
-                		}
+				// PHP 8: bind_param("") throws ValueError, so only bind when there are parameters.
+				if ($types !== "") {
+					$statement->bind_param($types, ...$parameters);
+				}
 			}
 			$statement->execute();
 		    // Note: Changes to select field list need to be synchronized with queries on web_search and on web_quicksearch above.
@@ -1748,7 +1748,7 @@ function search() {
 						$array[] = $types;
 						foreach($collectorparameters as $par)
 						$array[] = $par;
-						call_user_func_array(array($statement, 'bind_param'),$array);
+						bind_param_array($statement, $array);
 						$statement->execute();
 						$statement->bind_result($collector, $count, $collectornumber);
 						$statement->store_result();
@@ -1792,7 +1792,7 @@ if (false) { //				if ($host!= "" && preg_match('/[%_]/',$host)==0) {
 						$array[] = $types;
 						foreach($hostparameters as $par)
 						$array[] = $par;
-						call_user_func_array(array($statement, 'bind_param'),$array);
+						bind_param_array($statement, $array);
 						$statement->execute();
 						$statement->bind_result($host, $count);
 						$statement->store_result();
@@ -1832,7 +1832,7 @@ if (false) { //				if ($substrate!= "" && preg_match('/[%_]/',$substrate)==0) {
 						$array[] = $types;
 						foreach($substrateparameters as $par)
 						$array[] = $par;
-						call_user_func_array(array($statement, 'bind_param'),$array);
+						bind_param_array($statement, $array);
 						$statement->execute();
 						$statement->bind_result($substrate, $count);
 						$statement->store_result();
@@ -1872,7 +1872,7 @@ if (false) { //                if ($habitat!= "" && preg_match('/[%_]/',$habitat
 						$array[] = $types;
 						foreach($habitatparameters as $par)
 						$array[] = $par;
-						call_user_func_array(array($statement, 'bind_param'),$array);
+						bind_param_array($statement, $array);
 						$statement->execute();
 						$statement->bind_result($habitat, $count);
 						$statement->store_result();

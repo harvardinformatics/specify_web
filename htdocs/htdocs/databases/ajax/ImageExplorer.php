@@ -1,7 +1,7 @@
 <?php
 include_once('connection_library.php');
 
-if ($debug) {
+if (!empty($debug)) {
     mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
 } else {
     mysqli_report(MYSQLI_REPORT_OFF);
@@ -93,13 +93,13 @@ class ImageExplorer{
                       $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1]);
                    }
                    if (strlen($sql->types)==3) {
-                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2]);
+                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2]);
                    }
                    if (strlen($sql->types)==4) {
-                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2], $sql->params[3]);
+                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2], $sql->params[3]);
                    }
                    if (strlen($sql->types)==5) {
-                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->prams[2], $sql->params[3], $sql->params[4]);
+                      $stmt->bind_param($sql->types, $sql->params[0], $sql->params[1], $sql->params[2], $sql->params[3], $sql->params[4]);
                    }
                    //call_user_func_array('mysqli_stmt_bind_param', 
                    //     array_merge (array($stmt, $sql->types), $this->correctReferences($sql->params))

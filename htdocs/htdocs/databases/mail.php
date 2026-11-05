@@ -10,13 +10,13 @@ $init_address = "huh_it@oeb.harvard.edu";
 $reply = "Submission received.  Thank you";
 
 
-$reqtype = preg_replace("/[^a-z]/","",$_POST['reqtype']);
-$name = preg_replace("/[^A-Z\ a-z::alpha::\.]/","",$_POST['name']);
-$replyTo = preg_replace("/[^A-Za-z0-9\.\@_\-~#]/","",$_POST['email']);
-$msgtext = $_POST['usertext'];
+$reqtype = preg_replace("/[^a-z]/","",($_POST['reqtype'] ?? ''));
+$name = preg_replace("/[^A-Z\ a-z::alpha::\.]/","",($_POST['name'] ?? ''));
+$replyTo = preg_replace("/[^A-Za-z0-9\.\@_\-~#]/","",($_POST['email'] ?? ''));
+$msgtext = ($_POST['usertext'] ?? '');
 $msgtext = trim($msgtext);
 
-$gRecaptchaResponse = $_POST['g-recaptcha-response'];
+$gRecaptchaResponse = ($_POST['g-recaptcha-response'] ?? '');
 $recaptcha = new ReCaptcha('6LcDywUTAAAAAGr4rLkqhyMyGLQdSinNH-fU4c6P');
 $recaptresponse = $recaptcha->verify($gRecaptchaResponse, $_SERVER['REMOTE_ADDR']);
 if ($recaptresponse->isSuccess()) {
@@ -36,7 +36,7 @@ if ($recaptresponse->isSuccess()) {
 
    $body = "The following message was submitted to the HUH website by " . $name .". \n";
 
-   $replyTo = $replyTo.trim();
+   $replyTo = trim($replyTo);
    $replyHeader = "";
    if ($replyTo!="") {
        $body .= "Please use ". $replyTo ." to respond to the sender.\r\n\r\n";

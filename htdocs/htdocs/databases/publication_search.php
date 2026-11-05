@@ -36,19 +36,19 @@ $errormessage = "";
 
 $mode = "search";
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="details") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="details") {
 		$mode = "details";
 	}
-	if ($_GET['mode']=="stats") {
+	if (($_GET['mode'] ?? '')=="stats") {
 		$mode = "stats";
 	}
-	if ($_GET['mode']=="exsiccatae") {
+	if (($_GET['mode'] ?? '')=="exsiccatae") {
 		$mode = "exsiccatae";
 	}
 }
 
-if (preg_replace("/[^0-9]/","",$_GET['barcode'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['barcode'] ?? ''))!="") {
 	$mode = "details";
 }
 
@@ -102,13 +102,13 @@ echo pagefooter();
 
 function details() {
 	global $connection, $errormessage, $debug;
-	$id = $_GET['id'];
+	$id = ($_GET['id'] ?? '');
 	if (is_array($id)) {
 		$ids = $id;
 	} else {
 		$ids[0] = $id;
 	}
-	$guid = preg_replace("/[^0-9a-zA-Z\-]/","",$_GET['guid']);
+	$guid = preg_replace("/[^0-9a-zA-Z\-]/","",($_GET['guid'] ?? ''));
 	if ($guid != "") {
 		$sql = "select referenceworkid from referencework where guid = ? ";
 		$statement = $connection->prepare($sql);
@@ -217,7 +217,7 @@ function details() {
 					   } else {
 						echo "Error: " . $connection->error;
 					   }
-                                           $statement_pre->close();
+                                           if ($statement_pre) { $statement_pre->close(); }
                                         }
                                         if ($succededby!=null) {
 					   $query = "select title from referencework where referenceworkid = ? ";
@@ -232,7 +232,7 @@ function details() {
 					   } else {
 						echo "Error: " . $connection->error;
 					   }
-                                           $statement_pre->close();
+                                           if ($statement_pre) { $statement_pre->close(); }
                                         }
 
 					// Variant titles
@@ -251,7 +251,7 @@ function details() {
 					} else {
 					   echo "Error: " . $connection->error;
 					}
-                                        $statement_pre->close();
+                                        if ($statement_pre) { $statement_pre->close(); }
 
 					echo "<tr><td class='cap'>Title</td><td class='val'>$title</td></tr>";
 					if (trim($abbreviation!=""))   { echo "<tr><td class='cap'>Abbreviation</td><td class='val'>$abbreviation</td></tr>"; }
@@ -296,7 +296,7 @@ function details() {
 					    }
 			        }
 				}
-			    $statement_ts->close();
+			    if ($statement_ts) { $statement_ts->close(); }
 				$query  = "select taxon.fullname, taxon.author, d.typestatusname, d.fragmentid, dc.remarks, dc.text1, dc.text2 " .
 						"from determination d left join taxon on d.taxonid = taxon.taxonid " .
 						"left join determinationcitation dc on d.determinationid = dc.determinationid " .
@@ -318,7 +318,7 @@ function details() {
 					    }
 			        }
 				}
-			    $statement_cit->close();
+			    if ($statement_cit) { $statement_cit->close(); }
 			}
 			$statement->close();
 		}
@@ -336,12 +336,15 @@ function search() {
         $relaxedwherebit = " where " ;
 	$and = "";
 	$types = "";
+	$parameters = array();
+	$relaxedparameters = array();
+	$hasquery = false;
 	$joins = "";
 	$order = "";
 	$parametercount = 0;
         $relaxedparametercount = 0;
 	$hasauthor = false;
-	$publisher = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['publisher']),0,59);
+	$publisher = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", ($_GET['publisher'] ?? '')),0,59);
 	if ($publisher!="") {
 		$hasquery = true;
 		$question .= "$and publisher:[$publisher] ";
@@ -358,7 +361,7 @@ function search() {
 		$relaxedparametercount++;
 		$and = " and ";
 	}
-	$place = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['place']),0,59);
+	$place = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", ($_GET['place'] ?? '')),0,59);
 	if ($place!="") {
 		$hasquery = true;
 		$question .= "$and place of publication:[$place] ";
@@ -375,7 +378,7 @@ function search() {
 		$relaxedparametercount++;
 		$and = " and ";
 	}
-	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", $_GET['title']),0,59);
+	$title = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ\:\.\, _0-9%]/","", ($_GET['title'] ?? '')),0,59);
 	if ($title!="") {
 		$hasquery = true;
 		$question .= "$and title:[$title] ";
@@ -401,7 +404,7 @@ function search() {
 		$relaxedparametercount++;
 		$and = " and ";
 	}
-	$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ_0-9\. %]/","", $_GET['author']),0,59);
+	$author = substr(preg_replace("/[^A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ_0-9\. %]/","", ($_GET['author'] ?? '')),0,59);
 	if ($author!="") {
 		$hasauthor = true;
 		$hasquery = true;
@@ -429,7 +432,7 @@ function search() {
 		$and = " and ";
 	} else {
 		// author or agentid search is exclusive.
-	$agentid = substr(preg_replace("/[^A-Za-z_0-9\. %]/","", $_GET['agentid']),0,59);
+	$agentid = substr(preg_replace("/[^A-Za-z_0-9\. %]/","", ($_GET['agentid'] ?? '')),0,59);
 	if ($agentid!="") {
 		$hasauthor = true;
 		$hasquery = true;
@@ -446,9 +449,9 @@ function search() {
 		$and = " and ";
 	}
 	}
-	$identifier = substr(preg_replace("/[^A-Za-z\/\\0-9\.%]/","", $_GET['identifier']),0,59);
+	$identifier = substr(preg_replace("/[^A-Za-z\/\\0-9\.%]/","", ($_GET['identifier'] ?? '')),0,59);
 	if ($identifier!="") {
-		$ttype = substr(preg_replace("/[^A-Z0-9\.%]/","", $_GET['type']),0,59);
+		$ttype = substr(preg_replace("/[^A-Z0-9\.%]/","", ($_GET['type'] ?? '')),0,59);
 		$hasquery = true;
 		$question .= "$and ( identifier:[$identifier] and type = [$ttype] )";
 		$types .= "ss";
@@ -493,14 +496,7 @@ function search() {
 			    $array[] = $par;
 			}
 			//call_user_func_array(array($statement, 'bind_param'),$array);
-            if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
-               // work around for bug in __call, or is it?
-               // http://bugs.php.net/bug.php?id=50394
-               // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
-               call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
-            } else {
-               call_user_func_array(array($statement, 'bind_param'),$array);
-            }
+            bind_param_array($statement, $array);
 
 			$statement->execute();
 			if ($hasauthor) {
@@ -525,11 +521,7 @@ function search() {
 			   foreach($relaxedparameters as $par) {
 			      $rarray[] = $par;
 			   }
-                           if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
-                               call_user_func_array(array($statement, 'bind_param'),make_values_referenced($rarray));
-                           } else {
-                               call_user_func_array(array($statement, 'bind_param'),$rarray);
-                           }
+                           bind_param_array($statement, $rarray);
 		   	   $statement->execute();
 			   if ($hasauthor) {
 				$statement->bind_result($referenceid,$title,$authorlast, $authorfirst);
@@ -599,7 +591,7 @@ function search() {
 					$array[] = $types;
 					foreach($authorparameters as $par)
 					      $array[] = $par;
-					call_user_func_array(array($statement, 'bind_param'),$array);
+					bind_param_array($statement, $array);
 					$statement->execute();
 					$statement->bind_result($authorname, $agentid, $count);
 					$statement->store_result();
@@ -646,7 +638,7 @@ function browse_exsiccatae() {
    } else {
        $errormessage = $connection->error;
    }
-   $statement->close();
+   if ($statement) { $statement->close(); }
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);

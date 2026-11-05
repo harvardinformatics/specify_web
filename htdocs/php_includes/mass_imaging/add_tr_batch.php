@@ -52,7 +52,7 @@ if ($statement->prepare($sql)) {
         $statement->bind_result($trbatchid);
         $statement->store_result();
 				if ($statement->num_rows>0) {
-				  if ($debug) { echo "TR Batch exists for image batch $imagebatchid, skipping.\n"; }
+				  if ($debug) { echo "TR Batch exists ($trbatchid) for image batch $imagebatchid, skipping.\n"; }
 					exit(0);
 				} else {
 					if ($debug) { echo "Inserting TR_BATCH.\n"; }

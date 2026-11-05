@@ -40,6 +40,26 @@ function make_values_referenced($arr){
     return $refs;
 }
 
+/**
+ * Bind an array of the form array($types, $param1, $param2, ...) to a prepared statement.
+ *
+ * Replaces call_user_func_array(array($statement,'bind_param'),$array), which under
+ * PHP 8 emits a warning for every parameter not passed by reference, and skips binding
+ * entirely when there are no parameters (bind_param("") throws a ValueError in PHP 8).
+ *
+ * @param $statement a mysqli_stmt
+ * @param $array the type string followed by the values to bind.
+ * @return true on success (or nothing to bind), false on failure.
+ */
+function bind_param_array($statement, $array) {
+    $types = array_shift($array);
+    if ($types === null || $types === "") {
+        return true;
+    }
+    $values = array_values($array);
+    return $statement->bind_param($types, ...$values);
+}
+
 function barcode_to_catalog_number($aBarcode) {
   $LOCALLENGTH = 9;    // HUH Barcode is a zero padded string of length 9
   $returnvalue = $aBarcode;
@@ -59,6 +79,7 @@ function transformDate($date, $precision) {
    if ($precision <= 0 || $precision > 3)
       return "";
 
+   $date = (string)$date;  // DB value may be NULL; PHP 8.1 deprecates passing null to preg_match()
    if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
      return "";
 
@@ -89,6 +110,7 @@ function transformDateText($date, $precision) {
    if ($precision <= 0 || $precision > 3)
       return "";
 
+   $date = (string)$date;  // DB value may be NULL; PHP 8.1 deprecates passing null to preg_match()
    if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
      return "";
 
@@ -120,9 +142,9 @@ function pageheader($mode = "specimen",$topbar = "on") {
 function pagefooter() {
   global $useheader;
   if  ($useheader=='hwpi') {
-    return pagefooter_new($mode);
+    return pagefooter_new();
   } else {
-    return pagefooter_old($mode);
+    return pagefooter_old();
   }
 }
 
@@ -134,6 +156,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 	$active['p'] = "";
 	$active['b'] = "";
 	$active['i'] = " ";
+	$active['t'] = "";
 	switch ($mode) {
 		case "off":
 			$title = "Databases";
@@ -360,6 +383,7 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 	$active['p'] = "";
 	$active['b'] = "";
 	$active['i'] = " ";
+	$active['t'] = "";
 	switch ($mode) {
 		case "off":
 			$title = "Databases";
@@ -717,7 +741,7 @@ function pagefooter_new() {
             mode of this application (mode=search&$field=valueOfFieldName)
  * @returns a list of <a href=  href='specimen_search.php?mode=search&$field={value}'>{value}</a> ({count}) <BR>
 **/
-function nameCountSearch($query, $field, $cachequery) {
+function nameCountSearch($query, $field, $cachequery = "") {
     global $connection, $errormessage;
 
        $result = "";
@@ -765,17 +789,17 @@ function stats() {
 
    $returnvalue .= "<h2>Numbers of specimens in major groups.</h2>";
    $picklistName = 'HUH Taxon Group'; //customize for your own instance of Specify
-   $query = "select count(*), Title from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
+   $query = "select count(*), Title, 0 from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
    $returnvalue .= nameCountSearch($query, 'taxonGroup');
 
    $returnvalue .= "<h2>Numbers of specimens by Herbarium.</h2>";
    //you need to customize this for the way you have collections, collection codes and acronyms managed in Specify for your institution
    $query = "select count(PreparationId), preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid group by preparationattribute.text3";
-   $query = "select count(collectionobjectid), text1 from fragment group by text1";
+   $query = "select count(collectionobjectid), text1, 0 from fragment group by text1";
    $returnvalue .= nameCountSearch($query, 'herbarium');
 
    $returnvalue .= "<h2>Numbers of specimens by Type Status.</h2>";
-   $query = "select count(collectionobjectid), typestatusname from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
+   $query = "select count(collectionobjectid), typestatusname, 0 from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
    $returnvalue .= nameCountSearch($query, 'typestatus');
 
    return $returnvalue;

@@ -37,22 +37,22 @@ $errormessage = "";
 
 $mode = "search";
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="details") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="details") {
 		$mode = "details";
 	}
-	if ($_GET['mode']=="stats") {
+	if (($_GET['mode'] ?? '')=="stats") {
 		$mode = "stats";
 	}
 }
 
-if (preg_replace("/[^0-9]/","",$_GET['taxonid'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['taxonid'] ?? ''))!="") {
 	$mode = "details";
 }
-if (preg_replace("/[^0-9]/","",$_GET['id'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['id'] ?? ''))!="") {
 	$mode = "details";
 }
-if (preg_replace("/[^0-9A-Za-z\-]/","",$_GET['taxonuuid'])!="") {
+if (preg_replace("/[^0-9A-Za-z\-]/","",($_GET['taxonuuid'] ?? ''))!="") {
 	$mode = "details";
 }
 
@@ -91,13 +91,13 @@ echo pagefooter();
 
 function details() {
 	global $connection, $errormessage, $debug;
-	$id = $_GET['id'];
+	$id = ($_GET['id'] ?? '');
 	if (is_array($id)) {
 		$ids = $id;
 	} else {
 		$ids[0] = $id;
 	}
-    $uuid = preg_replace("/[^0-9A-Za-z\-]/","",$_GET['taxonguid']);
+    $uuid = preg_replace("/[^0-9A-Za-z\-]/","",($_GET['taxonguid'] ?? ''));
     if ($uuid != "") {
         $query = "select primarykey, state from guids where tablename = 'taxon' and uuid = ? ";
         if ($debug) { echo "[$uuid]"; }
@@ -116,7 +116,7 @@ function details() {
            }
         }
     } else {
-	    $taxonid = preg_replace("/[^0-9]/","",$_GET['taxonid']);
+	    $taxonid = preg_replace("/[^0-9]/","",($_GET['taxonid'] ?? ''));
     }
 	if ($taxonid != "") {
 		$ids[] = $taxonid;
@@ -277,7 +277,7 @@ function details() {
 										}
 										$link .= "'";
 									}
-									$statement_co->close();
+									if ($statement_co) { $statement_co->close(); }
 									// for each year, provide the count of the number of collections objects held with a link to those collection objects.
 									if ($year=="") { $year = "[no date]"; }
                                     $collist .= "$collistseparator<a $link>$year ($count)</a>";
@@ -305,7 +305,7 @@ function details() {
 
 function search() {
   global $connection, $errormessage, $debug;
-  $name = preg_replace("/[^A-Za-z %*]/","",$_GET['name']);
+  $name = preg_replace("/[^A-Za-z %*]/","",($_GET['name'] ?? ''));
 
   form ($name);
 

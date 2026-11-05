@@ -41,31 +41,31 @@ $isinternal = FALSE;
 if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
     preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
 	preg_match("/^128\.103\.155\./",$_SERVER['REMOTE_ADDR']) ||
-    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-	preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-	preg_match("/^128\.103\.155\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+	preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+	preg_match("/^128\.103\.155\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
 	$_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
    $isinternal = TRUE;
 }
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="family_type_count") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="family_type_count") {
 		$mode = "family_type_count";
 	}
-	if ($_GET['mode']=="herbarium_type_count") {
+	if (($_GET['mode'] ?? '')=="herbarium_type_count") {
 		$mode = "herbarium_type_count";
 	}
-	if ($_GET['mode']=="family_type_count_summary") {
+	if (($_GET['mode'] ?? '')=="family_type_count_summary") {
 		$mode = "family_type_count_summary";
 	}
-	if ($_GET['mode']=="annualreport") {
+	if (($_GET['mode'] ?? '')=="annualreport") {
 		$mode = "annualreport";
 	}
-	if ($_GET['mode']=="annualreport_details") {
+	if (($_GET['mode'] ?? '')=="annualreport_details") {
 		$mode = "annualreport_details";
 	}
-	if ($_GET['mode']=="loan_list") {
+	if (($_GET['mode'] ?? '')=="loan_list") {
 		$mode = "loan_list";
 	}
 }
@@ -86,11 +86,11 @@ if ($isinternal===TRUE) {
 		        echo herbarium_type_count();
 		        break;
 		    case "annualreport":
-                        $year = preg_replace("/[^0-9]/","",$_GET['year']);
+                        $year = preg_replace("/[^0-9]/","",($_GET['year'] ?? ''));
 		        echo annualreport($year,FALSE);
 		        break;
 		    case "annualreport_details":
-                        $year = preg_replace("/[^0-9]/","",$_GET['year']);
+                        $year = preg_replace("/[^0-9]/","",($_GET['year'] ?? ''));
 		        echo annualreport($year,TRUE);
 		        break;
 		    case "family_type_count_summary":
@@ -462,7 +462,7 @@ function annualreport($year,$showdetails=FALSE) {
 
    $returnvalue .= tablekey();
 
--   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
+   $query = "select count(distinct loan.loanid), sum(itemcount), sum(nonspecimencount),sum(typecount), count(identifier), fragment.text1, loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, loan.text1, text3";
 
    $query = "select count(distinct loan.loanid), sum(itemcount), ifnull(sum(nonspecimencount),0),ifnull(sum(typecount),0), count(identifier), ifnull(fragment.text1,'Lot'), loan.text2, text3 from loan left join loanpreparation on loan.loanid = loanpreparation.loanid  left join fragment on loanpreparation.preparationid = fragment.preparationid where loandate > '$datestart' and loandate < '$dateend' group by fragment.text1, text3, loan.text2 order by loan.text2, fragment.text1, loan.text1, text3";
    $returnvalue .= transactionitemtotals($query,"Counts of material outgoing in Loans opened in fiscal year $syear-$year");
