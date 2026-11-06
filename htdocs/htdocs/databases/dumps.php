@@ -677,7 +677,7 @@ if ( !function_exists('sys_get_temp_dir')) {
         $linearray = array ("occurrenceID","institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
-        $genus = $genus . ' %';
+        //$genus = $genus . ' %';   // copied from genus_dwc(); $genus is not used here
         if ($debug) { echo "[$projectid]<BR>"; }
 	if ($statement) {
 		$statement->bind_param('i',$projectid);
@@ -733,11 +733,11 @@ if ( !function_exists('sys_get_temp_dir')) {
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
         $barcode = '%'.$barcode;
-        if ($debug) { echo "[$genus]<BR>"; }
+        if ($debug) { echo "[$barcode]<BR>"; }
 	if ($statement) {
 		$statement->bind_param('s',$barcode);
 		$statement->execute();
-                if ($debug) { echo "[$genus]<BR>"; }
+                if ($debug) { echo "[$barcode]<BR>"; }
 		$statement->bind_result($fragmentguid,$institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
 		$statement->store_result();
 		while ($statement->fetch()) {

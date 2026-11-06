@@ -544,10 +544,13 @@ function search() {
 				echo "<BR><div>\n";
 				$oldauthor = "";
 				while ($statement->fetch()) {
-					$currentauthor = $authorlast.$authorfirst;
-					if ($hasauthor && $oldauthor!=$currentauthor) {
-						echo "<strong>$authorlast, $authorfirst</strong><BR>";
-						$oldauthor = $currentauthor;
+					// $authorlast/$authorfirst are only bound when the query includes authors.
+					if ($hasauthor) {
+						$currentauthor = $authorlast.$authorfirst;
+						if ($oldauthor!=$currentauthor) {
+							echo "<strong>$authorlast, $authorfirst</strong><BR>";
+							$oldauthor = $currentauthor;
+						}
 					}
 					echo "<input type='checkbox' name='id[]' value='$referenceid'> <a href='publication_search.php?mode=details&id=$referenceid'>$title</a> ";
 					echo "<BR>\n";

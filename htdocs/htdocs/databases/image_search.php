@@ -324,6 +324,9 @@ function batch_qc() {
 function batch_details($batchid) {
   global $connection;
   $result = "<br/>";
+  $setcount = 0;
+  $collcount = 0;
+  $imagecount = 0;
 
   $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks, s.caption, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
   $stmt = $connection->stmt_init();

@@ -546,6 +546,7 @@ function list_entry_for_collectingevents_without_locality() {
 function collectingevents_without_locality($agentid) { 
 	global $connection, $debug;
    $returnvalue = "";
+   $agent = "";
    $query = " select collectionobjectid, collectionobject.timestampcreated, agent.lastname, collectingevent.remarks, collectionobject.remarks " .
    		" from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
    		" left join agent on collectionobject.createdbyagentid = agent.agentid " .
@@ -674,6 +675,8 @@ function person_week_records ($person,$year,$week) {
 function weekly_rate($type='created') { 
    global $connection, $debug;
    $returnvalue = "";
+   $fullist = "";
+   $summary = "";
    if ($type=='modified') { 
    	  $type='last modified';
    	  $effort = "does not capture";

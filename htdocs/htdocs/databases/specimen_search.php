@@ -811,16 +811,16 @@ function details() {
 												}
 												if (trim($determinedDate)!="") {
 													$determinedDate = transformDateText($determinedDate, $determinedDatePrecision);
-													$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
+													//$determinationHistory.= "<tr class='item_row'><td class='cap'>DateDetermined</td><td class='val'>$determinedDate</td></tr>";
 													$determination['Date Determined'] = "$determinedDate";
 												}
                                                                                                 $determinationRemarks = str_replace("[]","",$determinationRemarks);
 												if (trim($determinationRemarks)!="") {
-													$determinationHistory.= "<tr class='item_row'><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
+													//$determinationHistory.= "<tr class='item_row'><td class='cap'>Determination Remarks</td><td class='val'>$determinationRemarks</td></tr>";
 													$determination['Determination Remarks'] = "$determinationRemarks";
 												}
 												if (trim($text2)!="") {
-													$determinationHistory.= "<tr class='item_row'><td class='cap'>Annotation Text</td><td class='val'>$text2</td></tr>";
+													//$determinationHistory.= "<tr class='item_row'><td class='cap'>Annotation Text</td><td class='val'>$text2</td></tr>";
 													$determination['Annotation Text'] = "$text2";
 												}
 												// If a CITES listed species, set redactlocality flag.

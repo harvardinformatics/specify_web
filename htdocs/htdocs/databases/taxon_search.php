@@ -247,6 +247,8 @@ function details() {
 							$statement_geo->store_result();
 							if ($statement_geo->num_rows()>0 ) {
                                 $records = 0;
+                                $collist = "";
+                                $collistseparator = "";
 								while ($statement_geo->fetch()) {
                                     $records += $count;
 									// for each year

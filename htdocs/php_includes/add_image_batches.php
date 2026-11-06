@@ -334,11 +334,11 @@ function createThumbnail($base,$path,$filename,$fragmentid,$barcode) {
             } else {
                // if not, insert an image local file record.
                $insert = "insert into IMAGE_LOCAL_FILE (fragmentid,base,path,filename,barcode,extension,mimetype) values (?,?,?,?,?,?,?)";
+               $extension = "jpg";
+               $mimetype = "image/jpeg";
                if ($debug) { echo "$insert [$fragmentid][$tpath][$tfile][$barcode][$extension][$mimetype]\n"; }
                $statement2 = $connection->stmt_init();
                $statement2->prepare($insert);
-               $extension = "jpg";
-               $mimetype = "image/jpeg";
                $statement2->bind_param("issssss",$fragmentid,$base,$tpath,$tfile,$barcode,$extension,$mimetype);
                if ($statement2->execute()) {
                   if ($statement2->affected_rows==1) {

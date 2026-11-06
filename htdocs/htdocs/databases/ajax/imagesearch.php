@@ -9,6 +9,8 @@ include_once('ImageExplorer.php');
     if (strlen($start)==0) { $start = 0; }
 
     $queryArray = Array();
+    $querytext = "";
+    $imageDomain = "";  // prefix for image URIs; was never set, so URIs are used as-is
  
     $query = str_replace('\\','',$query);
 

@@ -724,7 +724,7 @@ function search() {
 	$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", ($_GET['specialty'] ?? '')),0,59);
 	if ($specialty!="") {
 		$hasquery = true;
-		$question .= "$and author specialty:[$authorspecialty] ";
+		$question .= "$and author specialty:[$specialty] ";
 		$types .= "s";
 		$operator = "=";
 		$parameters[$parametercount] = &$specialty;
