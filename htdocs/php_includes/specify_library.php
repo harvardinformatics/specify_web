@@ -23,6 +23,10 @@
 
 // Uncomment to turn on debugging
 //$debug = true;
+// Default to no debugging when neither the page nor connection_library.php has set $debug
+// (PHP 8 warns when an undefined variable is read).  Pages that set $debug before
+// including this file keep their value.
+if (!isset($debug)) { $debug = false; }
 
 // set to "hwpi" to turn on new page header/footer
 // $useheader = 'old';
