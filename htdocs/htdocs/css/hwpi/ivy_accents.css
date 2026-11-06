@@ -1,0 +1,228 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+
+
+body,
+.cke_editable *  {
+	font-family: 'Roboto',Baskerville,Palatino,'Palatino Linotype','Book Antiqua','Times New Roman',serif;
+    font-size: 14px;
+ 
+}
+
+
+h1#page-title {
+    font-size: 32px;
+
+}
+
+.not-front #content-column {
+    font-size: 14px;
+}
+
+#header {
+     background: none repeat scroll 0px 0px #EBEBEB;
+     border-bottom: 2px solid #DDDDDD;
+     color: #303030;
+}
+
+.not-front.two-sidebars #content-column .content-inner {
+    border-right: none;
+}
+
+#menu-bar {
+     background: none repeat scroll 0px 0px #FFFFFF;
+     border-bottom: 1px solid #DDDDDD;
+}
+
+#menu-bar ul.nice-menu .menuparent.over > a,
+#menu-bar ul.nice-menu a.active, #menu-bar ul.nice-menu a:hover {
+     background: none repeat scroll 0% 0% #666666;
+     -moz-border-radius-topleft: 3px;
+-webkit-border-top-left-radius: 3px;
+ border-top-left-radius: 3px;
+-moz-border-radius-topright: 3px;
+-webkit-border-top-right-radius: 3px;
+border-top-right-radius: 3px;
+}
+
+#menu-bar ul.nice-menu ul {
+    background: #EBEBEB;
+    /*top: 3.36em !important;*/
+}
+
+
+#menu-bar ul.nice-menu .menuparent a:before {
+  background-position: -23px -566px; /* Ivy Arrow */
+}
+
+#menu-bar ul.nice-menu .menuparent.over > a,
+#menu-bar ul.nice-menu .menuparent a:hover,
+#menu-bar ul.nice-menu .menuparent a.active {
+  background-color: #666;
+  color: #FFFFFF;
+}
+
+#menu-bar ul.nice-menu .menuparent.over > a:before,
+#menu-bar ul.nice-menu .menuparent a:hover:before,
+#menu-bar ul.nice-menu .menuparent a.active:before {
+  background-position: 0 -566px; /* White Arrow */
+}
+.search-block-form input.form-submit, .search-block-form #edit-submit,
+#search-block-form input.form-submit, #search-block-form #edit-submit, #search-form #edit-submit {
+    background-position:2px -406px;
+}
+
+.section-nav .menu-depth-1 > a {
+    background: none repeat scroll 0 0 #52854C !important;
+}
+.block-boxes-os_boxes_facetapi_vocabulary.navigation a,
+.block-boxes-os_taxonomy_fbt.navigation a {
+	font-family:georgia;
+	}
+.block-boxes-os_boxes_facetapi_vocabulary.navigation a,
+.block-boxes-os_taxonomy_fbt.navigation a {
+	font-family: 'Roboto',Baskerville, arial;
+	}
+.block-boxes-os_boxes_facetapi_vocabulary.navigation .block-content,
+.block-boxes-os_taxonomy_fbt.navigation .block-content {
+	padding:0;
+	}
+.block-boxes-os_boxes_facetapi_vocabulary.navigation h2.block-title,
+.block-boxes-os_taxonomy_fbt.navigation h2.block-title {
+	margin-bottom: 0;
+	}
+
+.block-boxes-os_boxes_facetapi_vocabulary.navigation ul,
+.block-boxes-os_taxonomy_fbt.navigation ul {
+border-bottom: none;
+border-left: none;
+border-right: none;
+border-top: none;
+}
+
+.block-boxes-os_boxes_accordion,
+.front #content-panels .block.block-boxes-os_boxes_columns {
+	border:0 !important;
+	}
+.block-boxes-os_boxes_accordion .block-content,
+#content-panels .block-boxes-os_boxes_columns .block-content:nth-child(1) {
+	padding:0;
+}
+
+
+#boxes-box-site_info, 
+#boxes-box-site_info a {
+     font-family: 'Roboto',helvetica,arial;
+}
+
+#page-title, .node-title, 
+.page-search .title a, 
+#content-column .block.block-boxes-os_boxes_manual_list .links.inline a, 
+.not-front #content-column ul li, 
+.not-front #content-column ol li, 
+.more-link, .page-search #content-column p, 
+.not-front #content-column p, 
+.links a, 
+#footer ul.menu a, 
+.boxes-box-content h2, 
+.section-nav a, 
+#content-column h2, 
+#content-column h3, 
+#content-column h4, 
+#content-column .field-name-body {
+    font-family: 'Roboto',serif;
+}
+
+#content-column .block.block-boxes-os_boxes_columns .block,
+.sidebar .block, .front #content-column .block, 
+.node-person .block-inner, 
+.comment-wrapper {
+     border-top:  none;
+     margin-top: 0px;
+}
+
+.content-left.content-right .region-content-first .region-inner, .content-left.content-bottom .region-content-first .region-inner, .content-right.content-bottom .region-content-second .region-inner, .content-left.content-right.content-bottom .region-content-second .region-inner {
+     border-right: none;
+}
+
+#content-column .block.block-boxes-os_boxes_columns .block,
+.front #content-panels .block, 
+.sidebar .block {
+     -moz-box-sizing: border-box;
+     background: none repeat scroll 0px 0px #FFFFFF;
+     border: 1px solid #DDDDDD;
+     margin-bottom: 15px;
+}
+
+
+
+.front #content-panels .block-boxes-os_boxes_columns .region .block-content,
+.front #content-panels .block-content,
+.sidebar .block-content {
+     padding: 15px;
+}
+
+.sidebar .block-boxes-os_boxes_sectionnav .block-content,
+.sidebar .block-boxes-os-pages-section-nav .block-content {
+    padding: 15px 0px;
+}
+
+
+.sidebar .node-teaser.node-person {
+    padding: 0;
+}
+
+.sidebar #block-os-primary-menu .block-content,
+.sidebar #block-os-secondary-menu .block-content,
+.sidebar .os-custom-menu .block-content {
+	padding: 0;
+	}
+
+.sidebar .block.section-nav, #content-column .block.section-nav {
+    border:  none;
+}
+
+.front #content-panels .block-title, .sidebar .block-title {
+     background: none repeat scroll 0% 0% #EBEBEB;
+     border-bottom: 1px solid #DDDDDD;
+     color: #303030;
+     font-family: 'Roboto',helvetica;
+     font-size: 12px;
+     line-height: 20px;
+     min-height: 20px;
+     padding: 7px 15px !important;
+}
+
+#content-column .block.block-boxes-os_boxes_manual_list.styled h2.block-title {
+    padding: 7px 0;
+}
+
+.sidebar .block-inner,
+#content-panels .block-inner {
+     margin-top: 0px;
+}
+
+
+
+.front #content-panels .block.block-boxes-os_slideshow_box {
+     background: none repeat scroll 0px 0px #FFFFFF;
+     border-radius: 0px 0px 0px 0px;
+     border:  none;
+}
+
+.front #content-panels .block.block-boxes-os_slideshow_box .block-content {
+     padding: 0px;
+}
+
+a.rslides_nav {
+     background-color: #52854C;
+}
+
+#footer {
+     background: none repeat scroll 0% 0% #F9F9F9;
+     border-top: 2px solid #DDDDDD;
+}
+
+
+article.node-teaser.node-person .field-name-field-person-photo ~ .node-header, article.node-teaser.node-person .field-name-field-person-photo ~ .node-content {
+    margin-left: 6.3em;
+}
