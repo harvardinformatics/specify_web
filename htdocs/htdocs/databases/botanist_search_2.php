@@ -37,28 +37,28 @@ $errormessage = "";
 
 $mode = "search";
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="details") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="details") {
 		$mode = "details";
 	}
-	if ($_GET['mode']=="stats") {
+	if (($_GET['mode'] ?? '')=="stats") {
 		$mode = "stats";
 	}
 }
 
 $json = FALSE;
-if (preg_replace("/[^a-z]/","",$_GET['json'])!="") {
-    if ($_GET['json']=='y') {
+if (preg_replace("/[^a-z]/","",($_GET['json'] ?? ''))!="") {
+    if (($_GET['json'] ?? '')=='y') {
 	   $json=TRUE;
     }
 }
-if (preg_replace("/[^0-9]/","",$_GET['botanistid'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['botanistid'] ?? ''))!="") {
 	$mode = "details";
 }
-if (preg_replace("/[^0-9]/","",$_GET['id'])!="") {
+if (preg_replace("/[^0-9]/","",($_GET['id'] ?? ''))!="") {
 	$mode = "details";
 }
-if (preg_replace("/[^0-9A-Za-z\-]/","",$_GET['botanistguid'])!="") {
+if (preg_replace("/[^0-9A-Za-z\-]/","",($_GET['botanistguid'] ?? ''))!="") {
 	$mode = "details";
 }
 
@@ -102,14 +102,14 @@ if (!$json) {
 function details() {
 	global $connection, $errormessage, $debug;
 
-	$id = $_GET['id'];
+	$id = ($_GET['id'] ?? '');
 	$collectorid = $id;
 	if (is_array($id)) {
 		$ids = $id;
 	} else {
 		$ids[0] = $id;
 	}
-    $uuid = preg_replace("/[^0-9A-Za-z\-]/","",$_GET['botanistguid']);
+    $uuid = preg_replace("/[^0-9A-Za-z\-]/","",($_GET['botanistguid'] ?? ''));
     if ($uuid != "") {
         $query = "select primarykey, state from guids where tablename = 'agent' and uuid = ? ";
         if ($debug) { echo "[$uuid]"; }
@@ -128,7 +128,7 @@ function details() {
            }
         }
     } else {
-	    $botanistid = preg_replace("/[^0-9]/","",$_GET['botanistid']);
+	    $botanistid = preg_replace("/[^0-9]/","",($_GET['botanistid'] ?? ''));
     }
 	if ($botanistid != "") {
 		$ids[] = $botanistid;
@@ -314,7 +314,7 @@ function details() {
                                                         $statement_img->close();
 
                                                         foreach ($images as $value) {
-                                                              if (trim(value!=""))   {
+                                                              if (trim($value)!="")   {
 					                           $agent =  $agent . "<tr><td class='cap'>Image</td><td class='val'>$value</td></tr>";
 							      }
                                                         }
@@ -445,8 +445,8 @@ function details() {
 						// If internal, check for out of range collecting events:
 						if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 						    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
-						    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-						    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+						    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+						    preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
 						    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
                                                     // Definitions for datestype:
@@ -574,8 +574,8 @@ function details() {
 				// Don't display details for agents that are only involved in transactions to users outside the herbarium.
 				if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 				    preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) ||
-				    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-				    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+				    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+				    preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
 				    $_SERVER['REMOTE_ADDR']=='127.0.0.1') {
 
 					if ($numberofvariants==0) {
@@ -603,14 +603,16 @@ function search() {
 	$wherebit = " where ";
 	$and = "";
 	$types = "";
+	$parameters = array();
+	$hasquery = false;
 	$parametercount = 0;
-	$showid = substr(preg_replace("/[^a-z]/","", $_GET['showid']),0,4);
+	$showid = substr(preg_replace("/[^a-z]/","", ($_GET['showid'] ?? '')),0,4);
 
-	$name = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['name']),0,59);
+	$name = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", ($_GET['name'] ?? '')),0,59);
 	$nameparts = preg_split('/("[^"]*")|\h+/', $name, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 
 	if ($name!="") {
-	  //$soundslike = substr(preg_replace("/[^a-z]/","", $_GET['soundslike']),0,4);
+	  //$soundslike = substr(preg_replace("/[^a-z]/","", ($_GET['soundslike'] ?? '')),0,4);
 		$hasquery = true;
 
 		$wherebit .= "agent.agentid in (select agentid from agentvariant where ";
@@ -649,7 +651,7 @@ function search() {
 		//$and = " and ";
 	}
 
-	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", $_GET['remarks']),0,59);
+	$remarks = substr(preg_replace("/[^A-Za-z\-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ,\.\" _%]/","", ($_GET['remarks'] ?? '')),0,59);
 	$rparts = preg_split('/("[^"]*")|\h+/', $remarks, -1, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
 	if ($remarks!="") {
 		$hasquery = true;
@@ -669,8 +671,8 @@ function search() {
 //	if ($is_author=="on" || $is_collector=="on" || $individual=="on" || )
 //	$wherebit .= "$and (";
 
-	$is_author = substr(preg_replace("/[^a-z]/","", $_GET['is_author']),0,3);
-	$is_collector= substr(preg_replace("/[^a-z]/","", $_GET['is_collector']),0,3);
+	$is_author = substr(preg_replace("/[^a-z]/","", ($_GET['is_author'] ?? '')),0,3);
+	$is_collector= substr(preg_replace("/[^a-z]/","", ($_GET['is_collector'] ?? '')),0,3);
 
 //	if ($is_author=="on" && $is_collector=="on") {
 //		$is_author="";
@@ -697,8 +699,8 @@ function search() {
 		$and = " and ";
 	}
 
-	$individual = substr(preg_replace("/[^a-z]/","", $_GET['individual']),0,3);
-	$team = substr(preg_replace("/[^a-z]/","", $_GET['team']),0,3);
+	$individual = substr(preg_replace("/[^a-z]/","", ($_GET['individual'] ?? '')),0,3);
+	$team = substr(preg_replace("/[^a-z]/","", ($_GET['team'] ?? '')),0,3);
 
 	if ($individual=="on" && $team=="on") {
 		$individual="";
@@ -719,10 +721,10 @@ function search() {
 		$wherebit .= "$and agent.agenttype = 3 ";
 		$and = " and ";
 	}
-	$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", $_GET['specialty']),0,59);
+	$specialty = substr(preg_replace("/[^A-Za-z\-\ ]/","", ($_GET['specialty'] ?? '')),0,59);
 	if ($specialty!="") {
 		$hasquery = true;
-		$question .= "$and author specialty:[$authorspecialty] ";
+		$question .= "$and author specialty:[$specialty] ";
 		$types .= "s";
 		$operator = "=";
 		$parameters[$parametercount] = &$specialty;
@@ -732,7 +734,7 @@ function search() {
 		$joins .= " left join agentspecialty on agent.agentid = agentspecialty.agentid ";
 		$and = " and ";
 	}
-	$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", $_GET['country']),0,59);
+	$country = substr(preg_replace("/[^A-Za-z\ ,\.\(\)]/","_", ($_GET['country'] ?? '')),0,59);
 	if ($country!="") {
 		$hasquery = true;
 		$question .= "$and country:[$country] ";
@@ -773,14 +775,7 @@ function search() {
 			$array[] = $types;
 			foreach($parameters as $par)
 			    $array[] = $par;
-			if (substr(phpversion(),0,4)=="5.3." || substr(phpversion(),0,4)=="5.5.") {
-			   // work around for bug in __call, or is it?
-			   // http://bugs.php.net/bug.php?id=50394
-			   // http://stackoverflow.com/questions/2045875/pass-by-reference-problem-with-php-5-3-1
-			   call_user_func_array(array($statement, 'bind_param'),make_values_referenced($array));
-			} else {
-			   call_user_func_array(array($statement, 'bind_param'),$array);
-			}
+			bind_param_array($statement, $array);
 			$statement->execute();
 			$statement->bind_result($agentid, $agenttype, $firstname, $lastname, $allnames, $yearofbirth, $yearofdeath, $datestype);
 			$statement->store_result();

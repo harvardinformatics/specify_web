@@ -4,11 +4,13 @@ include_once('ImageExplorer.php');
     $imageExplorer = new ImageExplorer();
 
     // convert $_POST to array in form array(key) { value, value }
-    $query = $_POST['query'];
-    $start = preg_replace('/[^0-9]/','',$_POST['start']);
+    $query = ($_POST['query'] ?? '');
+    $start = preg_replace('/[^0-9]/','',($_POST['start'] ?? ''));
     if (strlen($start)==0) { $start = 0; }
 
     $queryArray = Array();
+    $querytext = "";
+    $imageDomain = "";  // prefix for image URIs; was never set, so URIs are used as-is
  
     $query = str_replace('\\','',$query);
 

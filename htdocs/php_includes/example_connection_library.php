@@ -25,6 +25,12 @@ $debug = true;
 // set $debug to false to turn off debugging information
 // $debug = false;
 
+// PHP 8.1+ makes mysqli throw a mysqli_sql_exception on any error by default.
+// This application checks return values instead (e.g. if ($statement) {...}),
+// so restore the pre-8.1 behaviour.  Pages may still override this after
+// including this file (see the mysqli_report() calls guarded by $debug).
+mysqli_report(MYSQLI_REPORT_OFF);
+
 /**
  * Create a connection to a specify database.
  * 
@@ -44,7 +50,7 @@ function specify_connect() {
       $connection->set_charset('utf8');   
       $returnvalue = $connection;
    } else { 
-      echo mysqli_connect_errorno();
+      echo mysqli_connect_errno();
    }
    return $returnvalue;
 }
@@ -72,7 +78,7 @@ function specify_adm_connect() {
       $connection->set_charset('utf8');   
       $returnvalue = $connection;
    } else { 
-      echo mysqli_connect_errorno();
+      echo mysqli_connect_errno();
    }
    return $returnvalue;
 }

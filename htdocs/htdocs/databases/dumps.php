@@ -42,58 +42,58 @@ $barcode = "00267379";
 $projectid = null;
 $since = null;
 
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="california_dwc") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="california_dwc") {
 		$mode = "california_dwc";
 	}
-	if ($_GET['mode']=="ames_orchid_list") {
+	if (($_GET['mode'] ?? '')=="ames_orchid_list") {
 		$mode = "ames_orchid_list";
 	}
-	if ($_GET['mode']=="fungilichens") {
+	if (($_GET['mode'] ?? '')=="fungilichens") {
 		$mode = "fungilichens";
 	}
-        if ($_GET['mode']=="microfungi") {
+        if (($_GET['mode'] ?? '')=="microfungi") {
                 $mode = "microfungi";
         }
-	if ($_GET['mode']=="cultivated_dwc") {
+	if (($_GET['mode'] ?? '')=="cultivated_dwc") {
 		$mode = "cultivated_dwc";
 	}
-	if ($_GET['mode']=="rock_feng_dwc") {
+	if (($_GET['mode'] ?? '')=="rock_feng_dwc") {
 		$mode = "rock_feng_dwc";
 	}
-	if ($_GET['mode']=="country_geo_dwc") {
+	if (($_GET['mode'] ?? '')=="country_geo_dwc") {
 		$mode = "country_geo_dwc";
-		$country = preg_replace("/[^A-Za-z ]/","",$_GET['country']);
+		$country = preg_replace("/[^A-Za-z ]/","",($_GET['country'] ?? ''));
 	}
-	if ($_GET['mode']=="country_dwc") {
+	if (($_GET['mode'] ?? '')=="country_dwc") {
 		$mode = "country_dwc";
-		$country = preg_replace("/[^A-Za-z ]/","",$_GET['country']);
+		$country = preg_replace("/[^A-Za-z ]/","",($_GET['country'] ?? ''));
 	}
-	if ($_GET['mode']=="genus_dwc") {
+	if (($_GET['mode'] ?? '')=="genus_dwc") {
 		$mode = "genus_dwc";
-		$genus = preg_replace("/[^A-Za-z]/","",$_GET['genus']);
+		$genus = preg_replace("/[^A-Za-z]/","",($_GET['genus'] ?? ''));
 	}
-	if ($_GET['mode']=="barcode_dwc") {
+	if (($_GET['mode'] ?? '')=="barcode_dwc") {
 		$mode = "barcode_dwc";
-		$barcode = preg_replace("/[^0-9]/","",$_GET['barcode']);
+		$barcode = preg_replace("/[^0-9]/","",($_GET['barcode'] ?? ''));
 	}
-	if ($_GET['mode']=="project") {
+	if (($_GET['mode'] ?? '')=="project") {
 		$mode = "project_dwc";
-		$projectid = preg_replace("/[^0-9]/","",$_GET['projectid']);
+		$projectid = preg_replace("/[^0-9]/","",($_GET['projectid'] ?? ''));
 	}
-	if ($_GET['mode']=="imagefeed") {
+	if (($_GET['mode'] ?? '')=="imagefeed") {
 		$mode = "imagefeed";
 	}
 
         // Limit the search to records last updated more recently than the
         // date provided.
-        if ($_GET['since']!="")  {
-		$since = preg_replace("/[^0-9\-]/","",$_GET['since']);
+        if (($_GET['since'] ?? '')!="")  {
+		$since = preg_replace("/[^0-9\-]/","",($_GET['since'] ?? ''));
         }
 
 }
-if ($_POST['mode']!="")  {
-	if ($_POST['mode']=="specimens_dwc") {
+if (($_POST['mode'] ?? '')!="")  {
+	if (($_POST['mode'] ?? '')=="specimens_dwc") {
 		$mode = "specimens_dwc";
 	}
 }
@@ -476,7 +476,7 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($geoonly===TRUE) {
       $wherebit = " and decimallatitude is not null and decimallongitude is not null ";
    }
-   $typestatus = trim(preg_replace("/[^A-Za-z ]/","",$_GET['typestatus']));
+   $typestatus = trim(preg_replace("/[^A-Za-z ]/","",($_GET['typestatus'] ?? '')));
    if ($typestatus!="") {
      switch ($typestatus) {
          case "Drawing of type": $wherebit=" and typestatus = 'Drawing of type' "; break;
@@ -508,8 +508,8 @@ if ( !function_exists('sys_get_temp_dir')) {
         $linearray = array ("institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
-        $statement->bind_param('s',$country);
 	if ($statement) {
+		$statement->bind_param('s',$country);
 		$statement->execute();
 		$statement->bind_result($institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
 		$statement->store_result();
@@ -562,8 +562,8 @@ if ( !function_exists('sys_get_temp_dir')) {
 	$statement = $connection->prepare($query);
         $genus = $genus . ' %';
         if ($debug) { echo "[$genus]<BR>"; }
-        $statement->bind_param('s',$genus);
 	if ($statement) {
+		$statement->bind_param('s',$genus);
 		$statement->execute();
                 if ($debug) { echo "[$genus]<BR>"; }
 		$statement->bind_result($fragmentguid,$institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
@@ -620,10 +620,10 @@ if ( !function_exists('sys_get_temp_dir')) {
         $linearray = array ("iPlantGUID","ImageURI","ThumbnailURI","collectionCode","catalogNumber","scientificName","higherGeography","locality","collectorNumber","collector","eventDate","occurrenceId");
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
-        if ($since!=null) {
-           $statement->bind_param('s',$since);
-        }
 	if ($statement) {
+		if ($since!=null) {
+			$statement->bind_param('s',$since);
+		}
 		$statement->execute();
 		$statement->bind_result($imageuri, $collectioncode, $catalognumber, $scientificname, $highergeography, $locality, $collectornumber, $collector, $eventdate,$occurrenceid);
 		$statement->store_result();
@@ -677,10 +677,10 @@ if ( !function_exists('sys_get_temp_dir')) {
         $linearray = array ("occurrenceID","institution","collectioncode","collectionid","catalognumber","catalognumbernumeric","dc_type","basisofrecord","collectornumber","collector","sex","reproductiveStatus","preparations","verbatimdate","eventdate","year","month","day","startdayofyear","enddayofyear","startdatecollected","enddatecollected","habitat","highergeography","continent","country","stateprovince","islandgroup","county","island","municipality","locality","minimumelevationmeters","maximumelevationmeters","verbatimelevation","decimallatitude","decimallongitude","geodeticdatum","identifiedby","dateidentified","identificationqualifier","identificationremarks","identificationreferences","typestatus","scientificname","scientificnameauthorship","family","informationwitheld","datageneralizations","othercatalognumbers" ) ;
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
-        $genus = $genus . ' %';
+        //$genus = $genus . ' %';   // copied from genus_dwc(); $genus is not used here
         if ($debug) { echo "[$projectid]<BR>"; }
-        $statement->bind_param('i',$projectid);
 	if ($statement) {
+		$statement->bind_param('i',$projectid);
 		$statement->execute();
 		$statement->bind_result($fragmentguid,$institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
 		$statement->store_result();
@@ -733,11 +733,11 @@ if ( !function_exists('sys_get_temp_dir')) {
         fputcsv($file,$linearray);
 	$statement = $connection->prepare($query);
         $barcode = '%'.$barcode;
-        if ($debug) { echo "[$genus]<BR>"; }
-        $statement->bind_param('s',$barcode);
+        if ($debug) { echo "[$barcode]<BR>"; }
 	if ($statement) {
+		$statement->bind_param('s',$barcode);
 		$statement->execute();
-                if ($debug) { echo "[$genus]<BR>"; }
+                if ($debug) { echo "[$barcode]<BR>"; }
 		$statement->bind_result($fragmentguid,$institution, $collectioncode, $collectionid, $catalognumber, $catalognumbernumeric, $dc_type, $basisofrecord, $collectornumber, $collector, $sex, $reproductiveStatus, $preparations, $verbatimdate, $eventdate, $year, $month, $day, $startdayofyear, $enddayofyear, $startdatecollected, $enddatecollected, $habitat, $highergeography, $continent, $country, $stateprovince, $islandgroup, $county, $island, $municipality, $locality, $minimumelevationmeters, $maximumelevationmeters, $verbatimelevation, $decimallatitude, $decimallongitude, $geodeticdatum, $identifiedby, $dateidentified, $identificationqualifier, $identificationremarks, $identificationreferences, $typestatus, $scientificname, $scientificnameauthorship, $family, $informationwitheld, $datageneralizations, $othercatalognumbers);
 		$statement->store_result();
 		while ($statement->fetch()) {
@@ -780,8 +780,9 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; }
    $file = fopen($tempfilename,"w");
    $collectionobjectids = "";
+   $ids = array();
 
-	$id = preg_replace("/[^0-9,]/","",$_POST['id']);
+	$id = preg_replace("/[^0-9,]/","",($_POST['id'] ?? ''));
 	if ($id!="") {
 		if (is_array($id)) {
 			$ids = $id;
@@ -852,8 +853,9 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; }
    $file = fopen($tempfilename,"w");
    $collectionobjectids = "";
+   $ids = array();
 
-        $id = preg_replace("/[^0-9,]/","",$_POST['id']);
+        $id = preg_replace("/[^0-9,]/","",($_POST['id'] ?? ''));
         if ($id!="") {
                 if (is_array($id)) {
                         $ids = $id;
@@ -930,8 +932,9 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; }
    $file = fopen($tempfilename,"w");
    $collectionobjectids = "";
+   $ids = array();
 
-	$id = preg_replace("/[^0-9,]/","",$_POST['id']);
+	$id = preg_replace("/[^0-9,]/","",($_POST['id'] ?? ''));
 	if ($id!="") {
 		if (is_array($id)) {
 			$ids = $id;
@@ -1004,8 +1007,9 @@ if ( !function_exists('sys_get_temp_dir')) {
    if ($debug) { echo "[$tempfilename]<BR>"; }
    $file = fopen($tempfilename,"w");
    $collectionobjectids = "";
+   $ids = array();
 
-	$id = preg_replace("/[^0-9,]/","",$_POST['id']);
+	$id = preg_replace("/[^0-9,]/","",($_POST['id'] ?? ''));
 	if ($id!="") {
 		if (is_array($id)) {
 			$ids = $id;

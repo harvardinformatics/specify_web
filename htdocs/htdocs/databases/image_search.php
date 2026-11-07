@@ -44,14 +44,14 @@ $errormessage = "";
 $mode = "search";
 
 $passon = "image";
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="search") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="search") {
 		$mode = "search";
 	}
-	if ($_GET['mode']=="qc") {
+	if (($_GET['mode'] ?? '')=="qc") {
 		$mode = "qc";
 	}
-	if ($_GET['mode']=="details") {
+	if (($_GET['mode'] ?? '')=="details") {
 		$mode = "details";
         $passon = "imagedetails";
 	}
@@ -90,28 +90,28 @@ echo pagefooter();
 function search() {
    global $connection;
    $returnvalue = "";
-   $start = preg_replace('/[^0-9]/','',$_GET['start']);
+   $start = preg_replace('/[^0-9]/','',($_GET['start'] ?? ''));
 
    $query = "";
-   $genus = preg_replace('/[^A-Za-z,]/','',$_GET['genus']);
+   $genus = preg_replace('/[^A-Za-z,]/','',($_GET['genus'] ?? ''));
    if (strlen($genus)>0) {
      $bits = explode(",",$genus);
      foreach($bits as $bit) {
        $query .= "genus: $bit ";
      }
    }
-   $family = preg_replace('/[^A-Za-z,]/','',$_GET['family']);
+   $family = preg_replace('/[^A-Za-z,]/','',($_GET['family'] ?? ''));
    if (strlen($family)>0) { $query .= "family: $family "; }
-   $typestatus = preg_replace('/[^A-Za-z,]/','',$_GET['typestatus']);
+   $typestatus = preg_replace('/[^A-Za-z,]/','',($_GET['typestatus'] ?? ''));
    if (strlen($typestatus)>0) {
      $bits = explode(",",$typestatus);
      foreach($bits as $bit) {
        $query .= "typestatus: $bit ";
      }
    }
-   $country = preg_replace('/[^A-Za-z,]/','',$_GET['country']);
+   $country = preg_replace('/[^A-Za-z,]/','',($_GET['country'] ?? ''));
    if (strlen($country)>0) { $query .= "country: $country "; }
-   $state = preg_replace('/[^A-Za-z,]/','',$_GET['state']);
+   $state = preg_replace('/[^A-Za-z,]/','',($_GET['state'] ?? ''));
    if (strlen($state)>0) { $query .= "state: $state "; }
 
    if ($query=="" ) {  $query = "genus: Croton"; }
@@ -208,7 +208,7 @@ function search() {
 function details() {
   global $connection;
   $result = "";
-  $imagesetid = preg_replace('/[^0-9]/','',$_GET['imagesetid']);
+  $imagesetid = preg_replace('/[^0-9]/','',($_GET['imagesetid'] ?? ''));
 
 
   $sql = 'SELECT DISTINCT concat(ifnull(r.url_prefix,\'\'),iot.uri), '.
@@ -309,7 +309,7 @@ function details() {
 function batch_qc() {
   global $connection;
 
-  $batchid = preg_replace('/[^0-9]/','',$_GET['batchid']);
+  $batchid = preg_replace('/[^0-9]/','',($_GET['batchid'] ?? ''));
   if (strlen($batchid>0)) {
      return batch_details($batchid);
   } else {
@@ -324,6 +324,9 @@ function batch_qc() {
 function batch_details($batchid) {
   global $connection;
   $result = "<br/>";
+  $setcount = 0;
+  $collcount = 0;
+  $imagecount = 0;
 
   $sql = "select s.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, s.active_flag, s.description, s.owner, s.copyright, s.remarks, s.caption, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.id = ? ";
   $stmt = $connection->stmt_init();
@@ -393,7 +396,7 @@ function list_batches() {
   global $connection;
   $result = "";
 
-  $batch = preg_replace('/[^a-zA-Z0-9\-:]/','',$_GET['batch']);
+  $batch = preg_replace('/[^a-zA-Z0-9\-:]/','',($_GET['batch'] ?? ''));
   if (strlen($batch)>0) {
       $batch = "%$batch%";
       $sql = "select count(s.id), b.id, b.production_date, b.batch_name, b.remarks, b.project, l.name, b.filename from IMAGE_BATCH b left join IMAGE_LAB l on lab_id = l.id left join IMAGE_SET s on b.id = s.batch_id where b.batch_name like ?  group by b.id, production_date, batch_name, remarks, project, l.name order by b.production_date desc";

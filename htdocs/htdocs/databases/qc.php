@@ -36,59 +36,59 @@ $errormessage = "";
 
 $mode = "menu";
  
-if ($_GET['mode']!="")  {
-	if ($_GET['mode']=="show_table_locks") {
+if (($_GET['mode'] ?? '')!="")  {
+	if (($_GET['mode'] ?? '')=="show_table_locks") {
 		$mode = "show_table_locks"; 
 	}
-	if ($_GET['mode']=="force_unlock") {
+	if (($_GET['mode'] ?? '')=="force_unlock") {
 		$mode = "force_unlock"; 
 	}
-	if ($_GET['mode']=="unlinked_collectionobjects") {
+	if (($_GET['mode'] ?? '')=="unlinked_collectionobjects") {
 		$mode = "unlinked_collectionobjects"; 
 	}
-	if ($_GET['mode']=="unlinked_preparations") {
+	if (($_GET['mode'] ?? '')=="unlinked_preparations") {
 		$mode = "unlinked_preparations"; 
 	}
-	if ($_GET['mode']=="unlinked_items") {
+	if (($_GET['mode'] ?? '')=="unlinked_items") {
 		$mode = "unlinked_items"; 
 	}
-	if ($_GET['mode']=="collectionobjects_without_barcodes") {
+	if (($_GET['mode'] ?? '')=="collectionobjects_without_barcodes") {
 		$mode = "collectionobjects_without_barcodes"; 
 	}
-	if ($_GET['mode']=="collectingevents_without_locality") {
+	if (($_GET['mode'] ?? '')=="collectingevents_without_locality") {
 		$mode = "collectingevents_without_locality"; 
 	}
-	if ($_GET['mode']=="list_entry_for_collectingevents_without_locality") {
+	if (($_GET['mode'] ?? '')=="list_entry_for_collectingevents_without_locality") {
 		$mode = "list_entry_for_collectingevents_without_locality"; 
 	}
-	if ($_GET['mode']=="agent_ages") {
+	if (($_GET['mode'] ?? '')=="agent_ages") {
 		$mode = "agent_ages"; 
 	}
-	if ($_GET['mode']=="individual_agent_ages") {
+	if (($_GET['mode'] ?? '')=="individual_agent_ages") {
 		$mode = "individual_agent_ages"; 
 	}
-	if ($_GET['mode']=="team_agent_ages") {
+	if (($_GET['mode'] ?? '')=="team_agent_ages") {
 		$mode = "team_agent_ages"; 
 	}
-	if ($_GET['mode']=="collection_when_not_alive") {
+	if (($_GET['mode'] ?? '')=="collection_when_not_alive") {
 		$mode = "collection_when_not_alive"; 
 	}
-	if ($_GET['mode']=="weekly_rate_creation") {
+	if (($_GET['mode'] ?? '')=="weekly_rate_creation") {
 		$mode = "weekly_rate_creation"; 
 	}
-	if ($_GET['mode']=="weekly_rate_modification") {
+	if (($_GET['mode'] ?? '')=="weekly_rate_modification") {
 		$mode = "weekly_rate_modification"; 
 	}
-	if ($_GET['mode']=="person_week_records") {
+	if (($_GET['mode'] ?? '')=="person_week_records") {
 		$mode = "person_week_records"; 
 	}
-	if ($_GET['mode']=="loan_null_role") {
+	if (($_GET['mode'] ?? '')=="loan_null_role") {
 		$mode = "loan_null_role"; 
 	}
-	if ($_GET['mode']=="NEVP") {
+	if (($_GET['mode'] ?? '')=="NEVP") {
 		$mode = "nevp"; 
 	}
-	if ($_GET['mode']=="items_with_no_preparation") {
+	if (($_GET['mode'] ?? '')=="items_with_no_preparation") {
 		$mode = "items_with_no_preparation"; 
 	}
 } 
@@ -98,8 +98,8 @@ echo pageheader('qc');
 // Only display if internal 
 if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || 
     preg_match("/^10\.1\.147\./",$_SERVER['REMOTE_ADDR']) || 
-    preg_match("/^140\.247\.98\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
-    preg_match("/^10\.1\.147\./",$_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    preg_match("/^140\.247\.98\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
+    preg_match("/^10\.1\.147\./",($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')) ||
     $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
 						
 	if ($connection) {
@@ -128,7 +128,7 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 				echo list_entry_for_collectingevents_without_locality();
 				break;
 			case "collectingevents_without_locality":	
-			    $agentid = preg_replace("/[^0-9]/","",$_GET['agentid']);
+			    $agentid = preg_replace("/[^0-9]/","",($_GET['agentid'] ?? ''));
 				echo collectingevents_without_locality($agentid);
 				break;
 			case "agent_ages":
@@ -158,16 +158,16 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 			case "nevp":	
                                 echo "List of <a href='image_search.php?mode=qc&batch=urn:uuid'>NEVP Batches</a>.<BR>";
                                 echo "List of <a href='botanist_search.php?remarks=Created+from+NEVP+Ingest'>Botanists created by NEVP Ingests</a>.<BR>";
-			        $batch = preg_replace("/[^A-Za-z\-0-9]/","",$_GET['batch']);
+			        $batch = preg_replace("/[^A-Za-z\-0-9]/","",($_GET['batch'] ?? ''));
 				echo nevp_records_without_images($batch);
 				break;
 			case "person_week_records":
                                 $person = 'Lewis-Gentry';
                                 $year = "2010";
                                 $week = "33";
-			        $person = preg_replace("/[^A-Za-z\-0-9]/","",$_GET['person']);
-			        $year = preg_replace("/[^0-9]/","",$_GET['year']);
-			        $week = preg_replace("/[^0-9]/","",$_GET['week']);
+			        $person = preg_replace("/[^A-Za-z\-0-9]/","",($_GET['person'] ?? ''));
+			        $year = preg_replace("/[^0-9]/","",($_GET['year'] ?? ''));
+			        $week = preg_replace("/[^0-9]/","",($_GET['week'] ?? ''));
 				echo person_week_records($person,$year,$week);
 				break;
 			case "menu": 	
@@ -242,27 +242,30 @@ function menu() {
 
 
 function loan_null_role() { 
-   global $connection;
-$debug = TRUE;
+   global $connection, $errormessage, $debug;
    $returnvalue = "";
    $sql = "select year(loandate), loannumber from loan where text3 is null or text3 = '' order by year(loandate) desc;";
    if ($debug) { echo "[$sql]<BR>"; } 
-   $stmt = $connection->stmt_init();
-   $stmt->prepare($sql);
-   $stmt->execute();
-   $stmt->bind_result($loanyear, $loannumber);
-   $returnvalue .= "<table>";
-   $returnvalue .= "<tr><th>Year of Loan</th></th><th>Loan Number</th></tr>";
-   while ($stmt->fetch()) {
-       $returnvalue .= "<tr><td>$loanyear</td><td>$loannumber</td></tr>";
+   $statement = $connection->prepare($sql);
+   if ($statement) {
+       $statement->execute();
+       $statement->bind_result($loanyear, $loannumber);
+       $statement->store_result();
+       $returnvalue .= "<table>";
+       $returnvalue .= "<tr><th>Year of Loan</th></th><th>Loan Number</th></tr>";
+       while ($statement->fetch()) {
+           $returnvalue .= "<tr><td>$loanyear</td><td>$loannumber</td></tr>";
+       }
+       $returnvalue .= "</table>";
+       $statement->close();
+   } else {
+       $errormessage .= $connection->error;
    }
-   $stmt->close();
-   $returnvalue .= "</table>";
    return $returnvalue;
 } 
 
 function collection_out_of_date_range() { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
    $query = "select count(collectionobjectid), agent.lastname, agent.agentid, agentvariant.name " .
    		" from agent left join collector on agent.agentid = collector.agentid " .
@@ -333,7 +336,7 @@ function collection_out_of_date_range() {
 }
 
 function agent_ages($type="all") {
-	global $connection;
+	global $connection, $debug;
 	$returnvalue = "";
 	
 	$agenttype = "All";
@@ -392,7 +395,7 @@ function agent_ages($type="all") {
                                                    $stmt->store_result();
                                                    $stmt->fetch();
                                                 }
-                                                $stmt->close();
+                                                if ($stmt) { $stmt->close(); }
 						$agents .= "$separator<a href='botanist_search.php?mode=details&id=$agentid'>$agentname $varname</a>";
 						$separator = "; ";
 					}
@@ -407,7 +410,7 @@ function agent_ages($type="all") {
 }
  
 function unlinked_collectionobjects() { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
    $query = "select collectionobject.collectionobjectid, collectionobject.timestampcreated, lastname, collectionobject.description, fieldnumber " .
    		" from collectionobject left join fragment on collectionobject.collectionobjectid = fragment.collectionobjectid " .
@@ -433,7 +436,7 @@ function unlinked_collectionobjects() {
 } 
  
 function unlinked_items() {
-        global $connection;
+        global $connection, $debug;
    $returnvalue = "";
    $query = " select distinct fragment.identifier, preparation.identifier, loan.loannumber, " .
             "        fragment.timestampcreated, agent.lastname, taxon.fullname, fragment.text1 " . 
@@ -467,7 +470,7 @@ function unlinked_items() {
 
 
 function unlinked_preparations() { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
    $query = "select preptype.name, preparation.identifier, preparation.preparationid, preparation.timestampcreated, lastname " .
    		" from preparation left join fragment on preparation.preparationid = fragment.preparationid " .
@@ -493,7 +496,7 @@ function unlinked_preparations() {
    return $returnvalue;
 } 
 function items_with_no_preparation() { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
    $query = "select fragment.text1, fragment.identifier, fragment.timestampcreated, lastname " .
    		" from fragment " .
@@ -518,7 +521,7 @@ function items_with_no_preparation() {
 } 
 
 function list_entry_for_collectingevents_without_locality() { 
-	global $connection;
+	global $connection, $debug;
     $returnvalue = "";
 
     $query = "select count(*),agent.lastname, agent.agentid from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid left join agent on collectionobject.createdbyagentid = agent.agentid where localityid is null and year(collectionobject.timestampcreated) > 2009 group by agent.lastname";
@@ -541,8 +544,9 @@ function list_entry_for_collectingevents_without_locality() {
 }
 
 function collectingevents_without_locality($agentid) { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
+   $agent = "";
    $query = " select collectionobjectid, collectionobject.timestampcreated, agent.lastname, collectingevent.remarks, collectionobject.remarks " .
    		" from collectionobject left join collectingevent on collectionobject.collectingeventid = collectingevent.collectingeventid " .
    		" left join agent on collectionobject.createdbyagentid = agent.agentid " .
@@ -568,7 +572,7 @@ function collectingevents_without_locality($agentid) {
 
  
 function collectionobjects_without_barcodes() { 
-	global $connection;
+	global $connection, $debug;
    $returnvalue = "";
    $query = " select c.collectionobjectid, a.lastname, c.timestampcreated, c.fieldnumber, fragment.text1, c.remarks " .
    		" from collectionobject c left join fragment on c.collectionobjectid = fragment.collectionobjectid " .
@@ -595,7 +599,7 @@ function collectionobjects_without_barcodes() {
 }
 
 function show_table_locks() {
-	global $connection;
+	global $connection, $debug;
 	$returnvalue = "";
 	
 	$sql =  "select taskname, lockedtime, islocked=true, machinename from sptasksemaphore";
@@ -617,7 +621,7 @@ function show_table_locks() {
 function force_unlock() {
         global $debug;
 	if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR']=='127.0.0.1') { 
-	$unlockpassphrase = $_GET['unlockpassphrase'];
+	$unlockpassphrase = ($_GET['unlockpassphrase'] ?? '');
 	$returnvalue = "<strong>Attempting Unlock</strong><BR>";
 	if (correctUnlockPassphrase($unlockpassphrase)) { 
 	      $admconnection = specify_spasa1_adm_connect();
@@ -639,7 +643,7 @@ function force_unlock() {
 }
 
 function person_week_records ($person,$year,$week) { 
-    global $connection;
+    global $connection, $debug;
     $returnvalue = "";
     $sql = "select 'modified' as action, c.collectionobjectid, lastname, f.identifier 
           from collectionobject c left join agent on c.modifiedbyagentid = agent.agentid 
@@ -669,8 +673,10 @@ function person_week_records ($person,$year,$week) {
 } 
 
 function weekly_rate($type='created') { 
-   global $connection;
+   global $connection, $debug;
    $returnvalue = "";
+   $fullist = "";
+   $summary = "";
    if ($type=='modified') { 
    	  $type='last modified';
    	  $effort = "does not capture";

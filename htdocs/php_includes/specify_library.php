@@ -23,6 +23,10 @@
 
 // Uncomment to turn on debugging
 //$debug = true;
+// Default to no debugging when neither the page nor connection_library.php has set $debug
+// (PHP 8 warns when an undefined variable is read).  Pages that set $debug before
+// including this file keep their value.
+if (!isset($debug)) { $debug = false; }
 
 // set to "hwpi" to turn on new page header/footer
 // $useheader = 'old';
@@ -38,6 +42,26 @@ function make_values_referenced($arr){
         $refs[$key] = &$arr[$key];
     }
     return $refs;
+}
+
+/**
+ * Bind an array of the form array($types, $param1, $param2, ...) to a prepared statement.
+ *
+ * Replaces call_user_func_array(array($statement,'bind_param'),$array), which under
+ * PHP 8 emits a warning for every parameter not passed by reference, and skips binding
+ * entirely when there are no parameters (bind_param("") throws a ValueError in PHP 8).
+ *
+ * @param $statement a mysqli_stmt
+ * @param $array the type string followed by the values to bind.
+ * @return true on success (or nothing to bind), false on failure.
+ */
+function bind_param_array($statement, $array) {
+    $types = array_shift($array);
+    if ($types === null || $types === "") {
+        return true;
+    }
+    $values = array_values($array);
+    return $statement->bind_param($types, ...$values);
 }
 
 function barcode_to_catalog_number($aBarcode) {
@@ -59,6 +83,7 @@ function transformDate($date, $precision) {
    if ($precision <= 0 || $precision > 3)
       return "";
 
+   $date = (string)$date;  // DB value may be NULL; PHP 8.1 deprecates passing null to preg_match()
    if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
      return "";
 
@@ -89,6 +114,7 @@ function transformDateText($date, $precision) {
    if ($precision <= 0 || $precision > 3)
       return "";
 
+   $date = (string)$date;  // DB value may be NULL; PHP 8.1 deprecates passing null to preg_match()
    if (!preg_match("/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/", $date))
      return "";
 
@@ -120,9 +146,9 @@ function pageheader($mode = "specimen",$topbar = "on") {
 function pagefooter() {
   global $useheader;
   if  ($useheader=='hwpi') {
-    return pagefooter_new($mode);
+    return pagefooter_new();
   } else {
-    return pagefooter_old($mode);
+    return pagefooter_old();
   }
 }
 
@@ -134,6 +160,7 @@ function pageheader_old($mode = "specimen",$topbar = "on") {
 	$active['p'] = "";
 	$active['b'] = "";
 	$active['i'] = " ";
+	$active['t'] = "";
 	switch ($mode) {
 		case "off":
 			$title = "Databases";
@@ -360,6 +387,7 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
 	$active['p'] = "";
 	$active['b'] = "";
 	$active['i'] = " ";
+	$active['t'] = "";
 	switch ($mode) {
 		case "off":
 			$title = "Databases";
@@ -426,7 +454,7 @@ function pageheader_new($mode = "specimen",$topbar = "on") {
   <meta name='robots' content='noindex, nofollow' />
   <meta property='og:type' content='university' />
   <meta property='og:title' content='Harvard University Herbaria &amp; Libraries' />
-<link rel='shortcut icon' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/favicon.ico' type='image/vnd.microsoft.icon' />
+<link rel='shortcut icon' href='/images/hwpi/favicon.png' type='image/png' />
 	<title>HUH - Databases - $title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
 ";
@@ -447,56 +475,14 @@ $result .="
 <link type='text/css' rel='stylesheet' href='/css/hwpi/css__print_qTBhov6j81VXwPEf5guTmDNsXK37qC0IaPAFtyW71lk.css' media='print' />
 <link type='text/css' rel='stylesheet' href='/css/hwpi/css_messages_En_US41hhaF-_qfgf3V91TZA7_HTPvL-FMSrDwH_Tt0.css' media='all' />
     ";
-// Original hwpi test website styles
-/*
-    <style>
-      @import url('http://hwpi.harvard.edu/modules/system/system.base.css');
-      @import url('http://hwpi.harvard.edu/modules/system/system.menus.css');
-      @import url('http://hwpi.harvard.edu/modules/system/system.messages.css');
-      @import url('http://hwpi.harvard.edu/modules/system/system.theme.css');
+// The original hwpi test website @import list (hwpi.harvard.edu, now offline) was removed;
+// the local copies in /css/hwpi/ above replace it.
 
-      @import url('http://hwpi.harvard.edu/modules/book/book.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/calendar/css/calendar_multiday.css');
-      @import url('http://hwpi.harvard.edu/modules/comment/comment.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_api/date.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_popup/themes/datepicker.1.7.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/date/date_repeat_field/date_repeat_field.css');
-      @import url('http://hwpi.harvard.edu/modules/field/theme/field.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/mollom/mollom.css');
-      @import url('http://hwpi.harvard.edu/modules/node/node.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/modules/os_help/os_help.css');
-      @import url('http://hwpi.harvard.edu/modules/search/search.css');
-      @import url('http://hwpi.harvard.edu/modules/user/user.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/views/css/views.css');
-
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/colorbox/styles/default/colorbox_style.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/ctools/css/ctools.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/nice_menus/nice_menus.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/nice_menus/nice_menus_default.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/views_slideshow/views_slideshow.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/contrib/biblio/biblio.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/modules/os_slideshow/os_slideshow.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.base.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.layout.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.nav.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.slideshow.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/responsive.widgets.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/responsive.classic.css');
-
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/adaptivetheme/at_core/css/at.layout.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/globals.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/css/hwpi.globals.css');
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/css/hwpi_classic.css');
-
-      @import url('http://hwpi.harvard.edu/profiles/openscholar/modules/os/theme/os_dismiss.css');
-    </style>
-*/
-
-// ivy style sheets from hwpi
+// ivy style sheets, local copies of the files formerly loaded from hwpi.harvard.edu
 $result .= "
-<style media='print'>@import url('http://hwpi.harvard.edu/profiles/openscholar/themes/os_basetheme/css/print.css');</style>
-    <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/ivy_accents.css' media='all' />
-    <link type='text/css' rel='stylesheet' href='http://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_classic/flavors/ivy_accents/responsive.ivy.css' media='all' />
+<link type='text/css' rel='stylesheet' href='/css/hwpi/print.css' media='print' />
+    <link type='text/css' rel='stylesheet' href='/css/hwpi/ivy_accents.css' media='all' />
+    <link type='text/css' rel='stylesheet' href='/css/hwpi/responsive.ivy.css' media='all' />
         <script type='text/javascript' src='/js/hwpi/jquery_from_hwpi.js'></script>
         <script type='text/javascript' src='/js/hwpi/js__rhiSuayLbtRqMHYTNEz5cOkIfup7XMCy0XrxzyE6zOI.js'></script>
         <script type='text/javascript'>
@@ -552,7 +538,7 @@ $result .= "
 <!--FLEXIBLE ADMIN HEADER FOR USE BY SELECT GROUPS USING OS-->
     <div id='branding_header'>
         <div  class='branding-container clearfix'>
-          <div class='branding-left'><a href='http://www.harvard.edu' ><img typeof='foaf:Image' src='https://hwpi.harvard.edu/profiles/openscholar/themes/hwpi_basetheme/images/harvard-logo.png' width='259' height='35' alt='Harvard Logo' /></a></div><div class='branding-right'><a href='http://www.fas.harvard.edu/' >FACULTY OF ARTS AND SCIENCES</a> | <a href='http://www.harvard.edu' >HARVARD.EDU</a></div>     </div>
+          <div class='branding-left'><a href='http://www.harvard.edu' ><img typeof='foaf:Image' src='/images/hwpi/harvard-logo.png' width='259' height='35' alt='Harvard Logo' /></a></div><div class='branding-right'><a href='http://www.fas.harvard.edu/' >FACULTY OF ARTS AND SCIENCES</a> | <a href='http://www.harvard.edu' >HARVARD.EDU</a></div>     </div>
     </div>
 
 <div id='page' class='container page header-main header-right content-top content-right footer footer-right'>
@@ -717,7 +703,7 @@ function pagefooter_new() {
             mode of this application (mode=search&$field=valueOfFieldName)
  * @returns a list of <a href=  href='specimen_search.php?mode=search&$field={value}'>{value}</a> ({count}) <BR>
 **/
-function nameCountSearch($query, $field, $cachequery) {
+function nameCountSearch($query, $field, $cachequery = "") {
     global $connection, $errormessage;
 
        $result = "";
@@ -765,17 +751,17 @@ function stats() {
 
    $returnvalue .= "<h2>Numbers of specimens in major groups.</h2>";
    $picklistName = 'HUH Taxon Group'; //customize for your own instance of Specify
-   $query = "select count(*), Title from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
+   $query = "select count(*), Title, 0 from taxon left join picklistitem on groupnumber = value where PickListID=(select PickListID from  picklist where name='$picklistName') group by title";
    $returnvalue .= nameCountSearch($query, 'taxonGroup');
 
    $returnvalue .= "<h2>Numbers of specimens by Herbarium.</h2>";
    //you need to customize this for the way you have collections, collection codes and acronyms managed in Specify for your institution
    $query = "select count(PreparationId), preparationattribute.text3 from preparation left join preparationattribute on preparation.preparationattributeid = preparationattribute.preparationattributeid group by preparationattribute.text3";
-   $query = "select count(collectionobjectid), text1 from fragment group by text1";
+   $query = "select count(collectionobjectid), text1, 0 from fragment group by text1";
    $returnvalue .= nameCountSearch($query, 'herbarium');
 
    $returnvalue .= "<h2>Numbers of specimens by Type Status.</h2>";
-   $query = "select count(collectionobjectid), typestatusname from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
+   $query = "select count(collectionobjectid), typestatusname, 0 from determination d left join fragment f  on d.fragmentid = f.fragmentid where typestatusname is not null group by typestatusname";
    $returnvalue .= nameCountSearch($query, 'typestatus');
 
    return $returnvalue;

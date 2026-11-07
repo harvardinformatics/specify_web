@@ -57,6 +57,11 @@ global $debug;
    echo "PATH: $path\n";
 
    @$files = scandir($path);
+   if ($files === false) {
+      // PHP 8: count(false) throws a TypeError.
+      echo "Unable to read directory: $path\n";
+      return;
+   }
    for ($i=0; $i<count($files); $i++) { 
      if ($files[$i]!='.' && $files[$i]!='..') { 
         if (is_dir($path . '/' . $files[$i])) { 

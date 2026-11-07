@@ -9,16 +9,14 @@
         <Directory /var/www/>
                 Options Indexes FollowSymLinks MultiViews
                 AllowOverride None
-                Order allow,deny
-                allow from all
+                Require all granted
         </Directory>
 
         ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
         <Directory "/usr/lib/cgi-bin">
                 AllowOverride None
                 Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
-                Order allow,deny
-                Allow from all
+                Require all granted
         </Directory>
 
         ErrorLog /dev/stderr
@@ -29,7 +27,11 @@
 
         CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-        AddHandler php5-script .html
+        # Several .html pages (e.g. specimen_index.html) contain PHP.
+        # Replaces the PHP 5 "AddHandler php5-script .html".
+        <FilesMatch "\.html$">
+                SetHandler application/x-httpd-php
+        </FilesMatch>
         RedirectMatch 302  ^/$ /databases
 
         PassEnv SPECIFY_USERNAME

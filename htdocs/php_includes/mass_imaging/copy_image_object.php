@@ -10,6 +10,7 @@ $base = "/mnt/";
 
 if ($argc < 4) {
 	echo "USAGE: copy_image_object.php <imageobjectid> <file> <activeflag> [barcode(s)]\n";
+	exit(1);
 }
 
 $imageobjectid = $argv[1];

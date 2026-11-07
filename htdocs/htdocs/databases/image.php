@@ -54,10 +54,10 @@ class IMAGE_LOCAL_FILE {
 
 $convert = "";
 $id = 47086;
-$id = preg_replace("/[^0-9]/","",$_GET['id']);
-$convert = preg_replace("/[^a-z]/","",$_GET['convert']);
+$id = preg_replace("/[^0-9]/","",($_GET['id'] ?? ''));
+$convert = preg_replace("/[^a-z]/","",($_GET['convert'] ?? ''));
 
-if (strlen($id==0)) {
+if (strlen($id)==0) {
    return_error_image("No image file id provided add parameter ?id= ");
 } else {
    $imagefile = lookup_image($id);
@@ -201,7 +201,7 @@ function writeToLog($imageFile) {
   global $connection;
 
   $server = preg_replace("/[^A-Za-z0-9\.]/","",getenv('SERVER_NAME'));
-  $sql = "insert into log (server, file, resource, resourcetype, recordcount, logtime) values ($server,'image.php',?,?,1,now()) ";
+  $sql = "insert into log (server, file, resource, resourcetype, recordcount, logtime) values (?,'image.php',?,?,1,now()) ";
   $stmt = $connection->stmt_init();
   if ($stmt->prepare($sql)) {
       $mimetype = $imageFile->mimetype;

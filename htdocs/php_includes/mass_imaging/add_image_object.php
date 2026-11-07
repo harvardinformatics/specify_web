@@ -10,6 +10,7 @@ $base = "/mnt/";
 
 if ($argc < 5) {
 	echo "USAGE: add_image_object.php <imagesetid> <file> <image_type> <activeflag> [barcode(s)]\n";
+	exit(1);
 }
 
 $imagesetid = $argv[1];

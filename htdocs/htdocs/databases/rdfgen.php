@@ -26,10 +26,12 @@
 */
 
 // TODO: Proper content negotation, delivering RDF/XML or Turtle or HTML
-$accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT']);
+$accept = parseHTTPAcceptHeader($_SERVER['HTTP_ACCEPT'] ?? 'text/html');
 $delivery = "text/html";
 $stylesheet = TRUE;
-while (!$done && list($key, $mediarange) = each($accept)) {
+$done = FALSE;
+foreach ($accept as $key => $mediarange) {
+    if ($done) { break; }
     if ($mediarange=='text/turtle') {
        // TODO: Implement turtle.
        // $delivery = $mediarange;
@@ -84,8 +86,8 @@ include_once('specify_library.php');
 $connection = specify_connect();
 $debug = array_key_exists("debug",$_REQUEST);
 
-@$request_uuid = preg_replace('[^a-zA-Z0-9\-]','',$_GET['uuid']);
-@$request_query = preg_replace('[a-z]','',$_GET['query']);
+@$request_uuid = preg_replace('[^a-zA-Z0-9\-]','',($_GET['uuid'] ?? ''));
+@$request_query = preg_replace('[a-z]','',($_GET['query'] ?? ''));
 
 if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) { 
    // only run if either request is made from command line interface
@@ -102,6 +104,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
 ';
 
    $target = "agent";
+   $request_name = '';
+   $request_barcode = '';
 
    if ($request_uuid!='') { 
      // what sort of object is this a guid for? 
@@ -118,8 +122,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
        }
      }
    } else { 
-      @$request_name = $_GET['name'];
-      @$request_barcode = preg_replace('[^0-9]','',$_GET['barcode']);
+      @$request_name = ($_GET['name'] ?? '');
+      @$request_barcode = preg_replace('[^0-9]','',($_GET['barcode'] ?? ''));
       if ($request_query == 'agent') { $target = "agent"; } 
       if ($request_query == 'collectionobject') { $target = "fragment"; } 
    }
@@ -133,8 +137,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
               }
 	      echo "<!-- request: $request_uuid -->\n";
 	      if ($debug) { 
-	         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
-   	         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
+	         echo "<!-- accept: " . ($_SERVER['HTTP_ACCEPT'] ?? '') . " -->\n";
+   	         echo "<!-- agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? '') . " -->\n";
               }
               if ($request_barcode!='') { 
                    $sql = 'select fragment.text1, concat(\'barcode-\',fragment.identifier), fragment.collectionobjectid, continent, country, stateprovince, locality, scientificname, scientificnameauthorship, timestamplastupdated, uuid, fragment.fragmentid, collector from guids left join fragment on guids.primarykey =  fragment.fragmentid left join dwc_search on fragment.collectionobjectid = dwc_search.collectionobjectid  where fragment.identifier = ? limit 1 '; 
@@ -168,10 +172,10 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
       while ($statement->fetch()) {
          $row = "";
          $occuri = "$baseuri$uuid";
-         $scientificname = htmlspecialchars($scientificname);
-         $authorship = htmlspecialchars($authorship);
-         $locality = htmlspecialchars($locality);
-         $collector = htmlspecialchars($collector);
+         $scientificname = htmlspecialchars((string)$scientificname, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+         $authorship = htmlspecialchars((string)$authorship, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+         $locality = htmlspecialchars((string)$locality, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+         $collector = htmlspecialchars((string)$collector, ENT_COMPAT | ENT_HTML401, 'UTF-8');
          $row = "<dwc:Occurrence rdf:about=\"$occuri\" >\n";
              if ($collectionCode!='') { $collectionCode = "   <dwc:collectionCode>$collectionCode</dwc:collectionCode>\n"; } 
              if ($catalogNumber!='') { $catalogNumber = "   <dwc:catalogNumber>$catalogNumber</dwc:catalogNumber>\n"; } 
@@ -182,6 +186,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
              if ($authorship!='') { $authorship = "   <dwc:scientificNameAuthorship>$authorship</dwc:scientificNameAuthorship>\n"; } 
              if ($modified!='') { $modified = "   <dcterms:modified>$modified</dcterms:modified>\n"; } 
              if ($collector!='') { $collector = "   <dwc:recordedBy>$collector</dwc:recordedBy>\n"; } 
+             $references = '';
              if ($collectionobjectid!='') { $references = "   <dcterms:references rdf:resource=\"http://kiki.huh.harvard.edu/databases/specimen_search.php?mode=details&amp;id=$collectionobjectid\" />\n"; } 
              $col = getAgentIRI($fragmentid);
          $row .= "$collectionCode$catalogNumber$country$stateProvince$locality$scientificname$authorship$modified$collector$col$references</dwc:Occurrence>\n";
@@ -204,8 +209,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
       }
       echo "<!-- request: $request_uuid -->\n";
       if ($debug) { 
-         echo "<!-- accept: " . $_SERVER['HTTP_ACCEPT'] . " -->\n";
-         echo "<!-- agent: " . $_SERVER['HTTP_USER_AGENT'] . " -->\n";
+         echo "<!-- accept: " . ($_SERVER['HTTP_ACCEPT'] ?? '') . " -->\n";
+         echo "<!-- agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? '') . " -->\n";
       } 
       $sql = "select uuid, primarykey, agenttype, firstname, lastname, email, remarks, url, dateofbirth, dateofbirthconfidence, dateofbirthprecision, dateofdeath, dateofdeathconfidence, dateofdeathprecision, datestype, state from guids left join agent on agent.agentid = guids.primarykey where tablename = 'agent' and (agenttype > 0 or agenttype is null) and uuid = ? order by agenttype asc ";
    } else { 
@@ -313,8 +318,8 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
 
              $row .= "</foaf:$foaftype>\n";
              if ($datestype==0) { 
-                if ($dateofbirthprecision=="") { $dateofbirthprecision = 3;   }
-                if ($dateofdeathprecision=="") { $dateofdeathprecision = 3;   }
+                if (empty($dateofbirthprecision)) { $dateofbirthprecision = 3;   }
+                if (empty($dateofdeathprecision)) { $dateofdeathprecision = 3;   }
                 // Limit date of birth information for people who are living to the year of birth.
                 if ($datestype=="0") {
                     if ($dateofdeath=="") { $dateofbirthprecision = 3;   }
@@ -334,7 +339,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
                 if ($dateofbirth!='') { 
                     $dateofbirth = str_replace("-","/",$dateofbirth);
                     $note = '';
-                    if ($dateofbirthconfidence!='') { 
+                    if ($dateofbirthconfidence!='' && $dateofbirthconfidence!==0) { 
                         $note = "   <skos:note xml:lang=\"en-US\">$dateofbirthconfidence</skos:note>\n";
                     }
                     $row .= "<bio:Birth rdf:about=\"$personuri#birth\">\n   <bio:date rdf:datatype=\"&xsd;date\" >$dateofbirth</bio:date>\n$note   <bio:principal rdf:resource=\"$personuri\" />\n</bio:Birth>\n";
@@ -342,7 +347,7 @@ if (php_sapi_name()==="cli" || $request_uuid!='' || $request_query!='' ) {
                 if ($dateofdeath!='') { 
                     $dateofdeath = str_replace("-","/",$dateofdeath);
                     $note = '';
-                    if ($dateofdeathconfidence!='') { 
+                    if ($dateofdeathconfidence!='' && $dateofdeathconfidence!==0) { 
                         $note = "   <skos:note xml:lang=\"en-US\">$dateofdeathconfidence</skos:note>\n";
                     }
                     $row .= "<bio:Death rdf:about=\"$personuri#death\">\n   <bio:date rdf:datatype=\"&xsd;date\">$dateofdeath</bio:date>\n$note   <bio:principal rdf:resource=\"$personuri\" />\n</bio:Death>\n";
@@ -429,6 +434,17 @@ class AcceptElement {
    public $q;
    public $position;
    public $mediarange;
+}
+
+/**
+ * Comparator for usort() on AcceptElement objects: highest q value first,
+ * ties broken by original position in the Accept header.
+ */
+function compareQ($a, $b) {
+   if ($a->q == $b->q) {
+      return $a->position <=> $b->position;
+   }
+   return ($a->q > $b->q) ? -1 : 1;
 }
 
 function parseHTTPAcceptHeader($header) {

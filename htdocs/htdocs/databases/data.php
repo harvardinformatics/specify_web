@@ -33,9 +33,9 @@ if ($debug) {
 $connection = specify_connect();
 
 // extract parameters from query string, uuid=x and mode=x
-$uuid = $_GET['uuid'];
-$barcode = $_GET['barcode'];
-$mode = $_GET['mode']; // ok if null
+$uuid = ($_GET['uuid'] ?? '');
+$barcode = ($_GET['barcode'] ?? '');
+$mode = ($_GET['mode'] ?? ''); // ok if null
 $collectionobjectid = 0;
 
 // check uuid format
