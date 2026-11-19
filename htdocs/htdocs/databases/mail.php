@@ -84,7 +84,6 @@ echo pageheader("specimen","off");
     <li><a href="botanist_index.html">BOTANISTS</a></li>
     <li><a href="publication_index.html">PUBLICATIONS</a></li>
     <li><a href="specimen_index.html">SPECIMENS</a></li>
-    <li><a href="image_search.php" >IMAGES</a></li>
   <hr />
     <li><a href='http://flora.huh.harvard.edu/HuCards/'>Hu Card Index</a></li>
     <li><a href='http://econ.huh.harvard.edu/'>ECON Artifacts & Products</a></li>
