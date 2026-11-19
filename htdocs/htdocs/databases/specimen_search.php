@@ -67,6 +67,9 @@
 include_once('connection_library.php');
 include_once('specify_library.php');
 
+// Minimum number of characters (not counting wildcards) required in each search field, other than collector number.
+define('SEARCH_MIN_CHARS', 2);
+
 // value for $debug is set in specify_library.php
 if ($debug) {
     // See PHP documentation.
@@ -75,7 +78,24 @@ if ($debug) {
 	mysqli_report(MYSQLI_REPORT_OFF);
 }
 
-$connection = specify_connect();
+// Buffer the output so that a problem found after output has started (invalid search terms) can still be
+// reported with the correct HTTP status code.
+ob_start();
+
+// Test the database connection first, before any page content is generated, so that a failure is
+// reported cleanly (HTTP 503) and not half way through rendering the page.
+$connection = false;
+try {
+	$connection = specify_connect();
+} catch (Throwable $e) {
+	$connection = false;
+}
+if (!$connection) {
+	error_log("specimen_search.php: database connection failed: " . mysqli_connect_errno() . " " . mysqli_connect_error());
+	ob_clean();   // discard anything written while trying to connect
+	service_unavailable();
+}
+
 $errormessage = "";
 
 $mode = "search";
@@ -155,6 +175,7 @@ if ($errormessage!="") {
 }
 
 echo pagefooter();   // defined in function_lib.php
+ob_end_flush();
 
 // ******* main code block ends here, supporting functions follow. *****
 
@@ -1213,6 +1234,7 @@ function search() {
 	$types = "";
 	$parameters = array();
 	$question = "";
+	$short = array();   // labels of search fields that have too few characters
 	$locality = "";
 	$country = "";
 
@@ -1230,6 +1252,7 @@ function search() {
 
 	if ($quick!="") {
 		// If a value was passed in _GET['quick'] then run free text search on quick_search table.
+		if (search_term_length($quick) < SEARCH_MIN_CHARS) { $short[] = "Quick Search"; }
 		$question .= "Quick Search :[$quick] <BR>";
 		// Note: Changes to select field list need to be synchronized with query on web_search and bind_result below.
 		$query = "select distinct q.collectionobjectid,  c.family, c.genus, c.species, c.infraspecific, c.author, c.country, c.state, c.location, c.herbaria, c.barcode, isnull(i.imagesetid), c.datecollected, c.collectornumber, c.collector " .
@@ -1243,7 +1266,8 @@ function search() {
 		$hasquery = true;
 	} else {
 		// Otherwise, obtain parameters from _GET[] and build a query on web_search table.
-		$joins = "";
+		$joins = "";                  // joins that are only needed when a particular search field is used
+		$imagejoin = " left join ";   // images are always displayed, but only required when searching for records with images
 		$wherebit = " where ";
 		$and = "";
 		$types = "";
@@ -1298,6 +1322,7 @@ function search() {
 			$hasquery = true;
 			$question .= "$and has an image ";
 			$wherebit .= "$and i.collectionobjectid is not null ";
+			$imagejoin = " join ";   // only records with images can match, so an inner join gives the same rows
 			$and = " and ";
 		}
 		$locality = substr(preg_replace("/[^A-Za-z%*]/","", ($_GET['loc'] ?? '')),0,59);
@@ -1560,7 +1585,33 @@ function search() {
 			$parameters[$parametercount] = &$projid;
 			$parametercount++;
 			$wherebit .= "$and pco.projectid $operator ? ";
+			$joins .= " join project_colobj pco on web_search.collectionobjectid = pco.collectionobjectid ";
 			$and = " and ";
+		}
+		// Each search field, except collector number, needs at least SEARCH_MIN_CHARS characters not counting wildcards.
+		$fieldvalues = array(
+			"Family/higher taxon" => $family,
+			"Genus" => $genus,
+			"Specific epithet" => $species,
+			"Infraspecific epithet" => $infraspecific,
+			"Collector" => $collector,
+			"Year Collected" => ($yearcollected=='0' ? '' : $yearcollected),   // 0 is a request for records with no year
+			"Author" => $author,
+			"Year published" => $yearpublished,
+			"Country" => $country,
+			"State/Province" => $state,
+			"County/Parish" => $county,
+			"Location" => $locality,
+			"Habitat" => $habitat,
+			"Substrate" => $substrate,
+			"Host" => $host,
+			"Previous ownership" => $provenance,
+			"Type status" => $typestatus
+		);
+		foreach ($fieldvalues as $fieldlabel => $fieldvalue) {
+			if ($fieldvalue!="" && search_term_length($fieldvalue) < SEARCH_MIN_CHARS) {
+				$short[] = $fieldlabel;
+			}
 		}
 		if ($question!="") {
 			$question = "Search for $question <BR>";
@@ -1573,14 +1624,21 @@ function search() {
 			" web_search.author, web_search.country, web_search.state, web_search.location, web_search.herbaria, web_search.barcode, " .
 			" isnull(i.imagesetid), web_search.datecollected, web_search.collectornumber, web_search.collector " .
 			" from web_search " .
-			" left join IMAGE_SET_collectionobject i on web_search.collectionobjectid = i.collectionobjectid  " .
-			" left join project_colobj pco on web_search.collectionobjectid = pco.collectionobjectid " .
+			" $joins " .
+			" $imagejoin IMAGE_SET_collectionobject i on web_search.collectionobjectid = i.collectionobjectid  " .
 			" $wherebit order by web_search.family, web_search.genus, web_search.species, web_search.country " .
 			" limit $start, $limit ";
 
 	}
 	if ($debug===true  && $hasquery===true) {
 		echo "[$query]<BR>\n";
+	}
+
+	// Reject searches with search terms that are too short, without running a query.
+	if (count($short) > 0) {
+		if (!headers_sent()) { http_response_code(400); }
+		echo search_term_warning($short);
+		return;
 	}
 
 	// ***** Step 2: Run the query and assemble the results ***********
@@ -1670,6 +1728,7 @@ function search() {
 				echo "<br><div>\n";
 				echo $paging_links;
 				$oldfamilylink = "";
+				$rowsoutput = 0;
                                 $comma = "";
                                 $CollectionObjectIDs = "";
 				while ($statement->fetch()) {
@@ -1699,6 +1758,14 @@ function search() {
 					$CollectionObjectIDs.= "$comma$CollectionObjectID";
                                         $comma = ",";
 					echo "<BR>\n";
+					// Send the output to the client after every 100 records, so that a client that
+					// has gone away is detected early and we stop generating the page.
+					$rowsoutput++;
+					if ($rowsoutput % 100 == 0 && !flush_output_and_check_client()) {
+						$statement->close();
+						$connection->close();
+						exit;
+					}
 				}
 				echo "</div>\n";
 
@@ -1904,5 +1971,50 @@ if (false) { //                if ($habitat!= "" && preg_match('/[%_]/',$habitat
 
 // See PHP documentation.
 mysqli_report(MYSQLI_REPORT_OFF);
+
+/**
+ * Report that the database can't be reached, with an HTTP 503 so that clients and crawlers know to retry later.
+ * Does not return.
+ */
+function service_unavailable() {
+	if (!headers_sent()) {
+		http_response_code(503);
+		header("Retry-After: 120");
+		header("Cache-Control: no-store");
+	}
+	echo pageheader('specimen');
+	echo "<div class='search-warning' role='alert'><strong>The website is experiencing higher than usual traffic.</strong> Please try again later.</div>\n";
+	echo pagefooter();
+	exit;
+}
+
+/**
+ * Number of characters in a search term, not counting wildcards (* % _) or whitespace.
+ */
+function search_term_length($value) {
+	$value = preg_replace('/[\s*%_]+/', '', (string)$value);
+	return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+}
+
+/**
+ * Message shown when search fields have too few characters.
+ * Keep the wording in sync with the check in specimen_index.html.
+ */
+function search_term_warning($labels) {
+	$list = htmlspecialchars(implode(", ", $labels), ENT_QUOTES, 'UTF-8');
+	return "<div class='search-warning' role='alert'>Please enter at least " . SEARCH_MIN_CHARS .
+		" characters, not counting wildcards, in: <strong>$list</strong>. (Collector no. is exempt.) " .
+		"<a href='specimen_index.html'>Return to the search form</a>.</div>\n";
+}
+
+/**
+ * Send what has been generated so far to the client.
+ * @return false if the client has disconnected.
+ */
+function flush_output_and_check_client() {
+	if (ob_get_level() > 0) { ob_flush(); }
+	flush();
+	return (connection_aborted() == 0);
+}
 
 ?>
