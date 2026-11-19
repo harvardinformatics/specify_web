@@ -2003,7 +2003,7 @@ function search_term_length($value) {
 function search_term_warning($labels) {
 	$list = htmlspecialchars(implode(", ", $labels), ENT_QUOTES, 'UTF-8');
 	return "<div class='search-warning' role='alert'>Please enter at least " . SEARCH_MIN_CHARS .
-		" characters, not counting wildcards, in: <strong>$list</strong>. (Collector no. is exempt.) " .
+		" characters, not counting wildcards, in: <strong>$list</strong>. " .
 		"<a href='specimen_index.html'>Return to the search form</a>.</div>\n";
 }
 
