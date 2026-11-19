@@ -164,6 +164,27 @@ if (($_POST['mode'] ?? '')!="")  {
 
 // ******* main code block ends here, supporting functions follow. *****
 
+/**
+ * Call after writing each record of a csv export.  After every 100 records the output is sent to the client.
+ * If the client has gone away, the export stops instead of generating the rest of a large file.
+ */
+function csv_flush_check($file, &$csvrows, $statement) {
+	global $connection;
+	$csvrows++;
+	if ($csvrows % 100 == 0) {
+		fflush($file);
+		if (ob_get_level() > 0) { ob_flush(); }
+		flush();
+		if (connection_aborted()) {
+			fclose($file);
+			$statement->close();
+			$connection->close();
+			exit;
+		}
+	}
+}
+
+
 function menu() {
    $returnvalue = "";
 
@@ -196,25 +217,14 @@ function menu() {
 function california_dwc() {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_california.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers, timestamplastupdated from dwc_search where stateprovince = 'California' and collectioncode <> 'FH' ";
 
@@ -229,18 +239,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated") ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_california.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -248,25 +251,14 @@ if ( !function_exists('sys_get_temp_dir')) {
 function rock_feng_collectors_dwc() {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_rockfeng.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where (collector like '%J. F. Rock%' or collector like '%K. M. Feng%') and country = 'China' ";
 
@@ -281,18 +273,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_rockfeng.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -300,25 +285,14 @@ if ( !function_exists('sys_get_temp_dir')) {
 function cultivated_dwc() {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_cultivated.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where ";
 $query .= " scientificname like 'Aegilops %'";
@@ -434,18 +408,11 @@ $query .= " or scientificname like 'Zea %'";
 		while ($statement->fetch()) {
 	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_cultivated.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -453,25 +420,14 @@ $query .= " or scientificname like 'Zea %'";
 function country_geo_dwc($country,$geoonly) {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_country_geo.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
    $wherebit = "";
    if ($geoonly===TRUE) {
       $wherebit = " and decimallatitude is not null and decimallongitude is not null ";
@@ -516,43 +472,25 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array( "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_country_geo.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
 function genus_dwc($genus) {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where scientificname like ? ";
 
@@ -571,18 +509,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array("$fragmentguid","$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -593,24 +524,14 @@ function image_feed($since = null) {
         // width of thumbnail to produce
         $thumbwidth = 250;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_images.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select uri, collectioncode, catalognumber, scientificname, highergeography, locality, collectornumber, collector, eventdate, d.fragmentguid from IMAGE_SET s left join IMAGE_OBJECT o on s.id = o.image_set_id left join IMAGE_SET_collectionobject isc on s.ID = isc.imagesetid left join IMAGE_BATCH b on s.batch_id = b.id left join dwc_search d on isc.collectionobjectid = d.collectionobjectid  where project = 'NEVP TCN' and (barcodes is null or barcodes not like '%;%') and object_type_id = 4 and collectioncode is not null ";
    if ($since!=null) {
@@ -633,43 +554,25 @@ if ( !function_exists('sys_get_temp_dir')) {
                     $thumburi = str_replace('?rotate=guess&format=jpeg,quality,100',"?rotate=guess&resize=$thumbwidth&format=jpeg,quality,100",$imageuri);
 	            $linearray = array("$iplantguid","$imageuri","$thumburi","$collectioncode","$catalognumber","$scientificname","$highergeography","$locality","$collectornumber","$collector","$eventdate","$occurrenceid");
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_images.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
 function project_dwc($projectid) {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select distinct fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search left join project_colobj on dwc_search.collectionobjectid = project_colobj.collectionobjectid where project_colobj.projectid = ?  ";
 
@@ -687,18 +590,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array("$fragmentguid","$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_genus.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -706,25 +602,14 @@ if ( !function_exists('sys_get_temp_dir')) {
 function barcode_dwc($barcode) {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_dwc_barcode.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
 
    $query = "select fragmentguid, institution, collectioncode, collectionid, catalognumber, catalognumbernumeric, dc_type, basisofrecord, collectornumber, collector, sex, reproductiveStatus, preparations, verbatimdate, eventdate, year, month, day, startdayofyear, enddayofyear, startdatecollected, enddatecollected, habitat, highergeography, continent, country, stateprovince, islandgroup, county, island, municipality, locality, minimumelevationmeters, maximumelevationmeters, verbatimelevation, decimallatitude, decimallongitude, geodeticdatum, identifiedby, dateidentified, identificationqualifier, identificationremarks, identificationreferences, typestatus, scientificname, scientificnameauthorship, family, informationwitheld, datageneralizations, othercatalognumbers from dwc_search where catalognumber like ? ";
 
@@ -743,42 +628,24 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array("$fragmentguid","$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers" ) ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8 ");
-        header("Content-Disposition: attachment;Filename=HUH_dwc_barcode.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 function fungilichens() {
 global $connection,$debug, $since;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_fungal_report.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
    $collectionobjectids = "";
    $ids = array();
 
@@ -814,18 +681,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array( "$fragmentguid", "$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated","President and Fellows of Harvard College","http://kiki.huh.harvard.edu/databases/addenda.html#policy") ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_fungal_report.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 
 }
@@ -833,25 +693,14 @@ if ( !function_exists('sys_get_temp_dir')) {
 function microfungi() {
 global $connection,$debug, $since;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_microfungi_report.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
    $collectionobjectids = "";
    $ids = array();
 
@@ -893,18 +742,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 
                     $linearray = array( "$fragmentguid", "$institution","$collectioncode","$collectionid","$catnum","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated","President and Fellows of Harvard College","http://kiki.huh.harvard.edu/databases/addenda.html#policy") ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
         }
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_microfungi_report.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 
 }
@@ -912,25 +754,16 @@ if ( !function_exists('sys_get_temp_dir')) {
 function ames_orchid_list() {
 global $connection,$debug, $since;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   if (!$debug) {
+      header("Content-Type: application/csv; charset=utf-8");
+      header("Content-Disposition: attachment;Filename=HUH_AMES_report.csv");
+      header("Cache-Control: no-cache, must-revalidate");
+      header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   }
+   $file = fopen("php://output","w");
+   $csvrows = 0;
    $collectionobjectids = "";
    $ids = array();
 
@@ -967,19 +800,10 @@ dwc_search where ( dwc_search.collectioncode = 'AMES' or family = 'Orchidaceae' 
 		while ($statement->fetch()) {
 	            $linearray = array( "$scientificname","$scientificnameauthorship","$collector","$collectornumber","$collectioncode","$othercatalognumbers","$barcode","$typestatus") ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
-if (!$debug) {
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_AMES_report.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-}
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 
@@ -987,25 +811,14 @@ if (!$debug) {
 function specimens_dwc() {
 	global $connection,$debug;
 
-// From comments in php docs
-if ( !function_exists('sys_get_temp_dir')) {
-  function sys_get_temp_dir() {
-      if( $temp=getenv('TMP') )        return $temp;
-      if( $temp=getenv('TEMP') )        return $temp;
-      if( $temp=getenv('TMPDIR') )    return $temp;
-      $temp=tempnam(__FILE__,'');
-      if (file_exists($temp)) {
-          unlink($temp);
-          return dirname($temp);
-      }
-      return null;
-  }
-}
-
-   if ($debug) { echo "[" . sys_get_temp_dir() . "]<BR>"; }
-   $tempfilename = tempnam(realpath(sys_get_temp_dir()), "csv");
-   if ($debug) { echo "[$tempfilename]<BR>"; }
-   $file = fopen($tempfilename,"w");
+   // Send the csv as it is generated, and flush it every 100 records (see csv_flush_check()),
+   // so that an export that nobody is waiting for any more is stopped early.
+   header("Content-Type: application/csv; charset=utf-8");
+   header("Content-Disposition: attachment;Filename=HUH_specimenreport.csv");
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+   $file = fopen("php://output","w");
+   $csvrows = 0;
    $collectionobjectids = "";
    $ids = array();
 
@@ -1036,18 +849,11 @@ if ( !function_exists('sys_get_temp_dir')) {
 		while ($statement->fetch()) {
 	            $linearray = array( "$fragmentguid","$institution","$collectioncode","$collectionid","$catalognumber","$catalognumbernumeric","$dc_type","$basisofrecord","$collectornumber","$collector","$sex","$reproductiveStatus","$preparations","$verbatimdate","$eventdate","$year","$month","$day","$startdayofyear","$enddayofyear","$startdatecollected","$enddatecollected","$habitat","$highergeography","$continent","$country","$stateprovince","$islandgroup","$county","$island","$municipality","$locality","$minimumelevationmeters","$maximumelevationmeters","$verbatimelevation","$decimallatitude","$decimallongitude","$geodeticdatum","$identifiedby","$dateidentified","$identificationqualifier","$identificationremarks","$identificationreferences","$typestatus","$scientificname","$scientificnameauthorship","$family","$informationwitheld","$datageneralizations","$othercatalognumbers","$datelastupdated") ;
                     fputcsv($file,$linearray);
+                    csv_flush_check($file, $csvrows, $statement);
                 }
 	}
         fclose($file);
 
-        // write header and send file to browser
-        header("Content-Type: application/csv; charset=utf-8");
-        header("Content-Disposition: attachment;Filename=HUH_specimenreport.csv");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-        readfile($tempfilename);
-        // remove temp file
-        unlink($tempfilename);
 
 }
 

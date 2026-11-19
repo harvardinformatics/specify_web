@@ -658,3 +658,15 @@ div.tnimg a{
 div.tnimg img{
     width: 100%;
 }
+
+/* Notice shown when a search can't be run (search terms too short, or the site is busy) */
+.search-warning {
+    background-color: #fdf6d3;
+    border: 1px solid #e6d58a;
+    border-left: 4px solid #215990;
+    color: #333333;
+    margin: 10px auto;
+    padding: 8px 12px;
+    max-width: 640px;
+    text-align: left;
+}
