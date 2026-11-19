@@ -33,7 +33,7 @@ echo pageheader("agent","off");
 	"initials lastname" (ex: "C. S. Sargent"), "lastname, firstname" (ex: "Sargent, Charles").
 </p>
 
-<form class="searchform" action="botanist_search_2.php" method="get">
+<form class="searchform" id="botanist-search-form" action="botanist_search_2.php" method="get">
     <input type="hidden" name="start" value="1">
      <table align="center">
 			 <tr>
@@ -121,7 +121,13 @@ echo pageheader("agent","off");
             <td width="10"><input type="reset" value="Clear"></td></tr>
             </table>
 
+<div id="search-warning" class="search-warning" role="alert" style="display:none;"></div>
 </form>
+
+<script type="text/javascript" src="js/search_validation.js"></script>
+<script type="text/javascript">
+SearchValidation.attach({ form: 'botanist-search-form', box: 'search-warning', fields: { name: 'Name', remarks: 'Remarks' }, ignore: '"' });
+</script>
 
 <p>Please help us keep the index up to date! Send us corrections,
 	suggest botanist additions, or report issues <a href='add_correct.html'>here</a>.</p>

@@ -25,6 +25,7 @@ $debug=false;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
+include_once(__DIR__ . '/search_validation.php');   // search_term_length(), search_term_warning(), SEARCH_MIN_CHARS
 
 if ($debug) {
 	mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
@@ -62,6 +63,8 @@ if (preg_replace("/[^0-9A-Za-z\-]/","",($_GET['botanistguid'] ?? ''))!="") {
 	$mode = "details";
 }
 
+// Buffer the output so that search terms that are too short can still be reported with an HTTP 400 status.
+ob_start();
 if (!$json) {
    echo pageheader('agent');
 }
@@ -95,6 +98,7 @@ if ($errormessage!="") {
 if (!$json) {
    echo pagefooter();
 }
+ob_end_flush();
 
 // ******* main code block ends here, supporting functions follow. *****
 
@@ -666,6 +670,20 @@ function search() {
 			$parameters[$parametercount] = '%'.$part.'%';
 			$parametercount++;
 		}
+	}
+
+	// Name and remarks each need at least SEARCH_MIN_CHARS characters, not counting wildcards, whitespace or quotes.
+	$short = array();
+	if ($name!="" && search_term_length($name, '"') < SEARCH_MIN_CHARS) { $short[] = "Name"; }
+	if ($remarks!="" && search_term_length($remarks, '"') < SEARCH_MIN_CHARS) { $short[] = "Remarks"; }
+	if (count($short) > 0) {
+		if (!headers_sent()) { http_response_code(400); }
+		if ($json) {
+			echo "{ \"botanists\" : [], \"error\" : \"Please enter at least " . SEARCH_MIN_CHARS . " characters, not counting wildcards, in: " . implode(", ", $short) . "\" }";
+		} else {
+			echo search_term_warning($short, 'botanist_index.html');
+		}
+		return;
 	}
 
 //	if ($is_author=="on" || $is_collector=="on" || $individual=="on" || )

@@ -66,9 +66,7 @@
 
 include_once('connection_library.php');
 include_once('specify_library.php');
-
-// Minimum number of characters (not counting wildcards) required in each search field, other than collector number.
-define('SEARCH_MIN_CHARS', 2);
+include_once(__DIR__ . '/search_validation.php');   // search_term_length(), search_term_warning(), SEARCH_MIN_CHARS
 
 // value for $debug is set in specify_library.php
 if ($debug) {
@@ -1637,7 +1635,7 @@ function search() {
 	// Reject searches with search terms that are too short, without running a query.
 	if (count($short) > 0) {
 		if (!headers_sent()) { http_response_code(400); }
-		echo search_term_warning($short);
+		echo search_term_warning($short, 'specimen_index.html');
 		return;
 	}
 
@@ -1986,25 +1984,6 @@ function service_unavailable() {
 	echo "<div class='search-warning' role='alert'><strong>The website is experiencing higher than usual traffic.</strong> Please try again later.</div>\n";
 	echo pagefooter();
 	exit;
-}
-
-/**
- * Number of characters in a search term, not counting wildcards (* % _) or whitespace.
- */
-function search_term_length($value) {
-	$value = preg_replace('/[\s*%_]+/', '', (string)$value);
-	return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
-}
-
-/**
- * Message shown when search fields have too few characters.
- * Keep the wording in sync with the check in specimen_index.html.
- */
-function search_term_warning($labels) {
-	$list = htmlspecialchars(implode(", ", $labels), ENT_QUOTES, 'UTF-8');
-	return "<div class='search-warning' role='alert'>Please enter at least " . SEARCH_MIN_CHARS .
-		" characters, not counting wildcards, in: <strong>$list</strong>. " .
-		"<a href='specimen_index.html'>Return to the search form</a>.</div>\n";
 }
 
 /**

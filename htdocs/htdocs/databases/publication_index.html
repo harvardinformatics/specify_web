@@ -46,7 +46,7 @@ For example, to search for <i>Manual of Botany</i> use a title key such as &quot
 
 <br\>       
 
-    <form class="searchform" action="publication_search.php" method="GET">
+    <form class="searchform" id="publication-search-form" action="publication_search.php" method="GET">
        <input type="hidden" name="start" value="1"> 
        <table align="left" border="0" cellpadding="3" cellspacing="0" summary="">
             <tr><td class="nu">Title/abbreviation</td>
@@ -89,7 +89,14 @@ For example, to search for <i>Manual of Botany</i> use a title key such as &quot
             </tr>
             </table>
 
+<div id="search-warning" class="search-warning" role="alert" style="display:none; clear:both;"></div>
 </form>
+
+<script type="text/javascript" src="js/search_validation.js"></script>
+<script type="text/javascript">
+SearchValidation.attach({ form: 'publication-search-form', box: 'search-warning',
+    fields: { title: 'Title/abbreviation', place: 'Place of Publication', publisher: 'Publisher', author: 'Author' } });
+</script>
 
 <br clear="all"/>
 

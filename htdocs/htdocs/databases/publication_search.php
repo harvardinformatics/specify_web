@@ -24,6 +24,7 @@ $debug=false;
 
 include_once('connection_library.php');
 include_once('specify_library.php');
+include_once(__DIR__ . '/search_validation.php');   // search_term_length(), search_term_warning(), SEARCH_MIN_CHARS
 
 if ($debug) {
    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_STRICT);
@@ -52,6 +53,8 @@ if (preg_replace("/[^0-9]/","",($_GET['barcode'] ?? ''))!="") {
 	$mode = "details";
 }
 
+// Buffer the output so that search terms that are too short can still be reported with an HTTP 400 status.
+ob_start();
 echo pageheader('publication');
 
 if ($connection) {
@@ -97,6 +100,7 @@ if ($errormessage!="") {
 }
 
 echo pagefooter();
+ob_end_flush();
 
 // ******* main code block ends here, supporting functions follow. *****
 
@@ -470,6 +474,17 @@ function search() {
 		$relaxedparameters[$relaxedparametercount] = &$ttype;
 		$relaxedparametercount++;
 		$and = " and ";
+	}
+	// Title, place of publication, publisher and author each need at least SEARCH_MIN_CHARS characters, not counting wildcards.
+	$short = array();
+	if ($title!="" && search_term_length($title) < SEARCH_MIN_CHARS) { $short[] = "Title/abbreviation"; }
+	if ($place!="" && search_term_length($place) < SEARCH_MIN_CHARS) { $short[] = "Place of Publication"; }
+	if ($publisher!="" && search_term_length($publisher) < SEARCH_MIN_CHARS) { $short[] = "Publisher"; }
+	if ($author!="" && search_term_length($author) < SEARCH_MIN_CHARS) { $short[] = "Author"; }
+	if (count($short) > 0) {
+		if (!headers_sent()) { http_response_code(400); }
+		echo search_term_warning($short, 'publication_index.html');
+		return;
 	}
 	if ($question!="") {
 		$question = "Search for $question <BR>";

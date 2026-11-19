@@ -229,69 +229,10 @@ if (preg_match("/^140\.247\.98\./",$_SERVER['REMOTE_ADDR']) ||
 
 	<!-- main content ends -->
 
+<script type="text/javascript" src="js/search_validation.js"></script>
 <script type="text/javascript">
-// Each search field, except collector number, needs at least 2 characters, not counting wildcards (* % _).
-// If not, show a message and don't run the search.  The same rule is enforced by specimen_search.php.
-(function () {
-  var MIN_CHARS = 2;
-  var EXEMPT = { collectornumber: true };
-  var LABELS = { quick: 'Quick Search' };
-
-  function significantLength(value) {
-    return value.replace(/[\s*%_]+/g, '').length;
-  }
-
-  // The label of a field is the text of the table cell to the left of the cell that holds the field.
-  function labelFor(input) {
-    if (LABELS[input.name]) { return LABELS[input.name]; }
-    var cell = input.parentNode;
-    while (cell && cell.nodeName !== 'TD') { cell = cell.parentNode; }
-    var prev = cell ? cell.previousElementSibling : null;
-    while (prev && !/\S/.test(prev.textContent)) { prev = prev.previousElementSibling; }
-    return prev ? prev.textContent.replace(/\s+/g, ' ').replace(/^ | $/g, '') : input.name;
-  }
-
-  function shortFields(form) {
-    var bad = [];
-    // form.elements (not getElementsByTagName) because the controls in the search table
-    // belong to the form without being nested inside it.
-    for (var i = 0; i < form.elements.length; i++) {
-      var field = form.elements[i];
-      if (field.type !== 'text' || EXEMPT[field.name]) { continue; }
-      if (/\S/.test(field.value) && significantLength(field.value) < MIN_CHARS) {
-        bad.push(labelFor(field));
-      }
-    }
-    return bad;
-  }
-
-  function showWarning(box, labels) {
-    while (box.firstChild) { box.removeChild(box.firstChild); }
-    box.appendChild(document.createTextNode('Please enter at least ' + MIN_CHARS + ' characters, not counting wildcards, in: '));
-    var list = document.createElement('strong');
-    list.appendChild(document.createTextNode(labels.join(', ')));
-    box.appendChild(list);
-    box.appendChild(document.createTextNode('.'));
-    box.style.display = 'block';
-  }
-
-  function attach(form, box) {
-    if (!form || !box || !form.addEventListener) { return; }
-    form.addEventListener('submit', function (event) {
-      var bad = shortFields(form);
-      if (bad.length > 0) {
-        event.preventDefault();
-        showWarning(box, bad);
-      } else {
-        box.style.display = 'none';
-      }
-    }, false);
-    form.addEventListener('reset', function () { box.style.display = 'none'; }, false);
-  }
-
-  attach(document.getElementById('quick-search-form'), document.getElementById('quick-warning'));
-  attach(document.getElementById('specimen-search-form'), document.getElementById('search-warning'));
-})();
+SearchValidation.attach({ form: 'quick-search-form', box: 'quick-warning', labels: { quick: 'Quick Search' } });
+SearchValidation.attach({ form: 'specimen-search-form', box: 'search-warning', except: { collectornumber: true } });
 </script>
 
 <?php
